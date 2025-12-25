@@ -1,0 +1,164 @@
+.login-page {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Image A: now /images/login/001.jpg */
+  background-image: url('/images/login/001.jpg'); 
+  background-size: cover;
+  background-position: center;
+}
+
+.login-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.3);
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.login-mask.visible {
+  opacity: 1;
+}
+
+.login-box {
+  position: relative;
+  z-index: 2;
+  background-color: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  width: 1000px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 40px;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+  /* Ensure minimum height to avoid collapse if content is hidden */
+  min-height: 400px; 
+  justify-content: center; /* Center content vertically */
+}
+
+.login-box.visible {
+  opacity: 1;
+}
+
+.welcome-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: black;
+  font-size: 24px;
+  font-weight: bold;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+  pointer-events: none;
+  text-align: center;
+  width: 100%;
+  z-index: 10;
+}
+
+.welcome-text.visible {
+  opacity: 1;
+}
+
+.login-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.login-content.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.login-header-img {
+  width: 1000px;
+  height: 250px;
+  object-fit: cover;
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+}
+
+.login-form {
+  width: 400px;
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.login-btn-container {
+  position: relative;
+  width: 100%;
+  height: 50px;
+}
+
+.login-btn {
+  width: 100%;
+  height: 100%;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.login-btn:hover {
+  background-color: #0056b3;
+}
+
+.login-message {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 14px; /* Slightly smaller to fit two lines */
+  /* pointer-events: none;  Removed to block clicks on button underneath */
+  white-space: pre-line;
+  text-align: center;
+  line-height: 1.2;
+  cursor: not-allowed; /* Indicate that interaction is blocked */
+}
+
+.msg-error {
+  background-color: #f8d7da;
+  border: 2px solid #dc3545;
+  color: #dc3545;
+}
+
+.msg-success {
+  background-color: #d4edda;
+  border: 2px solid #28a745;
+  color: #28a745;
+}

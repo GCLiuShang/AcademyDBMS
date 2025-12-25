@@ -1,0 +1,51 @@
+-- 重置数据库：清空所有表内容，保留表结构
+-- 注意：执行前请确保已备份重要数据
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- 清空关系表（按依赖关系反向顺序）
+TRUNCATE TABLE Msg_Receive;
+TRUNCATE TABLE Msg_Send;
+TRUNCATE TABLE Take_Exam;
+TRUNCATE TABLE Invigilate;
+TRUNCATE TABLE Arrange_Exam;
+TRUNCATE TABLE Setup_Exam;
+TRUNCATE TABLE Arrange_Course;
+TRUNCATE TABLE SetupCo_DofW;
+TRUNCATE TABLE SetupCo_Prof;
+TRUNCATE TABLE Setup_Course;
+TRUNCATE TABLE Enrollment;
+TRUNCATE TABLE Pursuit;
+TRUNCATE TABLE Prerequisite;
+TRUNCATE TABLE TP_Curricular;
+TRUNCATE TABLE Setup_Curricular_P;
+TRUNCATE TABLE Setup_Curricular_G;
+TRUNCATE TABLE Cno_Pool;
+
+-- 清空实体表（按依赖关系反向顺序）
+TRUNCATE TABLE Message;
+TRUNCATE TABLE Exam;
+TRUNCATE TABLE Course;
+TRUNCATE TABLE Curricular;
+TRUNCATE TABLE Other;
+TRUNCATE TABLE Univ_Adm;
+TRUNCATE TABLE Dept_Adm;
+TRUNCATE TABLE Professor;
+TRUNCATE TABLE Student;
+TRUNCATE TABLE User;
+TRUNCATE TABLE Date;
+TRUNCATE TABLE Classroom;
+TRUNCATE TABLE Building;
+TRUNCATE TABLE Class;
+TRUNCATE TABLE TrainingProgram;
+TRUNCATE TABLE Domain;
+TRUNCATE TABLE Semester;
+TRUNCATE TABLE Lesson;
+TRUNCATE TABLE Dayofweek;
+TRUNCATE TABLE Campus;
+TRUNCATE TABLE Department;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- 重置自增ID（如果有的话）
+-- 注意：上面的TRUNCATE操作通常会自动重置自增ID

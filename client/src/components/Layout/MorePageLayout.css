@@ -1,0 +1,54 @@
+.more-page-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 1. 标题栏 (Header Bar) */
+.more-page-header {
+  width: 100%;
+  height: 64px; /* 与导航栏高度一致 */
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-bottom: 20px; /* 与下方内容保持间距 */
+  position: relative;
+  /* 背景透明，确保 StandardPageLayout 的背景可见 */
+}
+
+.header-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: black;
+  margin-right: 20px;
+  white-space: nowrap;
+}
+
+.header-line-container {
+  flex: 1; /* 占据剩余空间 */
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.header-line {
+  flex: 1;
+  height: 2px;
+  background-color: #00489B;
+  margin-right: -2px; /* 稍微重叠以确保连接 */
+}
+
+.header-arrow {
+  height: 12px; /* 根据 svg 实际大小调整 */
+  width: auto;
+}
+
+/* 2. 内容区域 */
+.more-page-content-body {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* 内部滚动由子元素决定 */
+}

@@ -1,0 +1,149 @@
+.sendbox-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.sendbox-left {
+  width: 80%;
+  height: 100%;
+  padding-right: 20px;
+  box-sizing: border-box;
+}
+
+.sendbox-right {
+  width: 20%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.trash-bin {
+  width: 100%;
+  height: 300px;
+  border: 2px solid #00489B;
+  border-radius: 16px;
+  background-color: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.trash-icon {
+  margin-top: 10px;
+}
+
+.trash-icon img {
+  width: 64px;
+  height: 64px;
+}
+
+.trash-text {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: black;
+}
+
+.trash-arrow {
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  cursor: pointer;
+}
+
+.trash-arrow:hover {
+  animation: moveRight 1s infinite;
+}
+
+@keyframes moveRight {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(5px); }
+  100% { transform: translateX(0); }
+}
+
+.trash-arrow img {
+  width: 32px;
+  height: 32px;
+}
+
+.operation-btns {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+}
+
+.icon-btn:hover {
+  opacity: 0.7;
+}
+
+.icon-btn img {
+  width: 20px;
+  height: 20px;
+}
+
+.sendbox-details-title {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.sendbox-details-receiver {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sendbox-details-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sendbox-details-time {
+  flex: 1;
+  min-width: 0;
+  opacity: 0.85;
+}
+
+.sendbox-details-category {
+  flex: 0 0 auto;
+  opacity: 0.85;
+}
+
+.sendbox-details-priority {
+  flex: 0 0 auto;
+  opacity: 0.85;
+}
+
+.sendbox-details-content {
+  white-space: pre-wrap;
+  line-height: 1.6;
+}

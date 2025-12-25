@@ -1,0 +1,175 @@
+.notification-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 9998;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+  pointer-events: none; /* Let clicks pass through when hidden/transparent */
+}
+
+.notification-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.notification-box {
+  position: fixed;
+  z-index: 9999;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  
+  /* Initial State: Bottom Right */
+  bottom: 30px;
+  right: -400px; /* Hidden off-screen */
+  width: 320px;
+  height: auto;
+  max-height: 200px;
+  /* Use transform for centering logic later, keep clean here */
+  transform: translate(0, 0); 
+}
+
+.notification-box.slide-in {
+  right: 30px;
+}
+
+.notification-box.slide-out {
+  /* Slide out to RIGHT */
+  right: -400px;
+  opacity: 0;
+}
+
+.notification-box.expanded {
+  /* Centered using translate from bottom-right reference */
+  /* bottom: 50% puts the bottom edge at vertical center */
+  /* right: 50% puts the right edge at horizontal center */
+  /* translate(50%, 50%) moves it down/right by half its size, centering the center */
+  bottom: 50%;
+  right: 50%;
+  transform: translate(50%, 50%);
+  width: 600px;
+  height: 400px;
+  max-height: 80vh;
+  cursor: default;
+}
+
+/* Colors based on Priority */
+.notification-box.priority-normal {
+  background-color: #f6ffed; /* Light Green */
+}
+
+.notification-box.priority-important {
+  background-color: #fff1f0; /* Light Red */
+}
+
+/* Content Container */
+.notification-content {
+  padding: 16px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: opacity 0.2s;
+}
+
+.notification-content.fading {
+  opacity: 0;
+}
+
+/* Close Button */
+.close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: #999;
+  z-index: 10;
+}
+
+.close-btn:hover {
+  color: #333;
+}
+
+/* Header */
+.notification-header {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  /* Color will be inherited from parent or applied directly via JS class */
+  color: inherit;
+}
+
+/* Body */
+.notification-body {
+  font-size: 14px;
+  line-height: 1.5;
+  flex: 1;
+  color: inherit;
+}
+
+/* Expanded Body Scroll */
+.notification-box.expanded .notification-body {
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* Recalled Message Section */
+.recalled-section {
+  margin-top: 16px;
+  padding-top: 8px;
+  border-top: 1px dashed currentColor; /* Use current text color */
+  opacity: 0.8;
+}
+
+.recalled-label {
+  font-weight: bold;
+  margin-bottom: 4px;
+  margin-top: 8px;
+}
+
+/* Text Colors based on Category - Apply to .notification-content or specific elements */
+.text-category-notice { color: #52c41a; } /* Green */
+.text-category-todo { color: #f5222d; }   /* Red */
+.text-category-system { color: #1890ff; } /* Blue */
+.text-category-recall { color: #000000; } /* Black */
+
+/* Countdown Line */
+.countdown-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  width: 100%;
+  transform-origin: left;
+}
+
+.countdown-line.priority-normal {
+  background-color: #389e0d; /* Dark Green */
+}
+
+.countdown-line.priority-important {
+  background-color: #cf1322; /* Dark Red */
+}
+
+/* Animation for countdown */
+@keyframes countdown {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+.countdown-active {
+  animation-name: countdown;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+/* Adjust animation duration dynamically in inline style */

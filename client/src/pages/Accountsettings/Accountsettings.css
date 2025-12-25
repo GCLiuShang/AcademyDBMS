@@ -1,0 +1,140 @@
+.accountsettings-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+.accountsettings-left {
+  width: 80%;
+  height: 100%;
+  padding-right: 20px;
+  box-sizing: border-box;
+}
+
+.accountsettings-right {
+  width: 20%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.accountsettings-box {
+  width: 100%;
+  border: 2px solid #00489B;
+  border-radius: 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.accountsettings-info {
+  height: 100%;
+}
+
+.accountsettings-info-body {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.accountsettings-row {
+  width: 100%;
+  height: 56px;
+  display: flex;
+  border-bottom: 1px solid #d0d0d0;
+  box-sizing: border-box;
+}
+
+.accountsettings-cell {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.accountsettings-cell-left {
+  width: 10%;
+  min-width: 80px;
+  justify-content: center;
+  border-right: 1px solid #d0d0d0;
+  font-weight: 700;
+  color: #00489B;
+}
+
+.accountsettings-cell-right {
+  width: 90%;
+  padding: 0 10px;
+}
+
+.accountsettings-input {
+  width: 100%;
+  height: 36px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+}
+
+.accountsettings-input.disabled {
+  color: #888;
+}
+
+.accountsettings-confirm {
+  height: 75%;
+  display: flex;
+  flex-direction: column;
+}
+
+.accountsettings-confirm-title {
+  height: 56px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  color: #00489B;
+  background: #E0E0E0;
+}
+
+.accountsettings-confirm-body {
+  flex: 1;
+  padding: 12px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.accountsettings-confirm-textarea {
+  flex: 1;
+  width: 100%;
+  resize: none;
+  border: 1px solid #d0d0d0;
+  border-radius: 12px;
+  padding: 10px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  -webkit-text-security: disc;
+}
+
+.accountsettings-confirm-error {
+  color: #C00000;
+  font-weight: 700;
+}
+
+.accountsettings-submit {
+  height: 25%;
+  border: none;
+  border-radius: 16px;
+  background: #c0c0c0;
+  color: #fff;
+  font-weight: 700;
+  font-size: 20px;
+  cursor: not-allowed;
+}
+
+.accountsettings-submit.active {
+  background: #00489B;
+  cursor: pointer;
+}
+

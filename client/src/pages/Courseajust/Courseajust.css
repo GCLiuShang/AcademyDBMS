@@ -1,0 +1,33 @@
+.courseajust-root {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.operation-btns {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+}
+
+.icon-btn:hover {
+  opacity: 0.7;
+}
+
+.icon-btn img {
+  width: 20px;
+  height: 20px;
+}
+

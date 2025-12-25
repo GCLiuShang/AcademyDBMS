@@ -1,0 +1,233 @@
+.dashboard-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row; /* Horizontally stacked 4 main columns */
+  gap: 20px; /* Gap between columns */
+}
+
+/* Main Columns: 4 items, each 25% width */
+.dashboard-main-col {
+  width: 25%;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column; /* Vertical stack for sub-containers */
+  gap: 20px; /* Gap between sub-containers */
+}
+
+/* Empty container styling */
+.empty-main-container {
+  width: 100%;
+  height: 100%;
+  border: 2px dashed #ccc;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+}
+
+/* Sub-Containers inside Main Column */
+/* "Message" column has 2 sub-containers, height 50% each */
+.dashboard-sub-wrapper {
+  width: 100%;
+  height: 50%; /* "Strictly equal division" -> 50% height */
+}
+
+/* Sub-Container Styling (Visual Box) */
+.dashboard-sub-container {
+  width: 100%;
+  height: 100%;
+  border: 2px solid #00489B;
+  border-radius: 16px; /* Rounded rectangle */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Ensure bars stay inside radius */
+  background-color: transparent;
+}
+
+/* Top and Bottom Bars */
+.sub-header, .sub-footer {
+  width: 100%;
+  height: 32px; /* Fixed height for bars */
+  background-color: #E0E0E0; /* Grey fill */
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.sub-header {
+  justify-content: center; /* Center title? User didn't specify, assuming center or left */
+  font-weight: bold;
+  color: #333;
+}
+
+.sub-footer {
+  justify-content: flex-end; /* Button on right */
+}
+
+.more-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.more-btn img {
+  width: 20px;
+  height: 20px;
+}
+
+/* Middle Content Area */
+.sub-content {
+  flex: 1;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  background-color: white; /* Or transparent? User said container no fill, but content might need bg */
+}
+
+/* Message List Styling */
+.message-list-container {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto; /* Right scrollbar */
+  padding: 5px 10px;
+  box-sizing: border-box;
+}
+
+/* Fixed 8 rows requirement */
+/* If we want strict 8 rows, we can use grid or fixed heights. 
+   Assuming the list is just a list for now, but user said "Divided into fixed 8 rows".
+   Let's try to enforce line height based on container height? 
+   Or just fixed height items.
+*/
+.message-list {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.message-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 30px; /* Adjust based on available height? */
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
+  color: #333;
+}
+
+.msg-left {
+  flex: 0 0 auto;
+  margin-right: 10px;
+  font-weight: 500;
+  color: #00489B;
+}
+
+.msg-center {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #555;
+}
+
+.msg-right {
+  flex: 0 0 auto;
+  margin-left: 10px;
+  font-size: 12px;
+  color: #888;
+}
+
+.placeholder-text {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+}
+
+.feature-list-container {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.feature-list {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.feature-row {
+  width: 100%;
+  height: 20%;
+  display: flex;
+  box-sizing: border-box;
+  border-bottom: 1px solid #d0d0d0;
+}
+
+.feature-icon-area {
+  width: 50%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feature-icon {
+  width: 48px;
+  height: 48px;
+}
+
+.feature-text-area {
+  width: 50%;
+  height: 100%;
+  position: relative;
+  padding: 8px 8px 8px 0;
+  box-sizing: border-box;
+}
+
+.feature-title {
+  font-weight: 700;
+  color: #00489B;
+  font-size: 21px;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 8px;
+  transform: translateY(-50%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feature-more-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+}
+
+.feature-more-btn img {
+  width: 20px;
+  height: 20px;
+}

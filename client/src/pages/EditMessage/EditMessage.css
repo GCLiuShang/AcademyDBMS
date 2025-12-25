@@ -1,0 +1,302 @@
+.editmessage-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+.editmessage-editor {
+  width: 75%;
+  height: 100%;
+  border: 2px solid #00489B;
+  border-radius: 16px;
+  background: transparent;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.editmessage-right {
+  width: 25%;
+  height: 100%;
+  padding-left: 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.editmessage-editor-row {
+  height: 72px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.editmessage-editor-row-light {
+  background: #d9d9d9;
+}
+
+.editmessage-editor-row-dark {
+  background: #9f9f9f;
+  gap: 12px;
+}
+
+.editmessage-editor-label {
+  width: 80px;
+  text-align: right;
+  font-weight: 700;
+  margin-right: 12px;
+}
+
+.editmessage-receiver {
+  flex: 1;
+  position: relative;
+}
+
+.editmessage-receiver-control {
+  width: 100%;
+  height: 44px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.editmessage-receiver-chips {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.editmessage-receiver-placeholder {
+  color: rgba(0, 0, 0, 0.55);
+  font-size: 14px;
+}
+
+.editmessage-receiver-caret {
+  margin-left: 10px;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.editmessage-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 72, 155, 0.12);
+  border: 1px solid rgba(0, 72, 155, 0.25);
+  border-radius: 999px;
+  padding: 3px 8px;
+  box-sizing: border-box;
+}
+
+.editmessage-chip-text {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.editmessage-chip-remove {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0;
+}
+
+.editmessage-receiver-dropdown {
+  position: absolute;
+  top: 52px;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  box-sizing: border-box;
+  z-index: 10;
+}
+
+.editmessage-receiver-search {
+  width: 100%;
+  height: 36px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.editmessage-receiver-options {
+  margin-top: 10px;
+  max-height: 220px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.editmessage-receiver-hint {
+  padding: 10px;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
+}
+
+.editmessage-receiver-option {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #f6f6f6;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.editmessage-receiver-option.selected {
+  opacity: 0.5;
+}
+
+.editmessage-receiver-option .uno {
+  font-weight: 700;
+}
+
+.editmessage-receiver-option .urole {
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 12px;
+}
+
+.editmessage-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.editmessage-field-label {
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.editmessage-field-input {
+  height: 36px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  background: #fff;
+}
+
+.editmessage-editor-content {
+  flex: 1;
+  background: transparent;
+  padding: 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.editmessage-textarea {
+  flex: 1;
+  width: 100%;
+  resize: none;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  padding: 12px;
+  box-sizing: border-box;
+  outline: none;
+  overflow: auto;
+}
+
+.editmessage-content-count {
+  text-align: right;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.editmessage-query {
+  height: 75%;
+  border: 2px solid #00489B;
+  border-radius: 16px;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.editmessage-query-header {
+  background: #d9d9d9;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+.editmessage-query-input {
+  width: 100%;
+  height: 36px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.editmessage-query-body {
+  flex: 1;
+  overflow: auto;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.editmessage-query-table {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.editmessage-query-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  background: #f6f6f6;
+  cursor: pointer;
+  text-align: left;
+}
+
+.editmessage-query-row.header {
+  background: transparent;
+  border: none;
+  cursor: default;
+  font-weight: 700;
+}
+
+.editmessage-query-row .col-uno {
+  font-weight: 700;
+}
+
+.editmessage-query-row.header .col-uno,
+.editmessage-query-row.header .col-role {
+  font-weight: 700;
+}
+
+.editmessage-send {
+  height: 25%;
+  margin-top: 20px;
+  border: none;
+  border-radius: 16px;
+  background: #00489B;
+  color: #fff;
+  font-weight: 700;
+  font-size: 24px;
+  cursor: pointer;
+}
+

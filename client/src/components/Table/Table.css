@@ -1,0 +1,252 @@
+.custom-table-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #00489B;
+  border-radius: 8px; /* 圆角矩形 */
+  overflow: hidden; /* 裁剪内部溢出 */
+  background-color: transparent; /* 无填充 */
+  box-sizing: border-box;
+}
+
+/* 1. 顶部栏 (表头) */
+.table-header {
+  height: 50px; /* 顶部栏最高 */
+  background-color: #EEEEEE; /* 灰色填充 */
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #00489B; /* 分割线 */
+  flex-shrink: 0;
+  padding-right: 8px; /* 预留滚动条宽度，避免表头错位 */
+}
+
+.table-header-cell {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-right: 1px solid rgba(0, 72, 155, 0.1); /* 极淡的分割线 */
+  color: #00489B;
+  font-weight: bold;
+  font-size: 14px;
+  flex: 1; /* 默认均分，可通过 style width 覆盖 */
+}
+
+.table-header-cell:last-child {
+  border-right: none;
+}
+
+.header-title-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0 5px;
+}
+
+.header-title-container.hidden {
+  visibility: hidden; /* 占位但不显示 */
+}
+
+.filter-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 8px;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.filter-btn img {
+  width: 14px;
+  height: 14px;
+}
+
+/* 搜索栏 (顶层覆盖) */
+.header-search-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  z-index: 10;
+  padding: 0 5px;
+  box-sizing: border-box;
+}
+
+.header-search-bar input {
+  flex: 1;
+  height: 30px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 0 5px;
+  font-size: 12px;
+  outline: none;
+}
+
+.header-search-bar input:focus {
+  border-color: #00489B;
+}
+
+.close-search-btn {
+  background: none;
+  border: none;
+  color: #666;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 5px;
+  font-size: 14px;
+  padding: 0 5px;
+}
+
+.close-search-btn:hover {
+  color: #d9534f;
+}
+
+/* 2. 内容栏 */
+.table-body {
+  flex: 1; /* 占据剩余空间 */
+  overflow-y: auto; /* 允许纵向滚动 */
+  background-color: white; /* 内容区域通常为白色背景 */
+  display: flex;
+  flex-direction: column;
+}
+
+.table-row {
+  height: 40px; /* 内容行高 < 顶部栏 */
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  flex-shrink: 0;
+}
+
+.table-row:hover {
+  background-color: #f9f9f9;
+}
+
+.table-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* 默认居中 */
+  padding: 0 5px;
+  font-size: 13px;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.table-loading, .table-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 14px;
+}
+
+/* 滚动条样式 */
+.table-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.table-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.table-body::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+.table-body::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
+}
+
+/* 3. 底部栏 */
+.table-footer {
+  height: 36px; /* 底部栏高度 < 内容行高 */
+  background-color: #EEEEEE; /* 灰色填充 */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #00489B; /* 分割线 */
+  padding: 0 10px;
+  font-size: 12px;
+  color: #333;
+  flex-shrink: 0;
+}
+
+.footer-left {
+  font-weight: 500;
+}
+
+.footer-center {
+  display: flex;
+  align-items: center;
+}
+
+.page-btn {
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+  margin: 0 5px;
+  font-size: 12px;
+}
+
+.page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-btn:hover:not(:disabled) {
+  border-color: #00489B;
+  color: #00489B;
+}
+
+.page-info {
+  margin: 0 5px;
+}
+
+.footer-right {
+  display: flex;
+  align-items: center;
+}
+
+.page-size-select {
+  margin: 0 5px;
+  padding: 1px;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  font-size: 12px;
+}
+
+.refresh-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 10px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+.refresh-btn img {
+  width: 16px;
+  height: 16px;
+}
+
+.refresh-btn:hover {
+  opacity: 0.8;
+}
