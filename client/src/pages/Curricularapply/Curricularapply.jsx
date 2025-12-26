@@ -44,6 +44,7 @@ const Curricularapply = () => {
   const [cattri, setCattri] = useState('');
   const [cseme, setCseme] = useState('');
   const [cname, setCname] = useState('');
+  const [credit, setCredit] = useState('');
   const [classhour, setClasshour] = useState('');
   const [ceattri, setCeattri] = useState('无');
   const [description, setDescription] = useState('');
@@ -223,6 +224,7 @@ const Curricularapply = () => {
           cattri,
           cseme,
           cname: cname.trim(),
+          credit: Number(credit),
           classhour: Number(classhour),
           ceattri,
           description: description.trim().length === 0 ? null : description.trim(),
@@ -233,6 +235,7 @@ const Curricularapply = () => {
         setCattri('');
         setCseme('');
         setCname('');
+        setCredit('');
         setClasshour('');
         setCeattri('无');
         setDescription('');
@@ -314,6 +317,7 @@ const Curricularapply = () => {
     if (!detailsRow) return '';
     const lines = [
       `申请时间：${formatDateTime(detailsRow.CreateTime)}`,
+      `学分：${detailsRow.Ccredit ?? ''}`,
       `开课学院：${detailsRow.Cdept || ''}`,
       `修读学期：${detailsRow.Cseme || ''}`,
       `课时：${detailsRow.Cclasshour ?? ''}`,
@@ -334,9 +338,8 @@ const Curricularapply = () => {
         <div className="curricularapply-details-body">{detailsText}</div>
       </Details>
 
-      <div className="curricularapply-root">
+      <div className="curricularapply-root curricularapply-root--curricularapply">
         <div className="curricularapply-left">
-          <div className="curricularapply-left-title">开课申请</div>
           {businessFlags && !businessFlags.curricularOpen && (
             <div
               style={{
@@ -353,7 +356,7 @@ const Curricularapply = () => {
           )}
           <div className="curricularapply-form">
             <div className="curricularapply-row small">
-              <div className="curricularapply-cell col">
+              <div className="curricularapply-cell" style={{ width: '100%' }}>
                 <span className="curricularapply-label">课程性质：</span>
                 <select
                   className="curricularapply-select"
@@ -368,11 +371,17 @@ const Curricularapply = () => {
                   ))}
                 </select>
               </div>
-              <div className="curricularapply-cell col">
+            </div>
+
+            <div className="curricularapply-row small">
+              <div className="curricularapply-cell" style={{ width: '100%' }}>
                 <span className="curricularapply-label">开课学院：</span>
                 <input className="curricularapply-input" value={deptValue} readOnly />
               </div>
-              <div className="curricularapply-cell col">
+            </div>
+
+            <div className="curricularapply-row small">
+              <div className="curricularapply-cell" style={{ width: '100%' }}>
                 <span className="curricularapply-label">修读学期：</span>
                 <select className="curricularapply-select" value={cseme} onChange={(e) => setCseme(e.target.value)}>
                   <option value="">请选择</option>
@@ -398,7 +407,18 @@ const Curricularapply = () => {
             </div>
 
             <div className="curricularapply-row small">
-              <div className="curricularapply-cell col">
+              <div className="curricularapply-cell" style={{ width: '100%' }}>
+                <span className="curricularapply-label">学分：</span>
+                <input
+                  className="curricularapply-input"
+                  value={credit}
+                  onChange={(e) => setCredit(e.target.value.replace(/\D/g, ''))}
+                />
+              </div>
+            </div>
+
+            <div className="curricularapply-row small">
+              <div className="curricularapply-cell" style={{ width: '100%' }}>
                 <span className="curricularapply-label">课时：</span>
                 <input
                   className="curricularapply-input"
@@ -406,7 +426,10 @@ const Curricularapply = () => {
                   onChange={(e) => setClasshour(e.target.value.replace(/\D/g, ''))}
                 />
               </div>
-              <div className="curricularapply-cell col">
+            </div>
+
+            <div className="curricularapply-row small">
+              <div className="curricularapply-cell" style={{ width: '100%' }}>
                 <span className="curricularapply-label">考核性质：</span>
                 <select className="curricularapply-select" value={ceattri} onChange={(e) => setCeattri(e.target.value)}>
                   {EATTRI_OPTIONS.map((opt) => (

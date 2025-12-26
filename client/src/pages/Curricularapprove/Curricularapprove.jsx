@@ -168,6 +168,7 @@ const Curricularapprove = () => {
     if (!detailsRow) return '';
     const lines = [
       `申请时间：${detailsRow.ApplyTime ?? ''}`,
+      `学分：${detailsRow.Ccredit ?? ''}`,
       `开课学院：${detailsRow.Cdept ?? ''}`,
       `修读学期：${detailsRow.Cseme ?? ''}`,
       `课时：${detailsRow.Cclasshour ?? ''}`,

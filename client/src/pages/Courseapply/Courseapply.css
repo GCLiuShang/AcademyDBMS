@@ -5,6 +5,21 @@
   box-sizing: border-box;
 }
 
+.curricularapply-root--courseapply .curricularapply-right {
+  padding-bottom: 0;
+}
+
+.curricularapply-root--courseapply .curricularapply-right-bottom {
+  flex: 0 0 56px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  margin-top: 10px;
+  padding-bottom: 0;
+  box-sizing: border-box;
+}
+
 .curricularapply-left {
   width: 50%;
   height: 100%;

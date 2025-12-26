@@ -77,7 +77,8 @@ router.post('/enroll/available', async (req, res) => {
         co.Cour_cno AS Cno,
         co.Cour_pmax AS Pmax,
         co.Cour_pnow AS Pnow,
-        cu.Cname AS Cname
+        cu.Cname AS Cname,
+        cu.Ccredit AS Ccredit
       FROM Course co
       JOIN Curricular cu ON cu.Cno = co.Cour_cno
       WHERE co.Cour_seme = ?
@@ -228,6 +229,7 @@ router.post('/enroll/available', async (req, res) => {
         courNo: courno,
         cno,
         courseName: r.Cname || '',
+        courseCredit: r.Ccredit ?? null,
         courseAttr: attr,
         professors: prof,
         locations: locStr,
@@ -315,7 +317,8 @@ router.post('/enroll/selected', async (req, res) => {
         co.Cour_cno AS Cno,
         co.Cour_pmax AS Pmax,
         co.Cour_pnow AS Pnow,
-        cu.Cname AS Cname
+        cu.Cname AS Cname,
+        cu.Ccredit AS Ccredit
       FROM Enrollment e
       JOIN Course co ON co.Cour_no = e.Enroll_Courno
       JOIN Curricular cu ON cu.Cno = co.Cour_cno
@@ -449,6 +452,7 @@ router.post('/enroll/selected', async (req, res) => {
         courNo: courno,
         cno,
         courseName: r.Cname || '',
+        courseCredit: r.Ccredit ?? null,
         courseAttr: attr,
         professors: prof,
         timeFull,
@@ -731,4 +735,3 @@ router.post('/enroll/drop', async (req, res) => {
 });
 
 module.exports = router;
-

@@ -380,7 +380,7 @@ const Courseapply = () => {
       onLogout={handleLogout}
       onNavigate={(item) => navigate(item.url)}
     >
-      <div className="curricularapply-root">
+      <div className="curricularapply-root curricularapply-root--courseapply">
         <div className="curricularapply-left">
           <div className="curricularapply-left-title">任教申请</div>
           {businessFlags && !businessFlags.courseOpen && (

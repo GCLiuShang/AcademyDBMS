@@ -181,6 +181,7 @@ router.post('/courseapply/submit', async (req, res) => {
       const cattri = cnoRows[0].Cattri;
       let source = null;
       let cname = null;
+      let ccredit = null;
       let classhour = null;
       let ceattri = null;
       let description = null;
@@ -188,7 +189,7 @@ router.post('/courseapply/submit', async (req, res) => {
 
       if (cattri === '公共必修' || cattri === '专业必修' || cattri === '专业选修') {
         const [setupRows] = await connection.execute(
-          `SELECT SetupCuG_ID as ApplyID, SetupCuG_Cname as Cname, SetupCuG_Cclasshour as Cclasshour, SetupCuG_Ceattri as Ceattri, SetupCuG_description as Description
+          `SELECT SetupCuG_ID as ApplyID, SetupCuG_Cname as Cname, SetupCuG_Ccredit as Ccredit, SetupCuG_Cclasshour as Cclasshour, SetupCuG_Ceattri as Ceattri, SetupCuG_description as Description
            FROM Setup_Curricular_G
            WHERE SetupCuG_Cno = ?
            ORDER BY SetupCuG_createtime DESC
@@ -198,6 +199,7 @@ router.post('/courseapply/submit', async (req, res) => {
         if (setupRows.length > 0) {
           source = { type: 'G', applyId: setupRows[0].ApplyID };
           cname = setupRows[0].Cname;
+          ccredit = setupRows[0].Ccredit;
           classhour = setupRows[0].Cclasshour;
           ceattri = setupRows[0].Ceattri;
           description = setupRows[0].Description ?? null;
@@ -207,7 +209,7 @@ router.post('/courseapply/submit', async (req, res) => {
         }
       } else {
         const [setupRows] = await connection.execute(
-          `SELECT SetupCuP_ID as ApplyID, SetupCuP_Cname as Cname, SetupCuP_Cclasshour as Cclasshour, SetupCuP_Ceattri as Ceattri, SetupCuP_description as Description
+          `SELECT SetupCuP_ID as ApplyID, SetupCuP_Cname as Cname, SetupCuP_Ccredit as Ccredit, SetupCuP_Cclasshour as Cclasshour, SetupCuP_Ceattri as Ceattri, SetupCuP_description as Description
            FROM Setup_Curricular_P
            WHERE SetupCuP_Cno = ?
            ORDER BY SetupCuP_createtime DESC
@@ -217,6 +219,7 @@ router.post('/courseapply/submit', async (req, res) => {
         if (setupRows.length > 0) {
           source = { type: 'P', applyId: setupRows[0].ApplyID };
           cname = setupRows[0].Cname;
+          ccredit = setupRows[0].Ccredit;
           classhour = setupRows[0].Cclasshour;
           ceattri = setupRows[0].Ceattri;
           description = setupRows[0].Description ?? null;
@@ -235,15 +238,16 @@ router.post('/courseapply/submit', async (req, res) => {
       }
 
       await connection.execute(
-        `INSERT INTO Curricular (Cno, Cname, C_classhour, C_eattri, Cdescription, Cstatus)
-         VALUES (?, ?, ?, ?, ?, '正常') AS new
+        `INSERT INTO Curricular (Cno, Cname, Ccredit, C_classhour, C_eattri, Cdescription, Cstatus)
+         VALUES (?, ?, ?, ?, ?, ?, '正常') AS new
          ON DUPLICATE KEY UPDATE
            Cname = new.Cname,
+           Ccredit = new.Ccredit,
            C_classhour = new.C_classhour,
            C_eattri = new.C_eattri,
            Cdescription = new.Cdescription,
            Cstatus = '正常'`,
-        [cno, cname, Number(classhour), ceattri, description]
+        [cno, cname, Number(ccredit || 0), Number(classhour), ceattri, description]
       );
 
       if (source.type === 'G') {

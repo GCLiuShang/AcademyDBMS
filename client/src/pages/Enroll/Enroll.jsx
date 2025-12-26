@@ -96,11 +96,13 @@ const Enroll = () => {
         const current = Number(r.currentCount || 0);
         const max = Number(r.maxCount || 0);
         const isFull = Number.isFinite(current) && Number.isFinite(max) && current >= max && max > 0;
+        const creditValue = r.courseCredit;
         return {
           courNo: r.courNo || '',
           cno: r.cno || '',
           courseName: r.courseName || '',
           courseAttr: r.courseAttr || '',
+          credit: creditValue === null || creditValue === undefined ? '' : String(creditValue),
           professors: r.professors || '',
           locations: r.locations || '',
           timeSummary: r.timeSummary || '',
@@ -147,11 +149,13 @@ const Enroll = () => {
       const mapped = rows.map((r) => {
         const current = Number(r.currentCount || 0);
         const max = Number(r.maxCount || 0);
+        const creditValue = r.courseCredit;
         return {
           courNo: r.courNo || '',
           cno: r.cno || '',
           courseName: r.courseName || '',
           courseAttr: r.courseAttr || '',
+          credit: creditValue === null || creditValue === undefined ? '' : String(creditValue),
           professors: r.professors || '',
           timeFull: r.timeFull || '',
           currentCount: current,
@@ -246,12 +250,13 @@ const Enroll = () => {
 
   const leftColumns = useMemo(() => {
     return [
-      { key: 'courseName', title: '课程名称', width: '18%' },
-      { key: 'courseAttr', title: '课程性质', width: '12%' },
-      { key: 'professors', title: '任课教授', width: '18%' },
-      { key: 'locations', title: '上课地点', width: '18%' },
-      { key: 'timeSummary', title: '上课时间', width: '18%' },
-      { key: 'currentDisplay', title: '当前人数', width: '10%' },
+      { key: 'courseName', title: '名称', width: '16%' },
+      { key: 'courseAttr', title: '性质', width: '10%' },
+      { key: 'credit', title: '学分', width: '8%' },
+      { key: 'professors', title: '教授', width: '16%' },
+      { key: 'locations', title: '地点', width: '16%' },
+      { key: 'timeSummary', title: '时间', width: '16%' },
+      { key: 'currentDisplay', title: '人数', width: '8%' },
       { key: 'inPlanLabel', title: '是否在方案中', width: '10%' },
       {
         key: 'operations',
@@ -275,10 +280,11 @@ const Enroll = () => {
 
   const rightColumns = useMemo(() => {
     return [
-      { key: 'courseName', title: '课程名称', width: '24%' },
-      { key: 'courseAttr', title: '课程性质', width: '14%' },
-      { key: 'professors', title: '任课教授', width: '20%' },
-      { key: 'currentDisplay', title: '当前人数', width: '30%' },
+      { key: 'courseName', title: '名称', width: '22%' },
+      { key: 'courseAttr', title: '性质', width: '12%' },
+      { key: 'credit', title: '学分', width: '10%' },
+      { key: 'professors', title: '教授', width: '18%' },
+      { key: 'currentDisplay', title: '人数', width: '26%' },
       {
         key: 'operations',
         title: '操作',
@@ -331,6 +337,8 @@ const Enroll = () => {
         {businessFlags && !businessFlags.enrollOpen && (
           <div
             style={{
+              width: '100%',
+              boxSizing: 'border-box',
               marginBottom: 8,
               padding: '6px 10px',
               borderRadius: 6,
@@ -342,39 +350,41 @@ const Enroll = () => {
             当前学生选课业务未开放，暂时无法进行选课或退课操作。
           </div>
         )}
-        <div className="enroll-left">
-          <Table
-            columns={leftColumns}
-            data={leftData}
-            total={leftTotal}
-            currentPage={leftPage}
-            pageSize={leftPageSize}
-            onPageChange={setLeftPage}
-            onPageSizeChange={setLeftPageSize}
-            onSearch={(params) => {
-              setLeftPage(1);
-              setLeftSearch(params || {});
-            }}
-            onRefresh={fetchLeftData}
-            loading={leftLoading}
-          />
-        </div>
-        <div className="enroll-right">
-          <Table
-            columns={rightColumns}
-            data={rightData}
-            total={rightTotal}
-            currentPage={rightPage}
-            pageSize={rightPageSize}
-            onPageChange={setRightPage}
-            onPageSizeChange={setRightPageSize}
-            onSearch={(params) => {
-              setRightPage(1);
-              setRightSearch(params || {});
-            }}
-            onRefresh={fetchRightData}
-            loading={rightLoading}
-          />
+        <div className="enroll-tables">
+          <div className="enroll-left">
+            <Table
+              columns={leftColumns}
+              data={leftData}
+              total={leftTotal}
+              currentPage={leftPage}
+              pageSize={leftPageSize}
+              onPageChange={setLeftPage}
+              onPageSizeChange={setLeftPageSize}
+              onSearch={(params) => {
+                setLeftPage(1);
+                setLeftSearch(params || {});
+              }}
+              onRefresh={fetchLeftData}
+              loading={leftLoading}
+            />
+          </div>
+          <div className="enroll-right">
+            <Table
+              columns={rightColumns}
+              data={rightData}
+              total={rightTotal}
+              currentPage={rightPage}
+              pageSize={rightPageSize}
+              onPageChange={setRightPage}
+              onPageSizeChange={setRightPageSize}
+              onSearch={(params) => {
+                setRightPage(1);
+                setRightSearch(params || {});
+              }}
+              onRefresh={fetchRightData}
+              loading={rightLoading}
+            />
+          </div>
         </div>
       </div>
     </MorePageLayout>

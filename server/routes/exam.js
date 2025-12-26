@@ -623,7 +623,7 @@ router.post('/examarrange/prof/search', async (req, res) => {
     return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   }
   const q = query.trim();
-  if (q.length < 3) {
+  if (q.length < 2) {
     return res.json({ success: true, data: [] });
   }
 

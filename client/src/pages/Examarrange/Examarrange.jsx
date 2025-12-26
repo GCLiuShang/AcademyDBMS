@@ -131,7 +131,7 @@ const Examarrange = () => {
     const q = profQuery.trim();
     if (profSearchTimerRef.current) clearTimeout(profSearchTimerRef.current);
     profSearchTimerRef.current = setTimeout(async () => {
-      if (q.length < 3) {
+      if (q.length < 2) {
         setProfOptions([]);
         return;
       }
@@ -337,10 +337,9 @@ const Examarrange = () => {
       onLogout={handleLogout}
       onNavigate={(item) => navigate(item.url)}
     >
-      <div className="curricularapply-root">
+      <div className="curricularapply-root examarrange-root">
         <div className="curricularapply-left">
-          <div className="curricularapply-left-title">考试安排</div>
-          <div className="examarrange-form">
+          <div className="curricularapply-form examarrange-form">
             <div className="curricularapply-row small">
               <div className="curricularapply-cell" style={{ width: '100%' }}>
                 <span className="curricularapply-label">考试编号：</span>
@@ -449,11 +448,11 @@ const Examarrange = () => {
                         className="editmessage-receiver-search"
                         value={profQuery}
                         onChange={(e) => setProfQuery(e.target.value)}
-                        placeholder="输入 Pno 或姓名模糊搜索（至少3个字符）"
+                        placeholder="输入 Pno 或姓名模糊搜索（至少2个字符）"
                       />
                       <div className="editmessage-receiver-options">
-                        {profQuery.trim().length < 3 ? (
-                          <div className="editmessage-receiver-hint">请输入至少3个字符</div>
+                        {profQuery.trim().length < 2 ? (
+                          <div className="editmessage-receiver-hint">请输入至少2个字符</div>
                         ) : profOptions.length === 0 ? (
                           <div className="editmessage-receiver-hint">无匹配结果</div>
                         ) : (

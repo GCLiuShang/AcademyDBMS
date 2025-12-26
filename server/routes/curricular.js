@@ -95,7 +95,7 @@ router.post('/curricularapply/view/cleanup', async (req, res) => {
 });
 
 router.post('/curricularapply/submit', async (req, res) => {
-  const { uno, cattri, cseme, cname, classhour, ceattri, description } = req.body;
+  const { uno, cattri, cseme, cname, credit, classhour, ceattri, description } = req.body;
   if (!uno || !cattri || !cseme || !cname || !classhour) {
     return res.status(400).json({ success: false, message: 'Missing parameters' });
   }
@@ -104,6 +104,10 @@ router.post('/curricularapply/submit', async (req, res) => {
   }
   if (typeof cname !== 'string' || cname.length === 0 || cname.length > 19) {
     return res.status(400).json({ success: false, message: 'Invalid course name' });
+  }
+  const creditValue = credit === null || credit === undefined || credit === '' ? 0 : Number(credit);
+  if (!Number.isFinite(creditValue) || !Number.isInteger(creditValue) || creditValue < 0 || creditValue > 255) {
+    return res.status(400).json({ success: false, message: 'Invalid credit' });
   }
   if (!Number.isFinite(Number(classhour)) || Number(classhour) <= 0) {
     return res.status(400).json({ success: false, message: 'Invalid class hour' });
@@ -264,9 +268,9 @@ router.post('/curricularapply/submit', async (req, res) => {
       const applyId = `SETCUP${dateStr}-${seqHex}`;
       await connection.execute(
         `INSERT INTO Setup_Curricular_P
-          (SetupCuP_ID, SetupCuP_date, SetupCuP_number, SetupCuP_Cno, SetupCuP_Cname, SetupCuP_Cclasshour, SetupCuP_Ceattri, SetupCuP_description, SetupCuP_status, SetupCuP_createPno)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [applyId, dateStrDash, seq, cno, cname, Number(classhour), finalCeattri, description ?? null, '等待审核', uno]
+          (SetupCuP_ID, SetupCuP_date, SetupCuP_number, SetupCuP_Cno, SetupCuP_Cname, SetupCuP_Ccredit, SetupCuP_Cclasshour, SetupCuP_Ceattri, SetupCuP_description, SetupCuP_status, SetupCuP_createPno)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [applyId, dateStrDash, seq, cno, cname, creditValue, Number(classhour), finalCeattri, description ?? null, '等待审核', uno]
       );
       await connection.commit();
       return res.json({ success: true, applyId, cno });
@@ -277,9 +281,9 @@ router.post('/curricularapply/submit', async (req, res) => {
     const applyId = `SETCUG${dateStr}-${seqHex}`;
     await connection.execute(
       `INSERT INTO Setup_Curricular_G
-        (SetupCuG_ID, SetupCuG_date, SetupCuG_number, SetupCuG_Cno, SetupCuG_Cname, SetupCuG_Cclasshour, SetupCuG_Ceattri, SetupCuG_description, SetupCuG_status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [applyId, dateStrDash, seq, cno, cname, Number(classhour), finalCeattri, description ?? null, '等待审核']
+        (SetupCuG_ID, SetupCuG_date, SetupCuG_number, SetupCuG_Cno, SetupCuG_Cname, SetupCuG_Ccredit, SetupCuG_Cclasshour, SetupCuG_Ceattri, SetupCuG_description, SetupCuG_status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [applyId, dateStrDash, seq, cno, cname, creditValue, Number(classhour), finalCeattri, description ?? null, '等待审核']
     );
     await connection.commit();
     return res.json({ success: true, applyId, cno });
@@ -492,6 +496,7 @@ router.post('/curricularapprove/pass', async (req, res) => {
         `SELECT
            P.SetupCuP_Cno as Cno,
            P.SetupCuP_Cname as Cname,
+           P.SetupCuP_Ccredit as Ccredit,
            P.SetupCuP_Cclasshour as Cclasshour,
            P.SetupCuP_Ceattri as Ceattri,
            P.SetupCuP_description as Description,
@@ -511,15 +516,16 @@ router.post('/curricularapprove/pass', async (req, res) => {
       }
 
       await connection.execute(
-        `INSERT INTO Curricular (Cno, Cname, C_classhour, C_eattri, Cdescription, Cstatus)
-         VALUES (?, ?, ?, ?, ?, '正常') AS new
+        `INSERT INTO Curricular (Cno, Cname, Ccredit, C_classhour, C_eattri, Cdescription, Cstatus)
+         VALUES (?, ?, ?, ?, ?, ?, '正常') AS new
          ON DUPLICATE KEY UPDATE
            Cname = new.Cname,
-           C_classhour = new.Cclasshour,
-           C_eattri = new.Ceattri,
+           Ccredit = new.Ccredit,
+           C_classhour = new.C_classhour,
+           C_eattri = new.C_eattri,
            Cdescription = new.Cdescription,
            Cstatus = '正常'`,
-        [rows[0].Cno, rows[0].Cname, rows[0].Cclasshour, rows[0].Ceattri, rows[0].Description ?? null]
+        [rows[0].Cno, rows[0].Cname, rows[0].Ccredit, rows[0].Cclasshour, rows[0].Ceattri, rows[0].Description ?? null]
       );
       await connection.execute(`UPDATE Setup_Curricular_P SET SetupCuP_status = '等待选课' WHERE SetupCuP_ID = ?`, [applyId]);
       await connection.execute(`UPDATE Cno_Pool SET Cno_status = '不可用' WHERE Cno = ?`, [rows[0].Cno]);
@@ -532,6 +538,7 @@ router.post('/curricularapprove/pass', async (req, res) => {
         `SELECT
            SetupCuG_Cno as Cno,
            SetupCuG_Cname as Cname,
+           SetupCuG_Ccredit as Ccredit,
            SetupCuG_Cclasshour as Cclasshour,
            SetupCuG_Ceattri as Ceattri,
            SetupCuG_description as Description,
@@ -550,15 +557,16 @@ router.post('/curricularapprove/pass', async (req, res) => {
       }
 
       await connection.execute(
-        `INSERT INTO Curricular (Cno, Cname, C_classhour, C_eattri, Cdescription, Cstatus)
-         VALUES (?, ?, ?, ?, ?, '正常') AS new
+        `INSERT INTO Curricular (Cno, Cname, Ccredit, C_classhour, C_eattri, Cdescription, Cstatus)
+         VALUES (?, ?, ?, ?, ?, ?, '正常') AS new
          ON DUPLICATE KEY UPDATE
            Cname = new.Cname,
-           C_classhour = new.Cclasshour,
-           C_eattri = new.Ceattri,
+           Ccredit = new.Ccredit,
+           C_classhour = new.C_classhour,
+           C_eattri = new.C_eattri,
            Cdescription = new.Cdescription,
            Cstatus = '正常'`,
-        [rows[0].Cno, rows[0].Cname, rows[0].Cclasshour, rows[0].Ceattri, rows[0].Description ?? null]
+        [rows[0].Cno, rows[0].Cname, rows[0].Ccredit, rows[0].Cclasshour, rows[0].Ceattri, rows[0].Description ?? null]
       );
       await connection.execute(`UPDATE Setup_Curricular_G SET SetupCuG_status = '已经通过' WHERE SetupCuG_ID = ?`, [applyId]);
       await connection.execute(`UPDATE Cno_Pool SET Cno_status = '不可用' WHERE Cno = ?`, [rows[0].Cno]);
@@ -578,4 +586,3 @@ router.post('/curricularapprove/pass', async (req, res) => {
 });
 
 module.exports = router;
-

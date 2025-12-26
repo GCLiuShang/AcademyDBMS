@@ -288,8 +288,8 @@ const Examapply = () => {
         width: '14%',
         render: (row) => (
           <div className="operation-btns">
-            <button type="button" className="examapply-detail-btn" onClick={() => handleDetails(row)}>
-              详情
+            <button type="button" className="examapply-detail-btn" title="详情" aria-label="详情" onClick={() => handleDetails(row)}>
+              <img src="/images/table/details.svg" alt="详情" />
             </button>
           </div>
         ),
@@ -307,9 +307,8 @@ const Examapply = () => {
 
   return (
     <MorePageLayout title="考试申请" systemRole={getSystemRole()} onLogout={handleLogout} onNavigate={(item) => navigate(item.url)}>
-      <div className="curricularapply-root">
+      <div className="curricularapply-root curricularapply-root--examapply">
         <div className="curricularapply-left">
-          <div className="curricularapply-left-title">考试申请</div>
           <div className="curricularapply-form" style={{ overflowY: 'auto', overflowX: 'hidden' }}>
             <div className="curricularapply-row small">
               <div className="curricularapply-cell" style={{ width: '100%' }}>
