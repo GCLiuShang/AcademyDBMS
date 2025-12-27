@@ -121,7 +121,7 @@ const Examapply = () => {
 
     const initView = async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/examapply/view/init', {
+        const res = await fetch('/api/examapply/view/init', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ uno: userInfo.Uno }),
@@ -138,7 +138,7 @@ const Examapply = () => {
     return () => {
       const currentUser = userInfoRef.current;
       if (!currentUser?.Uno) return;
-      fetch('http://localhost:3001/api/examapply/view/cleanup', {
+      fetch('/api/examapply/view/cleanup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uno: currentUser.Uno }),
@@ -161,7 +161,7 @@ const Examapply = () => {
           return acc;
         }, {}),
       });
-      const res = await fetch(`http://localhost:3001/api/common/table/list?${params.toString()}`);
+      const res = await fetch(`/api/common/table/list?${params.toString()}`);
       const json = await res.json();
       if (json.success) {
         setData(json.data || []);
@@ -187,7 +187,7 @@ const Examapply = () => {
         orderDir: 'ASC',
         search_Cno: query,
       });
-      const res = await fetch(`http://localhost:3001/api/common/table/list?${params.toString()}`);
+      const res = await fetch(`/api/common/table/list?${params.toString()}`);
       const json = await res.json();
       if (json.success) return json.data || [];
       return [];
@@ -237,7 +237,7 @@ const Examapply = () => {
     if (!userInfo?.Uno) return;
     if (!canSend) return;
     try {
-      const res = await fetch('http://localhost:3001/api/examapply/submit', {
+      const res = await fetch('/api/examapply/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

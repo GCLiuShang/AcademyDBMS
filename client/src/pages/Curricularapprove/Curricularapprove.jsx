@@ -49,7 +49,7 @@ const Curricularapprove = () => {
 
     const initView = async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/curricularapprove/view/init', {
+        const res = await fetch('/api/curricularapprove/view/init', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ uno: userInfo.Uno }),
@@ -67,7 +67,7 @@ const Curricularapprove = () => {
     return () => {
       const currentUser = userInfoRef.current;
       if (!currentUser?.Uno) return;
-      fetch('http://localhost:3001/api/curricularapprove/view/cleanup', {
+      fetch('/api/curricularapprove/view/cleanup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uno: currentUser.Uno }),
@@ -91,7 +91,7 @@ const Curricularapprove = () => {
         }, {}),
       });
 
-      const res = await fetch(`http://localhost:3001/api/common/table/list?${params.toString()}`);
+      const res = await fetch(`/api/common/table/list?${params.toString()}`);
       const json = await res.json();
       if (json.success) {
         setData(json.data || []);
@@ -120,7 +120,7 @@ const Curricularapprove = () => {
       if (!row?.ApplyID) return;
       if (!window.confirm('确定通过该申请吗？')) return;
       try {
-        const res = await fetch('http://localhost:3001/api/curricularapprove/pass', {
+        const res = await fetch('/api/curricularapprove/pass', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ uno: userInfo.Uno, applyId: row.ApplyID }),

@@ -67,6 +67,7 @@ router.post('/login', async (req, res) => {
       );
 
       const userWithoutPassword = { ...user };
+      userWithoutPassword.Ustatus = '在线';
       delete userWithoutPassword.Upswd;
       delete userWithoutPassword.Ulosetimes;
       delete userWithoutPassword.Ulasttrytime;
@@ -165,4 +166,3 @@ router.post('/logout', async (req, res) => {
 });
 
 module.exports = router;
-

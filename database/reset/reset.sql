@@ -17,6 +17,7 @@ TRUNCATE TABLE Setup_Course;
 TRUNCATE TABLE Enrollment;
 TRUNCATE TABLE Pursuit;
 TRUNCATE TABLE Prerequisite;
+TRUNCATE TABLE Prerequisite_temp;
 TRUNCATE TABLE TP_Curricular;
 TRUNCATE TABLE Setup_Curricular_P;
 TRUNCATE TABLE Setup_Curricular_G;

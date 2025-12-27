@@ -64,7 +64,7 @@ const EditMessage = () => {
 
   const fetchUsersByUno = useCallback(async (query) => {
     const params = new URLSearchParams({ uno: query, limit: 50 });
-    const res = await fetch(`http://localhost:3001/api/users/search?${params.toString()}`);
+    const res = await fetch(`/api/users/search?${params.toString()}`);
     const json = await res.json();
     if (json.success) return json.data || [];
     return [];
@@ -72,7 +72,7 @@ const EditMessage = () => {
 
   const fetchUsersByName = useCallback(async (query) => {
     const params = new URLSearchParams({ name: query, limit: 50 });
-    const res = await fetch(`http://localhost:3001/api/users/search?${params.toString()}`);
+    const res = await fetch(`/api/users/search?${params.toString()}`);
     const json = await res.json();
     if (json.success) return json.data || [];
     return [];
@@ -152,7 +152,7 @@ const EditMessage = () => {
     }
 
     try {
-      const res = await fetch('http://localhost:3001/api/messages/send', {
+      const res = await fetch('/api/messages/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

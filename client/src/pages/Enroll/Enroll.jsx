@@ -6,7 +6,7 @@ import Details from '../../components/Details/Details';
 import { getCurrentUserFromStorage } from '../../utils/userSession';
 import './Enroll.css';
 
-const API_BASE = 'http://localhost:3001';
+const API_BASE = '';
 
 const Enroll = () => {
   const navigate = useNavigate();

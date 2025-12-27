@@ -4,7 +4,7 @@ import MorePageLayout from '../../components/Layout/MorePageLayout';
 import { getCurrentUserFromStorage } from '../../utils/userSession';
 import './Control.css';
 
-const API_BASE = 'http://localhost:3001';
+const API_BASE = '';
 
 const Control = () => {
   const navigate = useNavigate();

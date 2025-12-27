@@ -6,8 +6,6 @@ import Details from '../../components/Details/Details';
 import { getCurrentUserFromStorage } from '../../utils/userSession';
 import './Curricularapply.css';
 
-const API_BASE = 'http://localhost:3001';
-
 const SEMESTER_OPTIONS = [
   '第一学期',
   '第二学期',
@@ -78,7 +76,7 @@ const Curricularapply = () => {
   useEffect(() => {
     const fetchBusinessFlags = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/business/status`);
+        const res = await fetch('/api/business/status');
         const json = await res.json();
         if (json.success) {
           setBusinessFlags({
@@ -124,7 +122,7 @@ const Curricularapply = () => {
     let cancelled = false;
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/course/search`, {
+        const res = await fetch('/api/course/search', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ query: q }),
@@ -171,7 +169,7 @@ const Curricularapply = () => {
     const fetchAccountInfo = async () => {
       if (!userInfo?.Uno) return;
       try {
-        const res = await fetch(`http://localhost:3001/api/account/info?uno=${userInfo.Uno}`);
+        const res = await fetch(`/api/account/info?uno=${userInfo.Uno}`);
         const json = await res.json();
         if (json.success) setAccountInfo(json.data || null);
       } catch {
@@ -191,7 +189,7 @@ const Curricularapply = () => {
 
     const initView = async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/curricularapply/view/init', {
+        const res = await fetch('/api/curricularapply/view/init', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ uno: userInfo.Uno }),
@@ -208,7 +206,7 @@ const Curricularapply = () => {
     return () => {
       const currentUser = userInfoRef.current;
       if (!currentUser?.Uno) return;
-      fetch('http://localhost:3001/api/curricularapply/view/cleanup', {
+      fetch('/api/curricularapply/view/cleanup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uno: currentUser.Uno }),
@@ -232,7 +230,7 @@ const Curricularapply = () => {
         }, {}),
       });
 
-      const res = await fetch(`http://localhost:3001/api/common/table/list?${params.toString()}`);
+      const res = await fetch(`/api/common/table/list?${params.toString()}`);
       const json = await res.json();
       if (json.success) {
         setData(json.data || []);
@@ -269,7 +267,7 @@ const Curricularapply = () => {
     if (!canSend) return;
 
     try {
-      const res = await fetch('http://localhost:3001/api/curricularapply/submit', {
+      const res = await fetch('/api/curricularapply/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -329,7 +327,7 @@ const Curricularapply = () => {
     if (!row?.ApplyID) return;
     if (!window.confirm('确定删除该申请吗？')) return;
     try {
-      const res = await fetch('http://localhost:3001/api/curricularapply/cancel', {
+      const res = await fetch('/api/curricularapply/cancel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uno: userInfo.Uno, applyId: row.ApplyID }),

@@ -51,7 +51,7 @@ const Sendbox = () => {
 
     const initView = async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/sendbox/view/init', {
+        const res = await fetch('/api/sendbox/view/init', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ uno: userInfo.Uno })
@@ -72,7 +72,7 @@ const Sendbox = () => {
     return () => {
       const currentUserInfo = userInfoRef.current;
       if (currentUserInfo && currentUserInfo.Uno) {
-        fetch('http://localhost:3001/api/sendbox/view/cleanup', {
+        fetch('/api/sendbox/view/cleanup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ uno: currentUserInfo.Uno })
@@ -109,7 +109,7 @@ const Sendbox = () => {
         }, {})
       });
 
-      const res = await fetch(`http://localhost:3001/api/common/table/list?${params}`);
+      const res = await fetch(`/api/common/table/list?${params}`);
       const json = await res.json();
       if (json.success) {
         setData(json.data);
@@ -138,7 +138,7 @@ const Sendbox = () => {
         limit: 1,
         search_Msg_no: row.Msg_no,
       });
-      const res = await fetch(`http://localhost:3001/api/common/table/list?${params.toString()}`);
+      const res = await fetch(`/api/common/table/list?${params.toString()}`);
       const json = await res.json();
       if (json.success && Array.isArray(json.data) && json.data.length > 0) {
         setDetailsMeta(json.data[0]);
@@ -151,7 +151,7 @@ const Sendbox = () => {
   const handleDelete = async (row) => {
     if (!window.confirm('确定删除该消息吗？')) return;
     try {
-      const res = await fetch('http://localhost:3001/api/messages/delete', {
+      const res = await fetch('/api/messages/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uno: userInfo.Uno, msg_no: row.Msg_no, type: 'sent' })
@@ -181,7 +181,7 @@ const Sendbox = () => {
     Promise.all(
       missing.map(async (uno) => {
         try {
-          const res = await fetch(`http://localhost:3001/api/account/info?uno=${encodeURIComponent(uno)}`);
+          const res = await fetch(`/api/account/info?uno=${encodeURIComponent(uno)}`);
           const json = await res.json();
           if (json?.success && json?.role) return [uno, json.role];
         } catch {

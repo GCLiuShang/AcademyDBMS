@@ -5,7 +5,7 @@ import Table from '../../components/Table/Table';
 import { getCurrentUserFromStorage } from '../../utils/userSession';
 import './Courseajust.css';
 
-const API_BASE = 'http://localhost:3001';
+const API_BASE = '';
 
 const Courseajust = () => {
   const navigate = useNavigate();

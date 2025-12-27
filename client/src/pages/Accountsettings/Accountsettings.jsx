@@ -102,7 +102,7 @@ const Accountsettings = () => {
   const fetchInfo = async () => {
     if (!userInfo) return;
     try {
-      const res = await fetch(`http://localhost:3001/api/account/info?uno=${userInfo.Uno}`);
+      const res = await fetch(`/api/account/info?uno=${encodeURIComponent(userInfo.Uno)}`);
       const json = await res.json();
       if (json.success) {
         setRole(json.role);
@@ -175,7 +175,7 @@ const Accountsettings = () => {
     }
 
     try {
-      const res = await fetch('http://localhost:3001/api/account/update', {
+      const res = await fetch('/api/account/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uno: userInfo.Uno, oldPassword, updates })

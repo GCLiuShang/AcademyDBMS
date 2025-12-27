@@ -6,7 +6,7 @@ import Details from '../../components/Details/Details';
 import { getCurrentUserFromStorage } from '../../utils/userSession';
 import './Arrange.css';
 
-const API_BASE = 'http://localhost:3001';
+const API_BASE = '';
 const LESSON_NO_OPTIONS = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13'];
 
 function parseDateTime(value) {

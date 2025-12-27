@@ -20,6 +20,7 @@ DROP TABLE IF EXISTS Setup_Course;
 DROP TABLE IF EXISTS Enrollment;
 DROP TABLE IF EXISTS Pursuit;
 DROP TABLE IF EXISTS Prerequisite;
+DROP TABLE IF EXISTS Prerequisite_temp;
 DROP TABLE IF EXISTS TP_Curricular;
 DROP TABLE IF EXISTS Setup_Curricular_P;
 DROP TABLE IF EXISTS Setup_Curricular_G;

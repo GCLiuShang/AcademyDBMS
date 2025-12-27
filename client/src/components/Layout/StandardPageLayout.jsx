@@ -98,7 +98,7 @@ const StandardPageLayout = ({
         // 动态导入 axios，避免顶部 import 可能的问题，或者假设顶部已经 import axios from 'axios'
         // 为了保险，建议在文件顶部添加 import axios from 'axios';
         // 这里暂时使用 fetch
-        const response = await fetch(`http://localhost:3001/api/messages/new?uno=${user.Uno}`);
+        const response = await fetch(`/api/messages/new?uno=${encodeURIComponent(user.Uno)}`);
         const data = await response.json();
 
         if (response.status === 401) {
@@ -123,7 +123,7 @@ const StandardPageLayout = ({
             window.dispatchEvent(new CustomEvent('app-message', { detail: msg }));
             
             // 标记已读
-            fetch('http://localhost:3001/api/messages/read', {
+            fetch('/api/messages/read', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ uno: user.Uno, msg_no: msg.Msg_no })
@@ -221,7 +221,7 @@ const StandardPageLayout = ({
     const user = getCurrentUserFromStorage();
     if (user && user.Uno) {
       try {
-        await fetch('http://localhost:3001/api/logout', {
+        await fetch('/api/logout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username: user.Uno })

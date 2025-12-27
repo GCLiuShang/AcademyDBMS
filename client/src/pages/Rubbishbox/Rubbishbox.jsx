@@ -59,7 +59,7 @@ const Rubbishbox = () => {
 
     const initView = async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/rubbishbox/view/init', {
+        const res = await fetch('/api/rubbishbox/view/init', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ uno: userInfo.Uno })
@@ -81,7 +81,7 @@ const Rubbishbox = () => {
     return () => {
       const currentUserInfo = userInfoRef.current;
       if (currentUserInfo && currentUserInfo.Uno) {
-        fetch('http://localhost:3001/api/rubbishbox/view/cleanup', {
+        fetch('/api/rubbishbox/view/cleanup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ uno: currentUserInfo.Uno })
@@ -121,7 +121,7 @@ const Rubbishbox = () => {
         }, {})
       });
 
-      const res = await fetch(`http://localhost:3001/api/common/table/list?${params}`);
+      const res = await fetch(`/api/common/table/list?${params}`);
       const json = await res.json();
       if (json.success) {
         setReceivedData(json.data);
@@ -148,7 +148,7 @@ const Rubbishbox = () => {
         }, {})
       });
 
-      const res = await fetch(`http://localhost:3001/api/common/table/list?${params}`);
+      const res = await fetch(`/api/common/table/list?${params}`);
       const json = await res.json();
       if (json.success) {
         setSentData(json.data);
@@ -182,7 +182,7 @@ const Rubbishbox = () => {
         limit: 1,
         search_Msg_no: row.Msg_no,
       });
-      const res = await fetch(`http://localhost:3001/api/common/table/list?${params.toString()}`);
+      const res = await fetch(`/api/common/table/list?${params.toString()}`);
       const json = await res.json();
       if (json.success && Array.isArray(json.data) && json.data.length > 0) {
         setDetailsMeta(json.data[0]);
@@ -195,7 +195,7 @@ const Rubbishbox = () => {
   const handleRestore = async (side, row) => {
     if (!userInfo) return;
     try {
-      const res = await fetch('http://localhost:3001/api/messages/restore', {
+      const res = await fetch('/api/messages/restore', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
