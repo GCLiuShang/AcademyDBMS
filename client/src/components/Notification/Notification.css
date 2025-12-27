@@ -24,6 +24,10 @@
   overflow: hidden;
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
+  box-sizing: border-box;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
   
   /* Initial State: Bottom Right */
   bottom: 30px;
@@ -59,6 +63,23 @@
   cursor: default;
 }
 
+.notification-box.expanded {
+  padding-top: 21px;
+  padding-bottom: 16px;
+}
+
+.notification-content-fading .notification-header,
+.notification-content-fading .notification-body,
+.notification-content-fading .close-btn {
+  opacity: 0;
+}
+
+.notification-header,
+.notification-body,
+.close-btn {
+  transition: opacity 0.2s;
+}
+
 /* Colors based on Priority */
 .notification-box.priority-normal {
   background-color: #f6ffed; /* Light Green */
@@ -68,19 +89,7 @@
   background-color: #fff1f0; /* Light Red */
 }
 
-/* Content Container */
-.notification-content {
-  padding: 16px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  transition: opacity 0.2s;
-}
-
-.notification-content.fading {
-  opacity: 0;
-}
+/* Content Container removed; children are placed directly under .notification-box */
 
 /* Close Button */
 .close-btn {
@@ -108,6 +117,63 @@
   color: inherit;
 }
 
+.notification-header--expanded {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.expanded-title {
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.notification-box.expanded .expanded-title {
+  flex: 0 0 auto;
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.notification-role {
+  transform: translateY(-1px);
+}
+
+.expanded-sender {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notification-meta {
+  font-size: 0.8em;
+  color: #666;
+  font-weight: 400;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.notification-time {
+  margin-left: auto;
+  transform: translateY(-1px);
+}
+
+.notification-priority {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) translateY(-1px);
+  pointer-events: none;
+}
+
 /* Body */
 .notification-body {
   font-size: 14px;
@@ -120,6 +186,15 @@
 .notification-box.expanded .notification-body {
   overflow-y: auto;
   padding-right: 8px;
+  min-height: 0;
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 12px;
+}
+
+.notification-box.expanded .notification-header {
+  margin-bottom: 0;
 }
 
 /* Recalled Message Section */
@@ -136,7 +211,7 @@
   margin-top: 8px;
 }
 
-/* Text Colors based on Category - Apply to .notification-content or specific elements */
+/* Text Colors based on Category */
 .text-category-notice { color: #52c41a; } /* Green */
 .text-category-todo { color: #f5222d; }   /* Red */
 .text-category-system { color: #1890ff; } /* Blue */

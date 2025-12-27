@@ -262,7 +262,7 @@
 
 .editmessage-query-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1.2fr 1fr 1fr;
   gap: 10px;
   padding: 8px 10px;
   border: 1px solid rgba(0, 0, 0, 0.12);
@@ -270,6 +270,16 @@
   background: #f6f6f6;
   cursor: pointer;
   text-align: left;
+  align-items: center;
+}
+
+.editmessage-query-row > .col-name,
+.editmessage-query-row > .col-uno,
+.editmessage-query-row > .col-role {
+  display: flex;
+  align-items: center;
+  min-height: 0;
+  line-height: 1.2;
 }
 
 .editmessage-query-row.header {
@@ -283,8 +293,13 @@
   font-weight: 700;
 }
 
+.editmessage-query-row .col-name {
+  font-weight: 700;
+}
+
 .editmessage-query-row.header .col-uno,
-.editmessage-query-row.header .col-role {
+.editmessage-query-row.header .col-role,
+.editmessage-query-row.header .col-name {
   font-weight: 700;
 }
 

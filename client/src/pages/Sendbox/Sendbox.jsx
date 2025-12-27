@@ -21,6 +21,7 @@ const Sendbox = () => {
   const [pageSize, setPageSize] = useState(20);
   const [loading, setLoading] = useState(false);
   const [searchParams, setSearchParams] = useState({});
+  const [roleByUno, setRoleByUno] = useState({});
 
   useEffect(() => {
     const user = getCurrentUserFromStorage();
@@ -163,8 +164,65 @@ const Sendbox = () => {
     }
   };
 
+  useEffect(() => {
+    const unos = Array.from(
+      new Set(
+        (data || [])
+          .map((row) => row?.Receive_Uno)
+          .filter((uno) => uno !== null && uno !== undefined && String(uno).trim().length > 0)
+          .map((uno) => String(uno).trim())
+      )
+    );
+
+    const missing = unos.filter((uno) => uno !== 'O000000000' && !roleByUno[uno]);
+    if (missing.length === 0) return;
+
+    let active = true;
+    Promise.all(
+      missing.map(async (uno) => {
+        try {
+          const res = await fetch(`http://localhost:3001/api/account/info?uno=${encodeURIComponent(uno)}`);
+          const json = await res.json();
+          if (json?.success && json?.role) return [uno, json.role];
+        } catch {
+          return null;
+        }
+        return null;
+      })
+    ).then((pairs) => {
+      if (!active) return;
+      const resolved = (pairs || []).filter(Boolean);
+      if (resolved.length === 0) return;
+
+      setRoleByUno((prev) => {
+        const next = { ...prev };
+        for (const [uno, role] of resolved) {
+          if (!next[uno] && role) next[uno] = role;
+        }
+        return next;
+      });
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [data, roleByUno]);
+
+  const getRoleText = (uno) => {
+    const normalized = uno === null || uno === undefined ? '' : String(uno).trim();
+    if (!normalized) return '';
+    if (normalized === 'O000000000') return '系统';
+    return roleByUno[normalized] || '';
+  };
+
   const columns = [
-    { key: 'ReceiverName', title: '收信人', width: '20%' },
+    { key: 'ReceiverName', title: '收信人', width: '18%' },
+    {
+      key: 'Receive_Uno',
+      title: '身份',
+      width: '12%',
+      render: (row) => getRoleText(row.Receive_Uno)
+    },
     {
       key: 'Receive_time',
       title: '收信时间',

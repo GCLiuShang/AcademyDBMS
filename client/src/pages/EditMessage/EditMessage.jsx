@@ -264,7 +264,6 @@ const EditMessage = () => {
               >
                 <option value="通知">通知</option>
                 <option value="代办">代办</option>
-                <option value="系统">系统</option>
                 <option value="撤回">撤回</option>
               </select>
             </div>
@@ -316,19 +315,21 @@ const EditMessage = () => {
               />
             </div>
             <div className="editmessage-query-body">
-              <div className="editmessage-query-table">
-                <div className="editmessage-query-row header">
-                  <div className="col-uno">用户编号</div>
-                  <div className="col-role">用户类型</div>
-                </div>
-                {(userSearchQuery.trim().length === 0 ? [] : userSearchResults).map(u => (
-                  <button
-                    key={u.Uno}
+                <div className="editmessage-query-table">
+                  <div className="editmessage-query-row header">
+                    <div className="col-name">姓名</div>
+                  <div className="col-uno">编号</div>
+                  <div className="col-role">类型</div>
+                  </div>
+                  {(userSearchQuery.trim().length === 0 ? [] : userSearchResults).map(u => (
+                    <button
+                      key={u.Uno}
                     type="button"
                     className="editmessage-query-row"
                     onClick={() => addReceiver(u)}
                     title="点击加入收信人"
                   >
+                    <div className="col-name">{u.Name || ''}</div>
                     <div className="col-uno">{u.Uno}</div>
                     <div className="col-role">{u.Urole}</div>
                   </button>
