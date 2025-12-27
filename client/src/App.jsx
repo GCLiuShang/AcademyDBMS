@@ -21,6 +21,7 @@ import Useradd from './pages/Useradd/Useradd';
 import Examarrange from './pages/Examarrange/Examarrange';
 import Enroll from './pages/Enroll/Enroll';
 import Control from './pages/Control/Control';
+import TrainingprogramEdit from './pages/TrainingprogramEdit/TrainingprogramEdit';
 
 function App() {
   return (
@@ -52,6 +53,7 @@ function App() {
           <Route path="/examarrange" element={<Examarrange />} />
           <Route path="/enroll" element={<Enroll />} />
           <Route path="/control" element={<Control />} />
+          <Route path="/trainingprogramedit" element={<TrainingprogramEdit />} />
 
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>

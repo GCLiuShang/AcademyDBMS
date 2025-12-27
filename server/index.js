@@ -11,6 +11,7 @@ const courseRouter = require('./routes/course');
 const commonRouter = require('./routes/common');
 const enrollRouter = require('./routes/enroll');
 const examRouter = require('./routes/exam');
+const trainingprogramRouter = require('./routes/trainingprogram');
 require('dotenv').config();
 
 const app = express();
@@ -28,6 +29,7 @@ app.use('/api', courseRouter);
 app.use('/api', commonRouter);
 app.use('/api', enrollRouter);
 app.use('/api', examRouter);
+app.use('/api', trainingprogramRouter);
 initScheduler();
 
 app.listen(PORT, () => {

@@ -5,6 +5,35 @@ const { insertSystemMessageToMany } = require('../services/messageService');
 
 const router = express.Router();
 
+router.post('/course/search', async (req, res) => {
+  const { query, limit } = req.body;
+  if (typeof query !== 'string') return res.status(400).json({ success: false, message: 'Invalid query' });
+  const q = query.trim();
+  if (q.length < 3) return res.json({ success: true, data: [] });
+  if (q.length > 50) return res.status(400).json({ success: false, message: 'Query too long' });
+
+  const limitNumRaw = limit === null || limit === undefined ? 50 : Number(limit);
+  const limitNum = Number.isFinite(limitNumRaw) ? Math.min(50, Math.max(1, Math.floor(limitNumRaw))) : 50;
+
+  const escapeLike = (value) => String(value).replace(/([\\%_])/g, '\\$1');
+  const like = `%${escapeLike(q)}%`;
+
+  try {
+    const [rows] = await db.execute(
+      `SELECT Cno, Cname
+       FROM Curricular
+       WHERE Cno LIKE ? ESCAPE '\\\\' OR Cname LIKE ? ESCAPE '\\\\'
+       ORDER BY Cno ASC
+       LIMIT ?`,
+      [like, like, limitNum]
+    );
+    return res.json({ success: true, data: rows || [] });
+  } catch (error) {
+    console.error('Error searching courses:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
 router.post('/courseapply/view/init', async (req, res) => {
   const { uno } = req.body;
   if (!uno) return res.status(400).json({ success: false, message: 'Uno is required' });

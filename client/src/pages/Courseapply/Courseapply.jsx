@@ -380,9 +380,9 @@ const Courseapply = () => {
       onLogout={handleLogout}
       onNavigate={(item) => navigate(item.url)}
     >
-      <div className="curricularapply-root curricularapply-root--courseapply">
-        <div className="curricularapply-left">
-          <div className="curricularapply-left-title">任教申请</div>
+      <div className="courseapply-root">
+        <div className="courseapply-left">
+          <div className="courseapply-left-title">任教申请</div>
           {businessFlags && !businessFlags.courseOpen && (
             <div
               style={{
@@ -397,19 +397,19 @@ const Courseapply = () => {
               当前任教申请业务未开放，暂时无法发起新的申请。
             </div>
           )}
-          <div className="curricularapply-form" style={{ overflowY: 'auto', overflowX: 'hidden' }}>
-            <div className="curricularapply-row small">
-              <div className="curricularapply-cell" style={{ width: '100%' }}>
-                <span className="curricularapply-label">任教课程：</span>
-                <div className="editmessage-receiver" ref={courseDropdownRef} style={{ flex: 1, minWidth: 0 }}>
-                  <div className="editmessage-receiver-control" onClick={() => setCourseDropdownOpen((v) => !v)}>
-                    <div className="editmessage-receiver-chips">
+          <div className="courseapply-form" style={{ overflowY: 'auto', overflowX: 'hidden' }}>
+            <div className="courseapply-row small">
+              <div className="courseapply-cell" style={{ width: '100%' }}>
+                <span className="courseapply-label">任教课程：</span>
+                <div className="courseapply-picker" ref={courseDropdownRef} style={{ flex: 1, minWidth: 0 }}>
+                  <div className="courseapply-picker-control" onClick={() => setCourseDropdownOpen((v) => !v)}>
+                    <div className="courseapply-picker-chips">
                       {selectedCourse ? (
-                        <div className="editmessage-chip">
-                          <span className="editmessage-chip-text">{selectedCourse.Cno}</span>
+                        <div className="courseapply-picker-chip">
+                          <span className="courseapply-picker-chip-text">{selectedCourse.Cno}</span>
                           <button
                             type="button"
-                            className="editmessage-chip-remove"
+                            className="courseapply-picker-chip-remove"
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedCourse(null);
@@ -419,31 +419,31 @@ const Courseapply = () => {
                           </button>
                         </div>
                       ) : (
-                        <span className="editmessage-receiver-placeholder">点击选择课程</span>
+                        <span className="courseapply-picker-placeholder">点击选择课程</span>
                       )}
                     </div>
-                    <div className="editmessage-receiver-caret">▾</div>
+                    <div className="courseapply-picker-caret">▾</div>
                   </div>
 
                   {courseDropdownOpen && (
-                    <div className="editmessage-receiver-dropdown">
+                    <div className="courseapply-picker-dropdown">
                       <input
-                        className="editmessage-receiver-search"
+                        className="courseapply-picker-search"
                         value={courseQuery}
                         onChange={(e) => setCourseQuery(e.target.value)}
                         placeholder="输入 Cno 模糊搜索（至少3个字符）"
                       />
-                      <div className="editmessage-receiver-options">
+                      <div className="courseapply-picker-options">
                         {courseQuery.trim().length < 3 ? (
-                          <div className="editmessage-receiver-hint">请输入至少3个字符</div>
+                          <div className="courseapply-picker-hint">请输入至少3个字符</div>
                         ) : courseOptions.length === 0 ? (
-                          <div className="editmessage-receiver-hint">无匹配结果</div>
+                          <div className="courseapply-picker-hint">无匹配结果</div>
                         ) : (
                           courseOptions.map((c) => (
                             <button
                               key={c.Cno}
                               type="button"
-                              className={`editmessage-receiver-option ${selectedCourse?.Cno === c.Cno ? 'selected' : ''}`}
+                              className={`courseapply-picker-option ${selectedCourse?.Cno === c.Cno ? 'selected' : ''}`}
                               onClick={() => {
                                 setSelectedCourse({ Cno: c.Cno, Cname: c.Cname });
                                 setCourseDropdownOpen(false);
@@ -461,18 +461,18 @@ const Courseapply = () => {
               </div>
             </div>
 
-            <div className="curricularapply-row small">
-              <div className="curricularapply-cell" style={{ width: '100%' }}>
-                <span className="curricularapply-label">任教教授：</span>
-                <div className="editmessage-receiver" ref={profDropdownRef} style={{ flex: 1, minWidth: 0 }}>
-                  <div className="editmessage-receiver-control" onClick={() => setProfDropdownOpen((v) => !v)}>
-                    <div className="editmessage-receiver-chips">
+            <div className="courseapply-row small">
+              <div className="courseapply-cell" style={{ width: '100%' }}>
+                <span className="courseapply-label">任教教授：</span>
+                <div className="courseapply-picker" ref={profDropdownRef} style={{ flex: 1, minWidth: 0 }}>
+                  <div className="courseapply-picker-control" onClick={() => setProfDropdownOpen((v) => !v)}>
+                    <div className="courseapply-picker-chips">
                       {selectedProfs.map((p) => (
-                        <div key={p.Pno} className="editmessage-chip">
-                          <span className="editmessage-chip-text">{p.Pno}</span>
+                        <div key={p.Pno} className="courseapply-picker-chip">
+                          <span className="courseapply-picker-chip-text">{p.Pno}</span>
                           <button
                             type="button"
-                            className="editmessage-chip-remove"
+                            className="courseapply-picker-chip-remove"
                             onClick={(e) => {
                               e.stopPropagation();
                               removeProf(p.Pno);
@@ -482,30 +482,30 @@ const Courseapply = () => {
                           </button>
                         </div>
                       ))}
-                      {selectedProfs.length === 0 && <span className="editmessage-receiver-placeholder">点击选择教授</span>}
+                      {selectedProfs.length === 0 && <span className="courseapply-picker-placeholder">点击选择教授</span>}
                     </div>
-                    <div className="editmessage-receiver-caret">▾</div>
+                    <div className="courseapply-picker-caret">▾</div>
                   </div>
 
                   {profDropdownOpen && (
-                    <div className="editmessage-receiver-dropdown">
+                    <div className="courseapply-picker-dropdown">
                       <input
-                        className="editmessage-receiver-search"
+                        className="courseapply-picker-search"
                         value={profQuery}
                         onChange={(e) => setProfQuery(e.target.value)}
                         placeholder="输入 Pno 模糊搜索（至少3个字符）"
                       />
-                      <div className="editmessage-receiver-options">
+                      <div className="courseapply-picker-options">
                         {profQuery.trim().length < 3 ? (
-                          <div className="editmessage-receiver-hint">请输入至少3个字符</div>
+                          <div className="courseapply-picker-hint">请输入至少3个字符</div>
                         ) : profOptions.length === 0 ? (
-                          <div className="editmessage-receiver-hint">无匹配结果</div>
+                          <div className="courseapply-picker-hint">无匹配结果</div>
                         ) : (
                           profOptions.map((p) => (
                             <button
                               key={p.Pno}
                               type="button"
-                              className={`editmessage-receiver-option ${selectedProfMap.has(p.Pno) ? 'selected' : ''}`}
+                              className={`courseapply-picker-option ${selectedProfMap.has(p.Pno) ? 'selected' : ''}`}
                               onClick={() => addProf(p)}
                             >
                               <span className="uno">{p.Pno}</span>
@@ -520,10 +520,10 @@ const Courseapply = () => {
               </div>
             </div>
 
-            <div className="curricularapply-row small">
-              <div className="curricularapply-cell" style={{ width: '100%' }}>
-                <span className="curricularapply-label">意向任教校区：</span>
-                <select className="curricularapply-select" value={campus} onChange={(e) => setCampus(e.target.value)}>
+            <div className="courseapply-row small">
+              <div className="courseapply-cell" style={{ width: '100%' }}>
+                <span className="courseapply-label">意向任教校区：</span>
+                <select className="courseapply-select" value={campus} onChange={(e) => setCampus(e.target.value)}>
                   <option value="">请选择</option>
                   {campusOptions.map((opt) => (
                     <option key={opt} value={opt}>
@@ -534,18 +534,18 @@ const Courseapply = () => {
               </div>
             </div>
 
-            <div className="curricularapply-row small">
-              <div className="curricularapply-cell" style={{ width: '100%' }}>
-                <span className="curricularapply-label">意向任教星期：</span>
-                <div className="editmessage-receiver" ref={dayDropdownRef} style={{ flex: 1, minWidth: 0 }}>
-                  <div className="editmessage-receiver-control" onClick={() => setDayDropdownOpen((v) => !v)}>
-                    <div className="editmessage-receiver-chips">
+            <div className="courseapply-row small">
+              <div className="courseapply-cell" style={{ width: '100%' }}>
+                <span className="courseapply-label">意向任教星期：</span>
+                <div className="courseapply-picker" ref={dayDropdownRef} style={{ flex: 1, minWidth: 0 }}>
+                  <div className="courseapply-picker-control" onClick={() => setDayDropdownOpen((v) => !v)}>
+                    <div className="courseapply-picker-chips">
                       {selectedDays.map((d) => (
-                        <div key={d} className="editmessage-chip">
-                          <span className="editmessage-chip-text">{d}</span>
+                        <div key={d} className="courseapply-picker-chip">
+                          <span className="courseapply-picker-chip-text">{d}</span>
                           <button
                             type="button"
-                            className="editmessage-chip-remove"
+                            className="courseapply-picker-chip-remove"
                             onClick={(e) => {
                               e.stopPropagation();
                               toggleDay(d);
@@ -555,22 +555,22 @@ const Courseapply = () => {
                           </button>
                         </div>
                       ))}
-                      {selectedDays.length === 0 && <span className="editmessage-receiver-placeholder">点击选择星期</span>}
+                      {selectedDays.length === 0 && <span className="courseapply-picker-placeholder">点击选择星期</span>}
                     </div>
-                    <div className="editmessage-receiver-caret">▾</div>
+                    <div className="courseapply-picker-caret">▾</div>
                   </div>
 
                   {dayDropdownOpen && (
-                    <div className="editmessage-receiver-dropdown">
-                      <div className="editmessage-receiver-options">
+                    <div className="courseapply-picker-dropdown">
+                      <div className="courseapply-picker-options">
                         {dayOptions.length === 0 ? (
-                          <div className="editmessage-receiver-hint">无可用选项</div>
+                          <div className="courseapply-picker-hint">无可用选项</div>
                         ) : (
                           dayOptions.map((d) => (
                             <button
                               key={d}
                               type="button"
-                              className={`editmessage-receiver-option ${selectedDaySet.has(d) ? 'selected' : ''}`}
+                              className={`courseapply-picker-option ${selectedDaySet.has(d) ? 'selected' : ''}`}
                               onClick={() => toggleDay(d)}
                             >
                               <span className="uno">{d}</span>
@@ -584,11 +584,11 @@ const Courseapply = () => {
               </div>
             </div>
 
-            <div className="curricularapply-row small">
-              <div className="curricularapply-cell" style={{ width: '100%' }}>
-                <span className="curricularapply-label">意向最大人数：</span>
+            <div className="courseapply-row small">
+              <div className="courseapply-cell" style={{ width: '100%' }}>
+                <span className="courseapply-label">意向最大人数：</span>
                 <input
-                  className="curricularapply-input"
+                  className="courseapply-input"
                   value={maxStudents}
                   onChange={(e) => {
                     const digits = e.target.value.replace(/\D/g, '');
@@ -610,8 +610,8 @@ const Courseapply = () => {
           </div>
         </div>
 
-        <div className="curricularapply-right">
-          <div className="curricularapply-right-top">
+        <div className="courseapply-right">
+          <div className="courseapply-right-top">
             <Table
               columns={columns}
               data={data}
@@ -625,8 +625,8 @@ const Courseapply = () => {
               loading={loading}
             />
           </div>
-          <div className="curricularapply-right-bottom">
-            <button type="button" className="curricularapply-send" disabled={!canSend} onClick={handleSend}>
+          <div className="courseapply-right-bottom">
+            <button type="button" className="courseapply-send" disabled={!canSend} onClick={handleSend}>
               发送申请
             </button>
           </div>

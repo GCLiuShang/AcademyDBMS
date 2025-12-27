@@ -1089,25 +1089,25 @@ const Arrange = () => {
           <div className="arrange-key-middle">
             <div className="arrange-key-field wide">
               <span className="arrange-key-label">选定周次：</span>
-              <div className="editmessage-receiver" ref={weekDropdownRef}>
+              <div className="arrange-picker" ref={weekDropdownRef}>
                 <div
-                  className="editmessage-receiver-control"
+                  className="arrange-picker-control"
                   onClick={() => {
                     if (!weekSelectable) return;
                     setWeekDropdownOpen((v) => !v);
                   }}
                 >
-                  <div className="editmessage-receiver-chips">
+                  <div className="arrange-picker-chips">
                     {Array.isArray(selectedWeeks) && selectedWeeks.length > 0 ? (
                       selectedWeeks
                         .slice()
                         .sort((a, b) => a - b)
                         .map((w) => (
-                          <div key={w} className="editmessage-chip">
-                            <span className="editmessage-chip-text">{w}</span>
+                          <div key={w} className="arrange-picker-chip">
+                            <span className="arrange-picker-chip-text">{w}</span>
                             <button
                               type="button"
-                              className="editmessage-chip-remove"
+                              className="arrange-picker-chip-remove"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 const next = selectedWeeks.filter((x) => x !== w);
@@ -1124,17 +1124,17 @@ const Arrange = () => {
                           </div>
                         ))
                     ) : (
-                      <span className="editmessage-receiver-placeholder">点击选择周次</span>
+                      <span className="arrange-picker-placeholder">点击选择周次</span>
                     )}
                   </div>
-                  <div className="editmessage-receiver-caret">▾</div>
+                  <div className="arrange-picker-caret">▾</div>
                 </div>
 
                 {weekDropdownOpen && (
-                  <div className="editmessage-receiver-dropdown">
-                    <div className="editmessage-receiver-options">
+                  <div className="arrange-picker-dropdown">
+                    <div className="arrange-picker-options">
                       {availableWeeks.length === 0 ? (
-                        <div className="editmessage-receiver-hint">无可用周次</div>
+                        <div className="arrange-picker-hint">无可用周次</div>
                       ) : (
                         availableWeeks.map((w) => {
                           const selectedSet = new Set(selectedWeeks || []);
@@ -1143,7 +1143,7 @@ const Arrange = () => {
                             <button
                               key={w}
                               type="button"
-                              className={`editmessage-receiver-option ${checked ? 'selected' : ''}`}
+                              className={`arrange-picker-option ${checked ? 'selected' : ''}`}
                               onClick={() => {
                                 if (!weekSelectable) return;
                                 setSelectedWeeks((prev) => {
@@ -1404,58 +1404,58 @@ const Arrange = () => {
             <div className="arrange-left-title">事务安排</div>
 
             <div className="arrange-row small">
-              <div className="arrange-cell" style={{ width: '100%' }}>
-                <span className="arrange-label">事务编号：</span>
-                <div className="editmessage-receiver" ref={txnDropdownRef} style={{ flex: 1, minWidth: 0 }}>
-                  <div className="editmessage-receiver-control" onClick={() => setTxnDropdownOpen((v) => !v)}>
-                    <div className="editmessage-receiver-chips">
-                      {selectedTxn ? (
-                        <div className="editmessage-chip">
-                          <span className="editmessage-chip-text">{selectedTxn.id}</span>
-                          <button
-                            type="button"
-                            className="editmessage-chip-remove"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedTxn(null);
-                              setTxnQuery('');
+                <div className="arrange-cell" style={{ width: '100%' }}>
+                  <span className="arrange-label">事务编号：</span>
+                  <div className="arrange-picker" ref={txnDropdownRef} style={{ flex: 1, minWidth: 0 }}>
+                    <div className="arrange-picker-control" onClick={() => setTxnDropdownOpen((v) => !v)}>
+                      <div className="arrange-picker-chips">
+                        {selectedTxn ? (
+                          <div className="arrange-picker-chip">
+                            <span className="arrange-picker-chip-text">{selectedTxn.id}</span>
+                            <button
+                              type="button"
+                              className="arrange-picker-chip-remove"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedTxn(null);
+                                setTxnQuery('');
                               setTxnOptions([]);
                             }}
                           >
                             ×
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="editmessage-receiver-placeholder">请选择事务</div>
-                      )}
-                    </div>
-                    <div style={{ marginLeft: 10, opacity: 0.6 }}>{txnDropdownOpen ? '▲' : '▼'}</div>
-                  </div>
-
-                  {txnDropdownOpen && (
-                    <div className="editmessage-receiver-dropdown">
-                      <input
-                        className="editmessage-receiver-search"
-                        value={txnQuery}
-                        onChange={(e) => setTxnQuery(e.target.value)}
-                        placeholder="输入至少5个字符搜索"
-                      />
-                      <div className="editmessage-receiver-options">
-                        {txnQuery.trim().length < 5 ? (
-                          <div className="editmessage-receiver-hint">请输入至少5个字符进行搜索</div>
-                        ) : txnOptions.length === 0 ? (
-                          <div className="editmessage-receiver-hint">无匹配结果</div>
+                            </button>
+                          </div>
                         ) : (
-                          txnOptions.map((opt) => {
-                            const selected = selectedTxn?.type === opt.type && selectedTxn?.id === opt.id;
-                            return (
-                              <div
-                                key={`${opt.type}:${opt.id}`}
-                                className={`editmessage-receiver-option${selected ? ' selected' : ''}`}
-                                onClick={() => {
-                                  setSelectedTxn(opt);
-                                  setTxnDropdownOpen(false);
-                                  setTxnQuery('');
+                          <div className="arrange-picker-placeholder">请选择事务</div>
+                        )}
+                      </div>
+                      <div style={{ marginLeft: 10, opacity: 0.6 }}>{txnDropdownOpen ? '▲' : '▼'}</div>
+                    </div>
+
+                    {txnDropdownOpen && (
+                      <div className="arrange-picker-dropdown">
+                        <input
+                          className="arrange-picker-search"
+                          value={txnQuery}
+                          onChange={(e) => setTxnQuery(e.target.value)}
+                          placeholder="输入至少5个字符搜索"
+                        />
+                        <div className="arrange-picker-options">
+                          {txnQuery.trim().length < 5 ? (
+                            <div className="arrange-picker-hint">请输入至少5个字符进行搜索</div>
+                          ) : txnOptions.length === 0 ? (
+                            <div className="arrange-picker-hint">无匹配结果</div>
+                          ) : (
+                            txnOptions.map((opt) => {
+                              const selected = selectedTxn?.type === opt.type && selectedTxn?.id === opt.id;
+                              return (
+                                <div
+                                  key={`${opt.type}:${opt.id}`}
+                                  className={`arrange-picker-option${selected ? ' selected' : ''}`}
+                                  onClick={() => {
+                                    setSelectedTxn(opt);
+                                    setTxnDropdownOpen(false);
+                                    setTxnQuery('');
                                   setTxnOptions([]);
                                 }}
                               >

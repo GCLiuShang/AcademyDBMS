@@ -125,8 +125,7 @@ const Notification = ({ message, onDismiss }) => {
     message.Send_time ??
       message.SendTime ??
       message.sendTime ??
-      message.Msg_Send?.Send_time ??
-      message.Msg_date
+      message.Msg_Send?.Send_time
   );
   
   // Inline styles for closing expanded (fade out)

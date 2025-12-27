@@ -197,7 +197,13 @@ const Control = () => {
                     选课业务开关
                   </div>
                   <div className="control-row-right">
-                    {renderSwitchButton(enrollOpen, setEnrollOpen)}
+                    {renderSwitchButton(enrollOpen, (next) => {
+                      if (!enrollOpen && next) {
+                        const ok = window.confirm('开启选课业务将清空 Enrollment 临时表中的所有记录，是否继续？');
+                        if (!ok) return;
+                      }
+                      setEnrollOpen(next);
+                    })}
                   </div>
                 </div>
               </div>

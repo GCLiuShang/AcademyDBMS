@@ -95,7 +95,7 @@ router.post('/curricularapply/view/cleanup', async (req, res) => {
 });
 
 router.post('/curricularapply/submit', async (req, res) => {
-  const { uno, cattri, cseme, cname, credit, classhour, ceattri, description } = req.body;
+  const { uno, cattri, cseme, cname, credit, classhour, ceattri, description, prerequisites } = req.body;
   if (!uno || !cattri || !cseme || !cname || !classhour) {
     return res.status(400).json({ success: false, message: 'Missing parameters' });
   }
@@ -115,6 +115,21 @@ router.post('/curricularapply/submit', async (req, res) => {
   if (description !== null && description !== undefined) {
     if (typeof description !== 'string' || description.length > 49) {
       return res.status(400).json({ success: false, message: 'Invalid description' });
+    }
+  }
+
+  let prereqList = [];
+  if (prerequisites !== null && prerequisites !== undefined) {
+    if (!Array.isArray(prerequisites)) {
+      return res.status(400).json({ success: false, message: 'Invalid prerequisites' });
+    }
+    prereqList = prerequisites
+      .filter((x) => typeof x === 'string')
+      .map((x) => x.trim())
+      .filter((x) => x.length > 0 && x.length <= 10 && /^[a-zA-Z0-9]+$/.test(x));
+    prereqList = Array.from(new Set(prereqList));
+    if (prereqList.length > 50) {
+      return res.status(400).json({ success: false, message: 'Too many prerequisites' });
     }
   }
 
@@ -209,6 +224,10 @@ router.post('/curricularapply/submit', async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
     const role = userRows[0].Urole;
+    if (role === '教授' && prereqList.length > 0) {
+      await connection.rollback();
+      return res.status(400).json({ success: false, message: 'Invalid prerequisites' });
+    }
 
     let dept = null;
     if (role === '教授') {
@@ -272,6 +291,19 @@ router.post('/curricularapply/submit', async (req, res) => {
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [applyId, dateStrDash, seq, cno, cname, creditValue, Number(classhour), finalCeattri, description ?? null, '等待审核', uno]
       );
+      if (prereqList.length > 0) {
+        const placeholders = prereqList.map(() => '?').join(',');
+        const [existRows] = await connection.execute(`SELECT Cno FROM Curricular WHERE Cno IN (${placeholders})`, prereqList);
+        const existSet = new Set((existRows || []).map((r) => r.Cno));
+        if (existSet.size !== prereqList.length) {
+          await connection.rollback();
+          return res.status(400).json({ success: false, message: 'Invalid prerequisites' });
+        }
+        await connection.execute(`DELETE FROM Prerequisite_temp WHERE Cno_later = ?`, [cno]);
+        const valueSql = prereqList.map(() => '(?, ?)').join(',');
+        const values = prereqList.flatMap((former) => [cno, former]);
+        await connection.execute(`INSERT INTO Prerequisite_temp (Cno_later, Cno_former) VALUES ${valueSql}`, values);
+      }
       await connection.commit();
       return res.json({ success: true, applyId, cno });
     }
@@ -285,6 +317,19 @@ router.post('/curricularapply/submit', async (req, res) => {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [applyId, dateStrDash, seq, cno, cname, creditValue, Number(classhour), finalCeattri, description ?? null, '等待审核']
     );
+    if (prereqList.length > 0) {
+      const placeholders = prereqList.map(() => '?').join(',');
+      const [existRows] = await connection.execute(`SELECT Cno FROM Curricular WHERE Cno IN (${placeholders})`, prereqList);
+      const existSet = new Set((existRows || []).map((r) => r.Cno));
+      if (existSet.size !== prereqList.length) {
+        await connection.rollback();
+        return res.status(400).json({ success: false, message: 'Invalid prerequisites' });
+      }
+      await connection.execute(`DELETE FROM Prerequisite_temp WHERE Cno_later = ?`, [cno]);
+      const valueSql = prereqList.map(() => '(?, ?)').join(',');
+      const values = prereqList.flatMap((former) => [cno, former]);
+      await connection.execute(`INSERT INTO Prerequisite_temp (Cno_later, Cno_former) VALUES ${valueSql}`, values);
+    }
     await connection.commit();
     return res.json({ success: true, applyId, cno });
   } catch (error) {
@@ -477,6 +522,17 @@ router.post('/curricularapprove/pass', async (req, res) => {
   try {
     await connection.beginTransaction();
 
+    const movePrerequisitesFromTemp = async (cnoLater) => {
+      await connection.execute(
+        `INSERT IGNORE INTO Prerequisite (Cno_later, Cno_former)
+         SELECT Cno_later, Cno_former
+         FROM Prerequisite_temp
+         WHERE Cno_later = ?`,
+        [cnoLater]
+      );
+      await connection.execute(`DELETE FROM Prerequisite_temp WHERE Cno_later = ?`, [cnoLater]);
+    };
+
     const [userRows] = await connection.execute('SELECT Urole FROM User WHERE Uno = ? FOR UPDATE', [uno]);
     if (userRows.length === 0) {
       await connection.rollback();
@@ -529,6 +585,7 @@ router.post('/curricularapprove/pass', async (req, res) => {
       );
       await connection.execute(`UPDATE Setup_Curricular_P SET SetupCuP_status = '等待选课' WHERE SetupCuP_ID = ?`, [applyId]);
       await connection.execute(`UPDATE Cno_Pool SET Cno_status = '不可用' WHERE Cno = ?`, [rows[0].Cno]);
+      await movePrerequisitesFromTemp(rows[0].Cno);
       await connection.commit();
       return res.json({ success: true });
     }
@@ -570,6 +627,7 @@ router.post('/curricularapprove/pass', async (req, res) => {
       );
       await connection.execute(`UPDATE Setup_Curricular_G SET SetupCuG_status = '已经通过' WHERE SetupCuG_ID = ?`, [applyId]);
       await connection.execute(`UPDATE Cno_Pool SET Cno_status = '不可用' WHERE Cno = ?`, [rows[0].Cno]);
+      await movePrerequisitesFromTemp(rows[0].Cno);
       await connection.commit();
       return res.json({ success: true });
     }

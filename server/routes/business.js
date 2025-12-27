@@ -90,6 +90,10 @@ router.post('/business/control/update', async (req, res) => {
     const oldCourseOpen = flagRows.length > 0 ? Boolean(flagRows[0].CourseOpen) : false;
     const oldEnrollOpen = flagRows.length > 0 ? Boolean(flagRows[0].EnrollOpen) : false;
 
+    if (!oldEnrollOpen && enrollFlag) {
+      await connection.execute(`DELETE FROM Enrollment`);
+    }
+
     if (oldCurricularOpen && !curFlag) {
       const [pRows] = await connection.execute(
         `

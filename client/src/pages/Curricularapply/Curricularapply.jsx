@@ -49,6 +49,12 @@ const Curricularapply = () => {
   const [ceattri, setCeattri] = useState('无');
   const [description, setDescription] = useState('');
 
+  const [prereqDropdownOpen, setPrereqDropdownOpen] = useState(false);
+  const [prereqQuery, setPrereqQuery] = useState('');
+  const [prereqOptions, setPrereqOptions] = useState([]);
+  const [selectedPrereqs, setSelectedPrereqs] = useState([]);
+  const prereqDropdownRef = useRef(null);
+
   const [viewName, setViewName] = useState(null);
   const [data, setData] = useState([]);
   const [total, setTotal] = useState(0);
@@ -98,6 +104,53 @@ const Curricularapply = () => {
     if (!userInfo) return '';
     return userInfo.Urole;
   };
+
+  const prereqDisabled = useMemo(() => {
+    return userInfo?.Urole === '教授';
+  }, [userInfo?.Urole]);
+
+  const selectedPrereqMap = useMemo(() => {
+    return new Map(selectedPrereqs.map((c) => [c.Cno, c]));
+  }, [selectedPrereqs]);
+
+  useEffect(() => {
+    if (!prereqDropdownOpen || prereqDisabled) return;
+    const q = prereqQuery.trim();
+    if (q.length < 3) {
+      setPrereqOptions([]);
+      return;
+    }
+
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/course/search`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: q }),
+        });
+        const json = await res.json();
+        if (cancelled) return;
+        if (json?.success && Array.isArray(json.data)) setPrereqOptions(json.data);
+        else setPrereqOptions([]);
+      } catch {
+        if (!cancelled) setPrereqOptions([]);
+      }
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [prereqDropdownOpen, prereqQuery, prereqDisabled]);
+
+  useEffect(() => {
+    const onDocumentClick = (e) => {
+      if (prereqDropdownRef.current && !prereqDropdownRef.current.contains(e.target)) setPrereqDropdownOpen(false);
+    };
+    document.addEventListener('mousedown', onDocumentClick);
+    return () => document.removeEventListener('mousedown', onDocumentClick);
+  }, []);
 
   const deptValue = useMemo(() => {
     const role = userInfo?.Urole;
@@ -228,6 +281,7 @@ const Curricularapply = () => {
           classhour: Number(classhour),
           ceattri,
           description: description.trim().length === 0 ? null : description.trim(),
+          prerequisites: selectedPrereqs.map((c) => c.Cno),
         }),
       });
       const json = await res.json();
@@ -237,6 +291,10 @@ const Curricularapply = () => {
         setCname('');
         setCredit('');
         setClasshour('');
+        setSelectedPrereqs([]);
+        setPrereqQuery('');
+        setPrereqOptions([]);
+        setPrereqDropdownOpen(false);
         setCeattri('无');
         setDescription('');
         setCurrentPage(1);
@@ -406,25 +464,96 @@ const Curricularapply = () => {
               </div>
             </div>
 
-            <div className="curricularapply-row small">
-              <div className="curricularapply-cell" style={{ width: '100%' }}>
+            <div className="curricularapply-row small split">
+              <div className="curricularapply-cell col">
                 <span className="curricularapply-label">学分：</span>
-                <input
-                  className="curricularapply-input"
-                  value={credit}
-                  onChange={(e) => setCredit(e.target.value.replace(/\D/g, ''))}
-                />
+                <input className="curricularapply-input" value={credit} onChange={(e) => setCredit(e.target.value.replace(/\D/g, ''))} />
+              </div>
+              <div className="curricularapply-cell col">
+                <span className="curricularapply-label">课时：</span>
+                <input className="curricularapply-input" value={classhour} onChange={(e) => setClasshour(e.target.value.replace(/\D/g, ''))} />
               </div>
             </div>
 
             <div className="curricularapply-row small">
               <div className="curricularapply-cell" style={{ width: '100%' }}>
-                <span className="curricularapply-label">课时：</span>
-                <input
-                  className="curricularapply-input"
-                  value={classhour}
-                  onChange={(e) => setClasshour(e.target.value.replace(/\D/g, ''))}
-                />
+                <span className="curricularapply-label">前置课程：</span>
+                <div
+                  className={`curricularapply-prereq-picker${prereqDisabled ? ' disabled' : ''}`}
+                  ref={prereqDropdownRef}
+                  style={{ flex: 1, minWidth: 0 }}
+                >
+                  <div
+                    className="curricularapply-prereq-picker-control"
+                    onClick={() => {
+                      if (prereqDisabled) return;
+                      setPrereqDropdownOpen((v) => !v);
+                    }}
+                  >
+                    <div className="curricularapply-prereq-picker-chips">
+                      {selectedPrereqs.length > 0 ? (
+                        selectedPrereqs.map((c) => (
+                          <div key={c.Cno} className="curricularapply-prereq-chip">
+                            <span className="curricularapply-prereq-chip-text">{c.Cno}</span>
+                            <button
+                              type="button"
+                              className="curricularapply-prereq-chip-remove"
+                              disabled={prereqDisabled}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (prereqDisabled) return;
+                                setSelectedPrereqs((prev) => prev.filter((x) => x.Cno !== c.Cno));
+                              }}
+                            >
+                              X
+                            </button>
+                          </div>
+                        ))
+                      ) : (
+                        <span className="curricularapply-prereq-placeholder">点击选择前置课程</span>
+                      )}
+                    </div>
+                    <div className="curricularapply-prereq-caret">▾</div>
+                  </div>
+
+                  {prereqDropdownOpen && !prereqDisabled && (
+                    <div className="curricularapply-prereq-dropdown">
+                      <input
+                        className="curricularapply-prereq-search"
+                        value={prereqQuery}
+                        onChange={(e) => setPrereqQuery(e.target.value)}
+                        placeholder="按课程编号或名称模糊搜索"
+                      />
+                      <div className="curricularapply-prereq-options">
+                        {!prereqQuery.trim() ? (
+                          <div className="curricularapply-prereq-hint">请输入关键词</div>
+                        ) : prereqQuery.trim().length < 3 ? (
+                          <div className="curricularapply-prereq-hint">至少输入3个字符</div>
+                        ) : prereqOptions.length === 0 ? (
+                          <div className="curricularapply-prereq-hint">无匹配结果</div>
+                        ) : (
+                          prereqOptions.map((c) => (
+                            <button
+                              key={c.Cno}
+                              type="button"
+                              className={`curricularapply-prereq-option ${selectedPrereqMap.has(c.Cno) ? 'selected' : ''}`}
+                              onClick={() => {
+                                setSelectedPrereqs((prev) => {
+                                  const curr = Array.isArray(prev) ? prev.slice() : [];
+                                  if (curr.some((x) => x.Cno === c.Cno)) return curr;
+                                  return curr.concat([{ Cno: c.Cno, Cname: c.Cname || '' }]);
+                                });
+                              }}
+                            >
+                              <span className="uno">{c.Cno}</span>
+                              <span className="urole">{c.Cname || ''}</span>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 

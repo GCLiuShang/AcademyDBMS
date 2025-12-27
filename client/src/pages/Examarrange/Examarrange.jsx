@@ -337,21 +337,21 @@ const Examarrange = () => {
       onLogout={handleLogout}
       onNavigate={(item) => navigate(item.url)}
     >
-      <div className="curricularapply-root examarrange-root">
-        <div className="curricularapply-left">
-          <div className="curricularapply-form examarrange-form">
-            <div className="curricularapply-row small">
-              <div className="curricularapply-cell" style={{ width: '100%' }}>
-                <span className="curricularapply-label">考试编号：</span>
-                <div className="editmessage-receiver" ref={examDropdownRef} style={{ flex: 1, minWidth: 0 }}>
-                  <div className="editmessage-receiver-control" onClick={() => setExamDropdownOpen((v) => !v)}>
-                    <div className="editmessage-receiver-chips">
+      <div className="examarrange-root">
+        <div className="examarrange-left">
+          <div className="examarrange-form">
+            <div className="examarrange-row small">
+              <div className="examarrange-cell" style={{ width: '100%' }}>
+                <span className="examarrange-label">考试编号：</span>
+                <div className="examarrange-picker" ref={examDropdownRef} style={{ flex: 1, minWidth: 0 }}>
+                  <div className="examarrange-picker-control" onClick={() => setExamDropdownOpen((v) => !v)}>
+                    <div className="examarrange-picker-chips">
                       {selectedExam ? (
-                        <div className="editmessage-chip">
-                          <span className="editmessage-chip-text">{selectedExam.Eno}</span>
+                        <div className="examarrange-picker-chip">
+                          <span className="examarrange-picker-chip-text">{selectedExam.Eno}</span>
                           <button
                             type="button"
-                            className="editmessage-chip-remove"
+                            className="examarrange-picker-chip-remove"
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedExam(null);
@@ -369,31 +369,31 @@ const Examarrange = () => {
                           </button>
                         </div>
                       ) : (
-                        <span className="editmessage-receiver-placeholder">点击选择考试</span>
+                        <span className="examarrange-picker-placeholder">点击选择考试</span>
                       )}
                     </div>
-                    <div className="editmessage-receiver-caret">▾</div>
+                    <div className="examarrange-picker-caret">▾</div>
                   </div>
 
                   {examDropdownOpen && (
-                    <div className="editmessage-receiver-dropdown">
+                    <div className="examarrange-picker-dropdown">
                       <input
-                        className="editmessage-receiver-search"
+                        className="examarrange-picker-search"
                         value={examQuery}
                         onChange={(e) => setExamQuery(e.target.value)}
                         placeholder="输入 Eno 模糊搜索（至少5个字符）"
                       />
-                      <div className="editmessage-receiver-options">
+                      <div className="examarrange-picker-options">
                         {examQuery.trim().length < 5 ? (
-                          <div className="editmessage-receiver-hint">请输入至少5个字符</div>
+                          <div className="examarrange-picker-hint">请输入至少5个字符</div>
                         ) : examOptions.length === 0 ? (
-                          <div className="editmessage-receiver-hint">无匹配结果</div>
+                          <div className="examarrange-picker-hint">无匹配结果</div>
                         ) : (
                           examOptions.map((eitem) => (
                             <button
                               key={eitem.Eno}
                               type="button"
-                              className={`editmessage-receiver-option ${selectedExam?.Eno === eitem.Eno ? 'selected' : ''}`}
+                              className={`examarrange-picker-option ${selectedExam?.Eno === eitem.Eno ? 'selected' : ''}`}
                               onClick={() => {
                                 setSelectedExam({
                                   Eno: eitem.Eno,
@@ -416,18 +416,18 @@ const Examarrange = () => {
               </div>
             </div>
 
-            <div className="curricularapply-row small">
-              <div className="curricularapply-cell" style={{ width: '100%' }}>
-                <span className="curricularapply-label">监考教师编号：</span>
-                <div className="editmessage-receiver" ref={profDropdownRef} style={{ flex: 1, minWidth: 0 }}>
-                  <div className="editmessage-receiver-control" onClick={() => setProfDropdownOpen((v) => !v)}>
-                    <div className="editmessage-receiver-chips">
+            <div className="examarrange-row small">
+              <div className="examarrange-cell" style={{ width: '100%' }}>
+                <span className="examarrange-label">监考教师编号：</span>
+                <div className="examarrange-picker" ref={profDropdownRef} style={{ flex: 1, minWidth: 0 }}>
+                  <div className="examarrange-picker-control" onClick={() => setProfDropdownOpen((v) => !v)}>
+                    <div className="examarrange-picker-chips">
                       {selectedProfs.map((p) => (
-                        <div key={p.Pno} className="editmessage-chip">
-                          <span className="editmessage-chip-text">{p.Pno}</span>
+                        <div key={p.Pno} className="examarrange-picker-chip">
+                          <span className="examarrange-picker-chip-text">{p.Pno}</span>
                           <button
                             type="button"
-                            className="editmessage-chip-remove"
+                            className="examarrange-picker-chip-remove"
                             onClick={(e) => {
                               e.stopPropagation();
                               removeProf(p.Pno);
@@ -437,30 +437,30 @@ const Examarrange = () => {
                           </button>
                         </div>
                       ))}
-                      {selectedProfs.length === 0 && <span className="editmessage-receiver-placeholder">点击选择教授</span>}
+                      {selectedProfs.length === 0 && <span className="examarrange-picker-placeholder">点击选择教授</span>}
                     </div>
-                    <div className="editmessage-receiver-caret">▾</div>
+                    <div className="examarrange-picker-caret">▾</div>
                   </div>
 
                   {profDropdownOpen && (
-                    <div className="editmessage-receiver-dropdown">
+                    <div className="examarrange-picker-dropdown">
                       <input
-                        className="editmessage-receiver-search"
+                        className="examarrange-picker-search"
                         value={profQuery}
                         onChange={(e) => setProfQuery(e.target.value)}
                         placeholder="输入 Pno 或姓名模糊搜索（至少2个字符）"
                       />
-                      <div className="editmessage-receiver-options">
+                      <div className="examarrange-picker-options">
                         {profQuery.trim().length < 2 ? (
-                          <div className="editmessage-receiver-hint">请输入至少2个字符</div>
+                          <div className="examarrange-picker-hint">请输入至少2个字符</div>
                         ) : profOptions.length === 0 ? (
-                          <div className="editmessage-receiver-hint">无匹配结果</div>
+                          <div className="examarrange-picker-hint">无匹配结果</div>
                         ) : (
                           profOptions.map((p) => (
                             <button
                               key={p.Pno}
                               type="button"
-                              className={`editmessage-receiver-option ${selectedProfMap.has(p.Pno) ? 'selected' : ''}`}
+                              className={`examarrange-picker-option ${selectedProfMap.has(p.Pno) ? 'selected' : ''}`}
                               onClick={() => addProf(p)}
                             >
                               <span className="uno">{p.Pname}</span>
@@ -475,9 +475,9 @@ const Examarrange = () => {
               </div>
             </div>
 
-            <div className="curricularapply-row small">
-              <div className="curricularapply-cell" style={{ width: '100%' }}>
-                <span className="curricularapply-label">教室名称：</span>
+            <div className="examarrange-row small">
+              <div className="examarrange-cell" style={{ width: '100%' }}>
+                <span className="examarrange-label">教室名称：</span>
                 <span className="examarrange-classroom-value">{selectedArrangeName || ''}</span>
               </div>
             </div>
@@ -513,8 +513,8 @@ const Examarrange = () => {
           </div>
         </div>
 
-        <div className="curricularapply-right">
-          <div className="curricularapply-right-top examarrange-right-top">
+        <div className="examarrange-right">
+          <div className="examarrange-right-top">
             <Table
               columns={studentColumns}
               data={students}

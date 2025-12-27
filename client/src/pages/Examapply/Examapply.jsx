@@ -307,21 +307,21 @@ const Examapply = () => {
 
   return (
     <MorePageLayout title="考试申请" systemRole={getSystemRole()} onLogout={handleLogout} onNavigate={(item) => navigate(item.url)}>
-      <div className="curricularapply-root curricularapply-root--examapply">
-        <div className="curricularapply-left">
-          <div className="curricularapply-form" style={{ overflowY: 'auto', overflowX: 'hidden' }}>
-            <div className="curricularapply-row small">
-              <div className="curricularapply-cell" style={{ width: '100%' }}>
-                <span className="curricularapply-label">对应课程编号：</span>
-                <div className="editmessage-receiver" ref={courseDropdownRef} style={{ flex: 1, minWidth: 0 }}>
-                  <div className="editmessage-receiver-control" onClick={() => setCourseDropdownOpen((v) => !v)}>
-                    <div className="editmessage-receiver-chips">
+      <div className="examapply-root">
+        <div className="examapply-left">
+          <div className="examapply-form" style={{ overflowY: 'auto', overflowX: 'hidden' }}>
+            <div className="examapply-row small">
+              <div className="examapply-cell" style={{ width: '100%' }}>
+                <span className="examapply-label">对应课程编号：</span>
+                <div className="examapply-picker" ref={courseDropdownRef} style={{ flex: 1, minWidth: 0 }}>
+                  <div className="examapply-picker-control" onClick={() => setCourseDropdownOpen((v) => !v)}>
+                    <div className="examapply-picker-chips">
                       {selectedCourse ? (
-                        <div className="editmessage-chip">
-                          <span className="editmessage-chip-text">{selectedCourse.Cno}</span>
+                        <div className="examapply-picker-chip">
+                          <span className="examapply-picker-chip-text">{selectedCourse.Cno}</span>
                           <button
                             type="button"
-                            className="editmessage-chip-remove"
+                            className="examapply-picker-chip-remove"
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedCourse(null);
@@ -331,31 +331,31 @@ const Examapply = () => {
                           </button>
                         </div>
                       ) : (
-                        <span className="editmessage-receiver-placeholder">点击选择课程</span>
+                        <span className="examapply-picker-placeholder">点击选择课程</span>
                       )}
                     </div>
-                    <div className="editmessage-receiver-caret">▾</div>
+                    <div className="examapply-picker-caret">▾</div>
                   </div>
 
                   {courseDropdownOpen && (
-                    <div className="editmessage-receiver-dropdown">
+                    <div className="examapply-picker-dropdown">
                       <input
-                        className="editmessage-receiver-search"
+                        className="examapply-picker-search"
                         value={courseQuery}
                         onChange={(e) => setCourseQuery(e.target.value)}
                         placeholder="输入 Cno 模糊搜索（至少5个字符）"
                       />
-                      <div className="editmessage-receiver-options">
+                      <div className="examapply-picker-options">
                         {courseQuery.trim().length < 5 ? (
-                          <div className="editmessage-receiver-hint">请输入至少5个字符</div>
+                          <div className="examapply-picker-hint">请输入至少5个字符</div>
                         ) : courseOptions.length === 0 ? (
-                          <div className="editmessage-receiver-hint">无匹配结果</div>
+                          <div className="examapply-picker-hint">无匹配结果</div>
                         ) : (
                           courseOptions.map((c) => (
                             <button
                               key={c.Cno}
                               type="button"
-                              className={`editmessage-receiver-option ${selectedCourse?.Cno === c.Cno ? 'selected' : ''}`}
+                              className={`examapply-picker-option ${selectedCourse?.Cno === c.Cno ? 'selected' : ''}`}
                               onClick={() => {
                                 setSelectedCourse({
                                   Cno: c.Cno,
@@ -376,10 +376,10 @@ const Examapply = () => {
               </div>
             </div>
 
-            <div className="curricularapply-row small">
-              <div className="curricularapply-cell" style={{ width: '100%' }}>
-                <span className="curricularapply-label">考试性质：</span>
-                <select className="curricularapply-select" value={examAttri} onChange={(e) => setExamAttri(e.target.value)}>
+            <div className="examapply-row small">
+              <div className="examapply-cell" style={{ width: '100%' }}>
+                <span className="examapply-label">考试性质：</span>
+                <select className="examapply-select" value={examAttri} onChange={(e) => setExamAttri(e.target.value)}>
                   <option value="">请选择</option>
                   {EXAM_ATTRI_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
@@ -390,11 +390,11 @@ const Examapply = () => {
               </div>
             </div>
 
-            <div className="curricularapply-row small">
-              <div className="curricularapply-cell" style={{ width: '100%' }}>
-                <span className="curricularapply-label">考试开始时间：</span>
+            <div className="examapply-row small">
+              <div className="examapply-cell" style={{ width: '100%' }}>
+                <span className="examapply-label">考试开始时间：</span>
                 <input
-                  className="curricularapply-input"
+                  className="examapply-input"
                   value={dateStr}
                   onChange={(e) => {
                     const next = e.target.value.replace(/[^0-9-]/g, '');
@@ -413,7 +413,7 @@ const Examapply = () => {
                   inputMode="numeric"
                 />
                 <input
-                  className="curricularapply-input"
+                  className="examapply-input"
                   value={timeStr}
                   onChange={(e) => {
                     const next = e.target.value.replace(/[^0-9:]/g, '');
@@ -440,11 +440,11 @@ const Examapply = () => {
               </div>
             )}
 
-            <div className="curricularapply-row small">
-              <div className="curricularapply-cell" style={{ width: '100%' }}>
-                <span className="curricularapply-label">考试时长(分钟)：</span>
+            <div className="examapply-row small">
+              <div className="examapply-cell" style={{ width: '100%' }}>
+                <span className="examapply-label">考试时长(分钟)：</span>
                 <input
-                  className="curricularapply-input"
+                  className="examapply-input"
                   value={durationMin}
                   onChange={(e) => {
                     const digits = e.target.value.replace(/\D/g, '');
@@ -478,8 +478,8 @@ const Examapply = () => {
           </div>
         </div>
 
-        <div className="curricularapply-right">
-          <div className="curricularapply-right-top">
+        <div className="examapply-right">
+          <div className="examapply-right-top">
             <Table
               columns={columns}
               data={data}
@@ -493,8 +493,8 @@ const Examapply = () => {
               loading={loading}
             />
           </div>
-          <div className="curricularapply-right-bottom">
-            <button type="button" className="curricularapply-send" disabled={!canSend} onClick={handleSend}>
+          <div className="examapply-right-bottom">
+            <button type="button" className="examapply-send" disabled={!canSend} onClick={handleSend}>
               发送申请
             </button>
           </div>
@@ -509,7 +509,7 @@ const Examapply = () => {
           setDetailsRow(null);
         }}
       >
-        <div className="curricularapply-details-body">{detailsBody}</div>
+        <div className="examapply-details-body">{detailsBody}</div>
       </Details>
     </MorePageLayout>
   );

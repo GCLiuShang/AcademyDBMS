@@ -154,12 +154,12 @@
   cursor: not-allowed;
 }
 
-.editmessage-receiver {
+.arrange-picker {
   flex: 1;
   position: relative;
 }
 
-.editmessage-receiver-control {
+.arrange-picker-control {
   width: 100%;
   min-height: 40px;
   border: 1px solid rgba(0, 0, 0, 0.2);
@@ -173,7 +173,7 @@
   background: #fff;
 }
 
-.editmessage-receiver-chips {
+.arrange-picker-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -181,7 +181,7 @@
   flex: 1;
 }
 
-.editmessage-receiver-placeholder {
+.arrange-picker-placeholder {
   color: rgba(0, 0, 0, 0.5);
   font-size: 14px;
   white-space: nowrap;
@@ -189,7 +189,7 @@
   text-overflow: ellipsis;
 }
 
-.editmessage-chip {
+.arrange-picker-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -203,12 +203,12 @@
   box-sizing: border-box;
 }
 
-.editmessage-chip-text {
+.arrange-picker-chip-text {
   font-size: 12px;
   font-weight: 700;
 }
 
-.editmessage-chip-remove {
+.arrange-picker-chip-remove {
   border: none;
   background: transparent;
   cursor: pointer;
@@ -216,7 +216,7 @@
   padding: 0;
 }
 
-.editmessage-receiver-dropdown {
+.arrange-picker-dropdown {
   position: absolute;
   top: 52px;
   left: 0;
@@ -230,7 +230,7 @@
   z-index: 10;
 }
 
-.editmessage-receiver-search {
+.arrange-picker-search {
   width: 100%;
   height: 36px;
   border: 1px solid rgba(0, 0, 0, 0.2);
@@ -239,7 +239,7 @@
   box-sizing: border-box;
 }
 
-.editmessage-receiver-options {
+.arrange-picker-options {
   margin-top: 10px;
   max-height: 220px;
   overflow: auto;
@@ -248,13 +248,13 @@
   gap: 6px;
 }
 
-.editmessage-receiver-hint {
+.arrange-picker-hint {
   padding: 10px;
   color: rgba(0, 0, 0, 0.6);
   font-size: 14px;
 }
 
-.editmessage-receiver-option {
+.arrange-picker-option {
   border: 1px solid rgba(0, 0, 0, 0.12);
   background: #f6f6f6;
   border-radius: 8px;
@@ -265,17 +265,22 @@
   gap: 12px;
 }
 
-.editmessage-receiver-option.selected {
+.arrange-picker-option.selected {
   opacity: 0.5;
 }
 
-.editmessage-receiver-option .uno {
+.arrange-picker-option .uno {
   font-weight: 700;
 }
 
-.editmessage-receiver-option .urole {
+.arrange-picker-option .urole {
   color: rgba(0, 0, 0, 0.7);
   font-size: 12px;
+}
+
+.arrange-picker-caret {
+  margin-left: 10px;
+  color: rgba(0, 0, 0, 0.7);
 }
 
 .arrange-info {

@@ -23,7 +23,7 @@ router.get('/messages/new', async (req, res) => {
       const now = new Date();
       const TEN_MINUTES_MS = 10 * 60 * 1000;
 
-      const TIMEOUT_MSG = '会话已过期，您的登录即将注销，请重新登录';
+      const TIMEOUT_MSG = '您上次操作时意外退出，超时后系统自动注销，为了账号安全请在每次退出前及时注销。';
       const KICKED_MSG = '您的账号在另一处登录，即将注销登录，若并非您操作请在重新登录后修改密码。';
 
       // 辅助函数: 检查最近1分钟是否已发送过某消息
@@ -76,6 +76,7 @@ router.get('/messages/new', async (req, res) => {
         M.Msg_category, 
         M.Msg_priority, 
         M.Msg_date,
+        MS.Send_time,
         MS.Send_Uno,
         CASE WHEN MS.Send_Uno = 'O000000000' THEN '系统' ELSE U.Urole END as SenderRole,
         COALESCE(S.Sname, P.Pname, DA.DAname, UA.UAname, O.Oname, U.Uno) as SenderName

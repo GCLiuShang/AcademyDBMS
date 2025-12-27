@@ -1,26 +1,20 @@
-.curricularapply-root {
+.trainingprogramedit-root {
   width: 100%;
   height: 100%;
   display: flex;
   box-sizing: border-box;
 }
 
-.curricularapply-root--curricularapply .curricularapply-right {
-  padding-bottom: 0;
-}
-
-.curricularapply-root--curricularapply .curricularapply-right-bottom {
-  flex: 0 0 56px;
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  margin-top: 10px;
-  padding-bottom: 0;
-}
-
-.curricularapply-left {
+.trainingprogramedit-left {
   width: 50%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.trainingprogramedit-info-box {
+  width: 100%;
   border: 2px solid #00489B;
   border-radius: 18px;
   display: flex;
@@ -29,37 +23,30 @@
   box-sizing: border-box;
 }
 
-.curricularapply-left-title {
-  flex-shrink: 0;
-  padding: 12px 16px;
-  font-size: 18px;
-  font-weight: bold;
-  border-bottom: 1px solid #CFCFCF;
-}
-
-.curricularapply-form {
+.trainingprogramedit-left-bottom {
   flex: 1;
+  min-height: 0;
+  width: 100%;
+  margin-top: 16px;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
-.curricularapply-row {
+.trainingprogramedit-row {
   display: flex;
   align-items: center;
   border-bottom: 1px solid #CFCFCF;
 }
 
-.curricularapply-row.small {
+.trainingprogramedit-row.small {
   flex: 0 0 56px;
 }
 
-.curricularapply-row.large {
-  flex: 1;
+.trainingprogramedit-row:last-child {
   border-bottom: none;
 }
 
-.curricularapply-cell {
+.trainingprogramedit-cell {
   height: 100%;
   display: flex;
   align-items: center;
@@ -68,58 +55,12 @@
   box-sizing: border-box;
 }
 
-.curricularapply-cell.col {
-  flex: 1;
-  border-right: 1px solid #CFCFCF;
-}
-
-.curricularapply-row.small .curricularapply-cell.col {
-  flex: 1 1 0%;
-}
-
-.curricularapply-row.small .curricularapply-cell.col:nth-child(2) {
-  flex: 0.85 1 0%;
-}
-
-.curricularapply-row.small .curricularapply-cell.col:nth-child(2) .curricularapply-input {
-  flex: 0 0 auto;
-  width: 8ch;
-  max-width: 8ch;
-  padding-left: 6px;
-  padding-right: 6px;
-  text-align: center;
-}
-
-.curricularapply-row.split .curricularapply-cell.col {
-  flex: 0 0 50%;
-  width: 50%;
-}
-
-.curricularapply-row.split .curricularapply-cell.col:nth-child(2) {
-  flex: 0 0 50%;
-}
-
-.curricularapply-row.split .curricularapply-cell.col:nth-child(2) .curricularapply-input {
-  flex: 1;
-  width: auto;
-  max-width: none;
-  padding-left: 10px;
-  padding-right: 10px;
-  text-align: left;
-}
-
-.curricularapply-cell.col:last-child {
-  border-right: none;
-}
-
-.curricularapply-label {
+.trainingprogramedit-label {
   white-space: nowrap;
   font-size: 14px;
 }
 
-.curricularapply-input,
-.curricularapply-select,
-.curricularapply-textarea {
+.trainingprogramedit-input {
   flex: 1;
   min-width: 0;
   font-size: 14px;
@@ -131,16 +72,38 @@
   background: #FFFFFF;
 }
 
-.curricularapply-input[readonly] {
-  background: #F3F3F3;
+.trainingprogramedit-latest-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.curricularapply-prereq-picker {
+.trainingprogramedit-import {
+  flex: 0 0 84px;
+  height: 40px;
+  border-radius: 12px;
+  border: none;
+  background: #00489B;
+  color: #FFFFFF;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.trainingprogramedit-import:disabled {
+  background: #BFBFBF;
+  cursor: not-allowed;
+}
+
+.trainingprogramedit-picker {
   flex: 1;
   position: relative;
 }
 
-.curricularapply-prereq-picker-control {
+.trainingprogramedit-picker-control {
   width: 100%;
   min-height: 40px;
   border: 1px solid rgba(0, 0, 0, 0.2);
@@ -154,13 +117,7 @@
   background: #fff;
 }
 
-.curricularapply-prereq-picker.disabled .curricularapply-prereq-picker-control {
-  background: #F3F3F3;
-  cursor: not-allowed;
-  opacity: 0.75;
-}
-
-.curricularapply-prereq-picker-chips {
+.trainingprogramedit-picker-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -168,7 +125,7 @@
   flex: 1;
 }
 
-.curricularapply-prereq-placeholder {
+.trainingprogramedit-picker-placeholder {
   color: rgba(0, 0, 0, 0.5);
   font-size: 14px;
   white-space: nowrap;
@@ -176,12 +133,12 @@
   text-overflow: ellipsis;
 }
 
-.curricularapply-prereq-caret {
+.trainingprogramedit-picker-caret {
   margin-left: 10px;
   color: rgba(0, 0, 0, 0.7);
 }
 
-.curricularapply-prereq-chip {
+.trainingprogramedit-picker-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -195,12 +152,12 @@
   box-sizing: border-box;
 }
 
-.curricularapply-prereq-chip-text {
+.trainingprogramedit-picker-chip-text {
   font-size: 12px;
   font-weight: 700;
 }
 
-.curricularapply-prereq-chip-remove {
+.trainingprogramedit-picker-chip-remove {
   border: none;
   background: transparent;
   cursor: pointer;
@@ -208,12 +165,7 @@
   padding: 0;
 }
 
-.curricularapply-prereq-chip-remove:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-.curricularapply-prereq-dropdown {
+.trainingprogramedit-picker-dropdown {
   position: absolute;
   top: 52px;
   left: 0;
@@ -227,7 +179,7 @@
   z-index: 10;
 }
 
-.curricularapply-prereq-search {
+.trainingprogramedit-picker-search {
   width: 100%;
   height: 36px;
   border: 1px solid rgba(0, 0, 0, 0.2);
@@ -236,7 +188,7 @@
   box-sizing: border-box;
 }
 
-.curricularapply-prereq-options {
+.trainingprogramedit-picker-options {
   margin-top: 10px;
   max-height: 220px;
   overflow: auto;
@@ -245,13 +197,13 @@
   gap: 6px;
 }
 
-.curricularapply-prereq-hint {
+.trainingprogramedit-picker-hint {
   padding: 10px;
   color: rgba(0, 0, 0, 0.6);
   font-size: 14px;
 }
 
-.curricularapply-prereq-option {
+.trainingprogramedit-picker-option {
   border: 1px solid rgba(0, 0, 0, 0.12);
   background: #f6f6f6;
   border-radius: 8px;
@@ -262,55 +214,30 @@
   gap: 12px;
 }
 
-.curricularapply-prereq-option.selected {
+.trainingprogramedit-picker-option.selected {
   opacity: 0.5;
 }
 
-.curricularapply-prereq-option .uno {
+.trainingprogramedit-picker-option .uno {
   font-weight: 700;
 }
 
-.curricularapply-prereq-option .urole {
+.trainingprogramedit-picker-option .urole {
   color: rgba(0, 0, 0, 0.7);
   font-size: 12px;
 }
 
-.curricularapply-textarea {
-  flex: 1;
-  min-height: 0;
-  resize: none;
-  overflow: auto;
-}
-
-.curricularapply-cell-large {
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: stretch;
-  gap: 6px;
-}
-
-.curricularapply-textarea-count {
-  width: 100%;
-  text-align: right;
-  font-size: 12px;
-  color: #666666;
-}
-
-.curricularapply-cell-large .curricularapply-textarea {
-  flex: 0 0 auto;
-  width: 80%;
-}
-
-.curricularapply-right {
+.trainingprogramedit-right {
   width: 50%;
   height: 100%;
   display: flex;
   flex-direction: column;
   padding-left: 16px;
+  padding-bottom: 0;
   box-sizing: border-box;
 }
 
-.curricularapply-right-top {
+.trainingprogramedit-right-top {
   flex: 1;
   width: 100%;
   min-height: 0;
@@ -318,26 +245,65 @@
   flex-direction: column;
 }
 
-.curricularapply-right-title {
-  flex: 0 0 40px;
+.trainingprogramedit-credit-box {
+  width: 100%;
+  height: calc(56px * 3);
+  border: 2px solid #00489B;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  flex: 0 0 calc(56px * 3);
+  margin-bottom: 16px;
+}
+
+.trainingprogramedit-credit-row {
+  flex: 0 0 56px;
   display: flex;
   align-items: center;
-  font-size: 18px;
-  font-weight: bold;
-  padding: 0 8px;
+  border-bottom: 1px solid #CFCFCF;
+}
+
+.trainingprogramedit-credit-row:last-child {
+  border-bottom: none;
+}
+
+.trainingprogramedit-credit-col {
+  width: 50%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  gap: 8px;
   box-sizing: border-box;
 }
 
-.curricularapply-right-bottom {
+.trainingprogramedit-credit-col + .trainingprogramedit-credit-col {
+  border-left: 1px solid #CFCFCF;
+}
+
+.trainingprogramedit-right-table {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.trainingprogramedit-right-bottom {
   flex: 0 0 56px;
   width: 100%;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  justify-content: flex-end;
+  margin-top: 10px;
+  padding-bottom: 0;
   background: transparent;
   box-sizing: border-box;
 }
 
-.curricularapply-send {
+.trainingprogramedit-send {
   width: 100%;
   height: 56px;
   border-radius: 18px;
@@ -350,26 +316,19 @@
   box-sizing: border-box;
 }
 
-.curricularapply-send:disabled {
+.trainingprogramedit-send:disabled {
   background: #BFBFBF;
   cursor: not-allowed;
 }
 
-.curricularapply-details-body {
-  white-space: pre-line;
-  font-size: 14px;
-  line-height: 1.7;
-  color: #111;
-}
-
-.operation-btns {
+.trainingprogramedit-operation-btns {
   display: flex;
   gap: 8px;
   justify-content: center;
   align-items: center;
 }
 
-.icon-btn {
+.trainingprogramedit-op-btn {
   background: none;
   border: none;
   cursor: pointer;
@@ -380,11 +339,23 @@
   transition: opacity 0.2s;
 }
 
-.icon-btn:hover {
+.trainingprogramedit-op-btn:hover {
   opacity: 0.7;
 }
 
-.icon-btn img {
+.trainingprogramedit-op-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.trainingprogramedit-op-btn img {
   width: 20px;
   height: 20px;
+}
+
+.trainingprogramedit-details-body {
+  white-space: pre-line;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #111;
 }

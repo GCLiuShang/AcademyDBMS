@@ -36,7 +36,7 @@ CREATE TABLE TrainingProgram (
     TPcredit_ZX TINYINT NOT NULL DEFAULT 0 COMMENT '方案专业选修学分要求',
     TPcredit_TX TINYINT NOT NULL DEFAULT 0 COMMENT '方案通识选修学分要求',
     TPcredit_GX TINYINT NOT NULL DEFAULT 0 COMMENT '方案个性课程学分要求',
-    TPstatus ENUM('可使用', '已停用') NOT NULL DEFAULT '可使用' COMMENT '培养方案状态: 若为"可使用"，注意有相同专业年份更大的实体加入时更新或与TPdom级联更新"已停用"，更新为"关闭"后收回所有用户修改权限',
+    TPstatus ENUM('可使用', '调整中', '已停用') NOT NULL DEFAULT '调整中' COMMENT '培养方案状态: 若为"可使用"，注意有相同专业年份更大的实体加入时更新或与TPdom级联更新"已停用"，更新为"关闭"后收回所有用户修改权限',
     PRIMARY KEY (TPno),
     FOREIGN KEY (TPdom) REFERENCES Domain(Dom_no),
     CHECK (TPno REGEXP '^TP[A-Z]{2}[0-9A-F]{2}-[0-9]{4}$')

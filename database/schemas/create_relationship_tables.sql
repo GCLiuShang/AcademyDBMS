@@ -166,6 +166,16 @@ CREATE TABLE TP_Curricular (
     FOREIGN KEY (Cno) REFERENCES Curricular(Cno)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='培养方案课程关系表';
 
+-- 创建先修课程关系表-临时表
+CREATE TABLE Prerequisite_temp (
+    Cno_later VARCHAR(10) NOT NULL COMMENT '后置课程编号',
+    Cno_former VARCHAR(10) NOT NULL COMMENT '前置课程编号: 与Cno_later不同',
+    PRIMARY KEY (Cno_later, Cno_former),
+    FOREIGN KEY (Cno_later) REFERENCES Cno_Pool(Cno),
+    FOREIGN KEY (Cno_former) REFERENCES Curricular(Cno),
+    CHECK (Cno_later != Cno_former)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='先修课程关系表-临时表';
+
 -- 创建先修课程关系表
 CREATE TABLE Prerequisite (
     Cno_later VARCHAR(10) NOT NULL COMMENT '后置课程编号',
@@ -252,6 +262,19 @@ BEGIN
     SET SetupCo_status = '未能开课'
     WHERE SetupCo_Courno = NEW.Cour_no
       AND SetupCo_status IN ('等待审核', '等待选课');
+  END IF;
+END$$
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS trg_cno_pool_available_delete_prerequisite;
+DELIMITER $$
+CREATE TRIGGER trg_cno_pool_available_delete_prerequisite
+AFTER UPDATE ON Cno_Pool
+FOR EACH ROW
+BEGIN
+  IF NEW.Cno_status = '可用' AND OLD.Cno_status <> '可用' THEN
+    DELETE FROM Prerequisite
+    WHERE Cno_later = NEW.Cno;
   END IF;
 END$$
 DELIMITER ;

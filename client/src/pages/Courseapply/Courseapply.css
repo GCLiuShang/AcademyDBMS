@@ -1,26 +1,11 @@
-.curricularapply-root {
+.courseapply-root {
   width: 100%;
   height: 100%;
   display: flex;
   box-sizing: border-box;
 }
 
-.curricularapply-root--courseapply .curricularapply-right {
-  padding-bottom: 0;
-}
-
-.curricularapply-root--courseapply .curricularapply-right-bottom {
-  flex: 0 0 56px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  margin-top: 10px;
-  padding-bottom: 0;
-  box-sizing: border-box;
-}
-
-.curricularapply-left {
+.courseapply-left {
   width: 50%;
   height: 100%;
   border: 2px solid #00489B;
@@ -31,7 +16,7 @@
   box-sizing: border-box;
 }
 
-.curricularapply-left-title {
+.courseapply-left-title {
   flex-shrink: 0;
   padding: 12px 16px;
   font-size: 18px;
@@ -39,24 +24,24 @@
   border-bottom: 1px solid #CFCFCF;
 }
 
-.curricularapply-form {
+.courseapply-form {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
-.curricularapply-row {
+.courseapply-row {
   display: flex;
   align-items: center;
   border-bottom: 1px solid #CFCFCF;
 }
 
-.curricularapply-row.small {
+.courseapply-row.small {
   flex: 0 0 56px;
 }
 
-.curricularapply-cell {
+.courseapply-cell {
   height: 100%;
   display: flex;
   align-items: center;
@@ -65,13 +50,13 @@
   box-sizing: border-box;
 }
 
-.curricularapply-label {
+.courseapply-label {
   white-space: nowrap;
   font-size: 14px;
 }
 
-.curricularapply-input,
-.curricularapply-select {
+.courseapply-input,
+.courseapply-select {
   flex: 1;
   min-width: 0;
   font-size: 14px;
@@ -83,17 +68,17 @@
   background: #FFFFFF;
 }
 
-.curricularapply-right {
+.courseapply-right {
   width: 50%;
   height: 100%;
   display: flex;
   flex-direction: column;
   padding-left: 16px;
-  padding-bottom: 8px;
+  padding-bottom: 0;
   box-sizing: border-box;
 }
 
-.curricularapply-right-top {
+.courseapply-right-top {
   flex: 1;
   width: 100%;
   min-height: 0;
@@ -101,18 +86,19 @@
   flex-direction: column;
 }
 
-.curricularapply-right-bottom {
+.courseapply-right-bottom {
   flex: 0 0 56px;
   width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   margin-top: 10px;
+  padding-bottom: 0;
   background: transparent;
   box-sizing: border-box;
 }
 
-.curricularapply-send {
+.courseapply-send {
   width: 100%;
   height: 56px;
   border-radius: 18px;
@@ -125,17 +111,17 @@
   box-sizing: border-box;
 }
 
-.curricularapply-send:disabled {
+.courseapply-send:disabled {
   background: #BFBFBF;
   cursor: not-allowed;
 }
 
-.editmessage-receiver {
+.courseapply-picker {
   flex: 1;
   position: relative;
 }
 
-.editmessage-receiver-control {
+.courseapply-picker-control {
   width: 100%;
   height: 44px;
   border: 1px solid rgba(0, 0, 0, 0.25);
@@ -149,7 +135,7 @@
   cursor: pointer;
 }
 
-.editmessage-receiver-chips {
+.courseapply-picker-chips {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -158,17 +144,17 @@
   align-items: center;
 }
 
-.editmessage-receiver-placeholder {
+.courseapply-picker-placeholder {
   color: rgba(0, 0, 0, 0.55);
   font-size: 14px;
 }
 
-.editmessage-receiver-caret {
+.courseapply-picker-caret {
   margin-left: 10px;
   color: rgba(0, 0, 0, 0.7);
 }
 
-.editmessage-chip {
+.courseapply-picker-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -179,12 +165,12 @@
   box-sizing: border-box;
 }
 
-.editmessage-chip-text {
+.courseapply-picker-chip-text {
   font-size: 12px;
   font-weight: 700;
 }
 
-.editmessage-chip-remove {
+.courseapply-picker-chip-remove {
   border: none;
   background: transparent;
   cursor: pointer;
@@ -192,7 +178,7 @@
   padding: 0;
 }
 
-.editmessage-receiver-dropdown {
+.courseapply-picker-dropdown {
   position: absolute;
   top: 52px;
   left: 0;
@@ -206,7 +192,7 @@
   z-index: 10;
 }
 
-.editmessage-receiver-search {
+.courseapply-picker-search {
   width: 100%;
   height: 36px;
   border: 1px solid rgba(0, 0, 0, 0.2);
@@ -215,7 +201,7 @@
   box-sizing: border-box;
 }
 
-.editmessage-receiver-options {
+.courseapply-picker-options {
   margin-top: 10px;
   max-height: 220px;
   overflow: auto;
@@ -224,13 +210,13 @@
   gap: 6px;
 }
 
-.editmessage-receiver-hint {
+.courseapply-picker-hint {
   padding: 10px;
   color: rgba(0, 0, 0, 0.6);
   font-size: 14px;
 }
 
-.editmessage-receiver-option {
+.courseapply-picker-option {
   border: 1px solid rgba(0, 0, 0, 0.12);
   background: #f6f6f6;
   border-radius: 8px;
@@ -241,15 +227,15 @@
   gap: 12px;
 }
 
-.editmessage-receiver-option.selected {
+.courseapply-picker-option.selected {
   opacity: 0.5;
 }
 
-.editmessage-receiver-option .uno {
+.courseapply-picker-option .uno {
   font-weight: 700;
 }
 
-.editmessage-receiver-option .urole {
+.courseapply-picker-option .urole {
   color: rgba(0, 0, 0, 0.7);
   font-size: 12px;
 }
