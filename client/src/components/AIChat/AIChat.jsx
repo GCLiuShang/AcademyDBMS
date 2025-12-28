@@ -81,6 +81,8 @@ export default function AIChat() {
     timersRef.current = [];
   }, []);
 
+  const restoreBodyOverflowRef = useRef(null);
+
   const [uno, setUno] = useState(() => getUserKey());
   useEffect(() => {
     const id = setInterval(() => {
@@ -132,6 +134,7 @@ export default function AIChat() {
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
   const [panelSize] = useState({ width: 560, height: 720 });
+  const [isDragging, setIsDragging] = useState(false);
 
   const clampBallPos = useCallback(
     (pos) => {
@@ -213,6 +216,32 @@ export default function AIChat() {
   const isExpanded = phase === PHASE.OPEN_EXPAND || phase === PHASE.OPEN || phase === PHASE.CLOSE_CONTENT;
   const isContentVisible = phase === PHASE.OPEN;
 
+  useEffect(() => {
+    if (isMaskVisible) {
+      if (!restoreBodyOverflowRef.current) {
+        const prev = document.body.style.overflow;
+        restoreBodyOverflowRef.current = () => {
+          document.body.style.overflow = prev;
+        };
+        document.body.style.overflow = 'hidden';
+      }
+      return;
+    }
+    if (restoreBodyOverflowRef.current) {
+      restoreBodyOverflowRef.current();
+      restoreBodyOverflowRef.current = null;
+    }
+  }, [isMaskVisible]);
+
+  useEffect(() => {
+    return () => {
+      if (restoreBodyOverflowRef.current) {
+        restoreBodyOverflowRef.current();
+        restoreBodyOverflowRef.current = null;
+      }
+    };
+  }, []);
+
   const shellStyle = useMemo(() => {
     if (isExpanded) {
       const left = Math.round((window.innerWidth - panelSize.width) / 2);
@@ -227,8 +256,8 @@ export default function AIChat() {
       };
     }
     return {
-      left: `${Math.round(ballPos.left)}px`,
-      top: `${Math.round(ballPos.top)}px`,
+      left: `${ballPos.left}px`,
+      top: `${ballPos.top}px`,
       width: '56px',
       height: '56px',
       borderRadius: '50%',
@@ -247,10 +276,11 @@ export default function AIChat() {
         pointerId: e.pointerId,
         startX: e.clientX,
         startY: e.clientY,
-        startLeft: ballPos.left,
-        startTop: ballPos.top,
+        offsetX: ballPos.left - e.clientX,
+        offsetY: ballPos.top - e.clientY,
         moved: false,
       };
+      setIsDragging(true);
       e.preventDefault();
     },
     [ballPos.left, ballPos.top]
@@ -263,7 +293,12 @@ export default function AIChat() {
       const dx = e.clientX - d.startX;
       const dy = e.clientY - d.startY;
       if (Math.abs(dx) > 3 || Math.abs(dy) > 3) d.moved = true;
-      setBallPos(clampBallPos({ left: d.startLeft + dx, top: d.startTop + dy }));
+      setBallPos(
+        clampBallPos({
+          left: e.clientX + d.offsetX,
+          top: e.clientY + d.offsetY,
+        })
+      );
     },
     [clampBallPos]
   );
@@ -273,11 +308,23 @@ export default function AIChat() {
       const d = draggingRef.current;
       if (!d || d.pointerId !== e.pointerId) return;
       draggingRef.current = null;
+      setIsDragging(false);
+      setBallPos((p) => clampBallPos(p));
       if (!d.moved) open();
       e.preventDefault();
     },
-    [open]
+    [clampBallPos, open]
   );
+
+  const onBallPointerCancel = useCallback(() => {
+    draggingRef.current = null;
+    setIsDragging(false);
+    setBallPos((p) => clampBallPos(p));
+  }, [clampBallPos]);
+
+  const onBallContextMenu = useCallback((e) => {
+    if (phaseRef.current === PHASE.CLOSED) e.preventDefault();
+  }, []);
 
   const chatScrollRef = useRef(null);
   useEffect(() => {
@@ -313,7 +360,10 @@ export default function AIChat() {
         const res = await fetch('/api/ai/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
+          body: JSON.stringify({
+            ...body,
+            userRole: getCurrentUserFromStorage()?.Urole || '',
+          }),
         });
         const json = await res.json().catch(() => null);
         const content = json?.data?.content;
@@ -380,11 +430,13 @@ export default function AIChat() {
       />
 
       <div
-        className={`aichat-shell ${isExpanded ? 'expanded' : ''} ${isFilled ? 'filled' : ''}`}
+        className={`aichat-shell ${isExpanded ? 'expanded' : ''} ${isFilled ? 'filled' : ''} ${isDragging && !isExpanded ? 'dragging' : ''}`}
         style={shellStyle}
         onPointerDown={onBallPointerDown}
         onPointerMove={onBallPointerMove}
         onPointerUp={onBallPointerUp}
+        onPointerCancel={onBallPointerCancel}
+        onContextMenu={onBallContextMenu}
       >
         {!isExpanded && (
           <img className="aichat-icon" src="/images/aichat/aichat.svg" alt="AI Chat" draggable={false} />

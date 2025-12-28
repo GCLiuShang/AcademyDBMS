@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { BreadcrumbProvider } from './components/Breadcrumb/BreadcrumbContext';
 import Login from './pages/Login/Login';
 import StudentDashboard from './pages/Dashboard/StudentDashboard';
@@ -25,12 +25,18 @@ import TrainingprogramEdit from './pages/TrainingprogramEdit/TrainingprogramEdit
 import AIChat from './components/AIChat/AIChat';
 import { AIChatProvider } from './components/AIChat/AIChatContext';
 
+function AIChatGate() {
+  const location = useLocation();
+  if (location.pathname === '/login') return null;
+  return <AIChat />;
+}
+
 function App() {
   return (
     <BreadcrumbProvider>
       <Router>
         <AIChatProvider>
-          <AIChat />
+          <AIChatGate />
           <Routes>
             <Route path="/login" element={<Login />} />
             

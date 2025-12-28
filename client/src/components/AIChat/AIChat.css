@@ -6,6 +6,8 @@
   transition: opacity 0.3s ease;
   z-index: 9998;
   pointer-events: none;
+  touch-action: none;
+  overscroll-behavior: none;
 }
 
 .aichat-mask.visible {
@@ -28,6 +30,10 @@
     background-color 0.3s ease;
   user-select: none;
   touch-action: none;
+}
+
+.aichat-shell.dragging {
+  transition: none;
 }
 
 .aichat-icon {

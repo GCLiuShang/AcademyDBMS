@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import MorePageLayout from '../../components/Layout/MorePageLayout';
 import Table from '../../components/Table/Table';
 import Details from '../../components/Details/Details';
+import { useAIChatFeatures } from '../../components/AIChat/AIChatContext';
 import { getCurrentUserFromStorage } from '../../utils/userSession';
 import './Enroll.css';
 
@@ -321,6 +322,82 @@ const Enroll = () => {
     ];
     return lines.join('\n');
   }, [detailsRow]);
+
+  const enrollAdvicePrompt = useMemo(() => {
+    const user = userInfo || {};
+    const take = (arr, max) => (Array.isArray(arr) ? arr.slice(0, max) : []);
+
+    const selected = take(rightData, 60).map((r) => ({
+      courNo: r.courNo,
+      cno: r.cno,
+      courseName: r.courseName,
+      courseAttr: r.courseAttr,
+      credit: r.credit,
+      professors: r.professors,
+      time: r.timeFull,
+      current: r.currentDisplay,
+    }));
+
+    const available = take(leftData, 60).map((r) => ({
+      courNo: r.courNo,
+      cno: r.cno,
+      courseName: r.courseName,
+      courseAttr: r.courseAttr,
+      credit: r.credit,
+      professors: r.professors,
+      locations: r.locations,
+      timeSummary: r.timeSummary,
+      timeFull: r.timeFull,
+      current: r.currentDisplay,
+      inPlan: r.inPlanLabel,
+      isFull: Boolean(r.isFull),
+    }));
+
+    const payload = {
+      student: {
+        uno: user.Uno || '',
+        role: user.Urole || '',
+        dept: user.Sdept || user.Pdept || user.DAdept || '',
+        major: user.Smajor || '',
+        grade: user.Sgrade || user.Syear || '',
+      },
+      enrollOpen: businessFlags ? Boolean(businessFlags.enrollOpen) : null,
+      selectedCourses: selected,
+      currentAvailableCoursesPage: {
+        page: leftPage,
+        pageSize: leftPageSize,
+        search: leftSearch,
+        data: available,
+      },
+    };
+
+    return [
+      '你是一名教务选课助理，请基于我提供的数据给出“选课建议”。',
+      '',
+      '目标：在不冲突的前提下，优先选择“在方案中”的课程，并合理安排学分与上课时间。',
+      '约束：',
+      '- 如果某门课 isFull=true 视为暂不可选，除非你给出等待/替代建议。',
+      '- 时间冲突请基于 timeFull/timeSummary 文字判断；如果无法确定，请明确说明并给出需要补充的信息。',
+      '- 不要编造不存在的课程，不要假设有更多数据。',
+      '',
+      '输出格式：',
+      '1) 结论概览（推荐 2-4 门课 + 原因）',
+      '2) 冲突检查（与已选课的潜在冲突点）',
+      '3) 替代方案（同类课程或同属性课程的替代思路，若当前列表没有则说明）',
+      '4) 我下一步在页面里该怎么做（建议搜索关键词、筛选方向）',
+      '',
+      '数据（JSON）：',
+      JSON.stringify(payload),
+    ].join('\n');
+  }, [businessFlags, leftData, leftPage, leftPageSize, leftSearch, rightData, userInfo]);
+
+  useAIChatFeatures([
+    {
+      id: 'enroll-course-advice',
+      label: '给出选课建议',
+      prompt: enrollAdvicePrompt,
+    },
+  ]);
 
   return (
     <MorePageLayout
