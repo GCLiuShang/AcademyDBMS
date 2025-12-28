@@ -4,6 +4,9 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- 清空关系表（按依赖关系反向顺序）
+TRUNCATE TABLE Enroll_isOpen;
+TRUNCATE TABLE Course_isOpen;
+TRUNCATE TABLE Curricular_isOpen;
 TRUNCATE TABLE Msg_Receive;
 TRUNCATE TABLE Msg_Send;
 TRUNCATE TABLE Take_Exam;
