@@ -345,12 +345,13 @@ export default function AIChat() {
   );
 
   const sendToAi = useCallback(
-    async ({ text, showInChat }) => {
+    async ({ text, showInChat, displayText }) => {
       const clean = typeof text === 'string' ? text.trim() : '';
       if (!clean) return;
 
       if (showInChat) {
-        const userMsg = { id: makeId(), role: 'user', content: clean, ts: Date.now() };
+        const shown = typeof displayText === 'string' && displayText.trim() ? displayText.trim() : clean;
+        const userMsg = { id: makeId(), role: 'user', content: shown, ts: Date.now() };
         setMessages((prev) => [...prev, userMsg]);
       }
 
@@ -417,7 +418,9 @@ export default function AIChat() {
     async (feature) => {
       if (sending) return;
       const text = typeof feature?.prompt === 'string' ? feature.prompt : '';
-      await sendToAi({ text, showInChat: false });
+      const label = typeof feature?.label === 'string' ? feature.label.trim() : '';
+      const displayText = label ? `功能：${label}` : '功能：快捷指令';
+      await sendToAi({ text, showInChat: true, displayText });
     },
     [sendToAi, sending]
   );

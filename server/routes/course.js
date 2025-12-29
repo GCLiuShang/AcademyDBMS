@@ -667,23 +667,6 @@ router.post('/arrange/course/submit', async (req, res) => {
     }
     const semeNo = semeRows[0].Seme_no;
 
-    const [courseRows] = await connection.execute(
-      `SELECT Cour_no, Cour_status
-       FROM Course
-       WHERE Cour_no = ?
-         AND Cour_seme = ?
-       FOR UPDATE`,
-      [courno, semeNo]
-    );
-    if (courseRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'Course not found in current semester' });
-    }
-    if (courseRows[0].Cour_status !== '未开始') {
-      await connection.rollback();
-      return res.status(400).json({ success: false, message: 'Only courses not started can be arranged' });
-    }
-
     const [existArrRows] = await connection.execute(
       `SELECT COUNT(*) as Cnt
        FROM Arrange_Course
@@ -695,6 +678,41 @@ router.post('/arrange/course/submit', async (req, res) => {
     if (!Number.isFinite(existCnt) || existCnt > 0) {
       await connection.rollback();
       return res.status(400).json({ success: false, message: 'Course already arranged' });
+    }
+
+    const parts = String(courno).split('-');
+    const courCno = parts[0] || '';
+    const courSeme = parts[1] || '';
+    const courNumHex = parts[2] || '';
+    const courNumber = Number.parseInt(courNumHex, 16);
+    if (!courCno || !courSeme || !Number.isFinite(courNumber) || courNumber < 0) {
+      await connection.rollback();
+      return res.status(400).json({ success: false, message: 'Invalid Cour_no format' });
+    }
+    if (String(courSeme) !== String(semeNo)) {
+      await connection.rollback();
+      return res.status(400).json({ success: false, message: 'Course not in current semester' });
+    }
+
+    const [courseRows] = await connection.execute(
+      `SELECT Cour_no, Cour_seme, Cour_status
+       FROM Course
+       WHERE Cour_no = ?
+       FOR UPDATE`,
+      [courno]
+    );
+    if (courseRows.length === 0) {
+      await connection.execute(
+        `INSERT INTO Course (Cour_no, Cour_cno, Cour_seme, Cour_number, Cour_pmax, Cour_pnow, Cour_status)
+         VALUES (?, ?, ?, ?, ?, 0, '未开始')`,
+        [courno, courCno, semeNo, courNumber, pmax]
+      );
+    } else if (String(courseRows[0].Cour_seme) !== String(semeNo)) {
+      await connection.rollback();
+      return res.status(400).json({ success: false, message: 'Course not in current semester' });
+    } else if (courseRows[0].Cour_status !== '未开始') {
+      await connection.rollback();
+      return res.status(400).json({ success: false, message: 'Only courses not started can be arranged' });
     }
 
     const [weekRows] = await connection.execute(
@@ -783,14 +801,31 @@ router.post('/arrange/course/submit', async (req, res) => {
       }
     }
 
-    const uniqueLessons = new Set();
-    for (const slot of slots) {
-      uniqueLessons.add(slot.lno);
-    }
-    const classhour = uniqueLessons.size;
+    const classhour = slots.length;
 
-    for (const slot of slots) {
-      const classhourNo = Number(slot.lno);
+    const [curRows] = await connection.execute(
+      `SELECT C_classhour
+       FROM Curricular
+       WHERE Cno = ?
+       LIMIT 1 FOR UPDATE`,
+      [courCno]
+    );
+    if (curRows.length === 0) {
+      await connection.rollback();
+      return res.status(400).json({ success: false, message: 'Curricular not found' });
+    }
+    const totalClasshour = Number(curRows[0].C_classhour);
+    if (!Number.isFinite(totalClasshour) || totalClasshour <= 0) {
+      await connection.rollback();
+      return res.status(400).json({ success: false, message: 'Invalid curricular classhour' });
+    }
+    if (classhour !== totalClasshour) {
+      await connection.rollback();
+      return res.status(400).json({ success: false, message: 'Arrange classhour mismatch' });
+    }
+
+    for (let classhourNo = 1; classhourNo <= slots.length; classhourNo += 1) {
+      const slot = slots[classhourNo - 1];
       await connection.execute(
         `INSERT INTO Arrange_Course
            (ArrangeCo_Courno, ArrangeCo_classhour, ArrangeCo_Lno, ArrangeCo_date, ArrangeCo_Clrmname, ArrangeCo_Pno, ArrangeCo_status)
