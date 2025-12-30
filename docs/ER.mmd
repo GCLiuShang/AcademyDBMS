@@ -1,0 +1,436 @@
+classDiagram
+
+class Department {
+  +Dept_no (PK) : VARCHAR(2)
+  Dept_name : VARCHAR(20)
+  Dept_status : ENUM('正常','正在关闭','关闭')
+}
+
+class Domain {
+  +Dom_no (PK) : VARCHAR(4)
+  Dom_dept (FK) : VARCHAR(2)
+  Dom_number : INT
+  Dom_name : VARCHAR(20)
+  Dom_shortname (UK) : VARCHAR(8)
+  Dom_status : ENUM('正常','正在关闭','关闭')
+}
+
+class TrainingProgram {
+  +TPno (PK) : VARCHAR(11)
+  TPdom (FK) : VARCHAR(4)
+  TPyear : YEAR
+  TPname : VARCHAR(52)
+  TPcredit_GB : TINYINT
+  TPcredit_ZB : TINYINT
+  TPcredit_ZX : TINYINT
+  TPcredit_TX : TINYINT
+  TPcredit_GX : TINYINT
+  TPstatus : ENUM('可使用','调整中','已停用')
+}
+
+class Class {
+  +Class_name (PK) : VARCHAR(10)
+  Class_dom (FK) : VARCHAR(4)
+  Class_attri : ENUM('普通','卓越','实验')
+  Class_year : VARCHAR(2)
+  Class_number : INT
+  Class_status : ENUM('正常','正在关闭','关闭')
+}
+
+class Campus {
+  +Cam_name (PK) : VARCHAR(8)
+  Cam_status : ENUM('正常','正在关闭','关闭')
+}
+
+class Building {
+  +Bd_name (PK) : VARCHAR(18)
+  Bd_cam (FK) : VARCHAR(8)
+  Bd_shortname : VARCHAR(10)
+  Bd_attri : ENUM('常规楼','综合楼')
+  Bd_status : ENUM('正常','正在关闭','关闭')
+}
+
+class Classroom {
+  +Clrm_name (PK) : VARCHAR(30)
+  Clrm_bd (FK) : VARCHAR(18)
+  Clrm_floor : VARCHAR(2)
+  Clrm_shortname : VARCHAR(10)
+  Clrm_capacity : TINYINT
+  Clrm_status : ENUM('正常','正在关闭','关闭')
+}
+
+class Semester {
+  +Seme_no (PK) : VARCHAR(5)
+  Seme_year : YEAR
+  Seme_sequence : ENUM('1','2')
+  Week_max : TINYINT
+}
+
+class Dayofweek {
+  +Day (PK) : ENUM('1','2','3','4','5','6','7')
+}
+
+class Date {
+  +Date_no (PK) : VARCHAR(10)
+  Date_seme (FK) : VARCHAR(5)
+  Date_week : TINYINT
+  Date_dayofweek (FK) : ENUM('1','2','3','4','5','6','7')
+  Date_type : ENUM('工作日','休息日','节假日','调休日')
+  Date_holiday : VARCHAR(20)
+  Date_description : VARCHAR(20)
+}
+
+class Lesson {
+  +Lno (PK) : ENUM('01','02','03','04','05','06','07','08','09','10','11','12','13')
+  Ltime_begin : TIME
+  Ltime_end : TIME
+}
+
+class User {
+  +Uno (PK) : VARCHAR(10)
+  Upswd : VARCHAR(255)
+  Urole : ENUM('学生','教授','学院教学办管理员','学校教务处管理员','其他人员')
+  Utime : DATETIME
+  Ustatus : ENUM('离线','在线','锁定')
+  Ulasttrytime : DATETIME
+  Ulosetimes : INT
+}
+
+class Student {
+  +Sno (PK,FK) : VARCHAR(10)
+  Syear : YEAR
+  Snumber : INT
+  Sname : VARCHAR(20)
+  Ssex : ENUM('男','女')
+  Sclass (FK) : VARCHAR(10)
+  Sstatus : ENUM('在读','调整','休学','退学','毕业')
+}
+
+class Professor {
+  +Pno (PK,FK) : VARCHAR(10)
+  Pyear : YEAR
+  Pnumber : INT
+  Pname : VARCHAR(20)
+  Psex : ENUM('男','女')
+  Ptitle : ENUM('教授','副教授','讲师','研究员')
+  Pdept (FK) : VARCHAR(2)
+  Poffice : VARCHAR(10)
+  Pstatus : ENUM('在职','调整','离职')
+}
+
+class Dept_Adm {
+  +DAno (PK,FK) : VARCHAR(10)
+  DAyear : YEAR
+  DAnumber : INT
+  DAdept (FK) : VARCHAR(2)
+  DAname : VARCHAR(20)
+  DAstatus : ENUM('在职','调整','离职')
+}
+
+class Univ_Adm {
+  +UAno (PK,FK) : VARCHAR(10)
+  UAyear : YEAR
+  UAnumber : INT
+  UAname : VARCHAR(20)
+  UAstatus : ENUM('在职','调整','离职')
+}
+
+class Other {
+  +Ono (PK) : VARCHAR(10)
+  Oyear : YEAR
+  Onumber : INT
+  Oname : VARCHAR(20)
+  Odescription : VARCHAR(50)
+}
+
+class Cno_Pool {
+  +Cno (PK) : VARCHAR(10)
+  Cattri : ENUM('公共必修','专业必修','专业选修','通识选修','个性课程')
+  Cdept (FK) : VARCHAR(2)
+  Cseme : ENUM('第一学期','第二学期','第三学期','第四学期','第五学期','第六学期','第七学期','第八学期','第九学期','第十学期','第十一学期','第十二学期','第一和第二学期','第三和第四学期','第五和第六学期','第七和第八学期','第九和第十学期','第十一和第十二学期','奇数学期','偶数学期','任意学期')
+  Cnumber : INT
+  Cno_status : ENUM('可用','正在调整','不可用')
+}
+
+class Curricular {
+  +Cno (PK,FK) : VARCHAR(10)
+  Cname : VARCHAR(20)
+  Ccredit : TINYINT
+  C_classhour : INT
+  C_eattri : ENUM('无','大作业','线上','线下开卷','线下闭卷')
+  Cdescription : VARCHAR(50)
+  Cstatus : ENUM('正常','正在关闭','关闭')
+}
+
+class Course {
+  +Cour_no (PK) : VARCHAR(20)
+  Cour_cno (FK) : VARCHAR(10)
+  Cour_seme (FK) : VARCHAR(5)
+  Cour_number : INT
+  Cour_pmax : TINYINT
+  Cour_pnow : TINYINT
+  Cour_status : ENUM('未开始','进行中','已关闭','已结束')
+}
+
+class Exam {
+  +Eno (PK) : VARCHAR(10)
+  E_cno (FK) : VARCHAR(10)
+  Eattri : ENUM('正考','补缓考','其他')
+  Estatus : ENUM('未开始','调整中','进行中','已结束','已取消')
+}
+
+class Message {
+  +Msg_no (PK) : VARCHAR(20)
+  Msg_date : DATE
+  Msg_number : BIGINT
+  Msg_category : ENUM('通知','代办','系统','撤回')
+  Msg_wdMsgno (FK) : VARCHAR(20)
+  Msg_priority : ENUM('一般','重要')
+  Msg_content : VARCHAR(511)
+}
+
+class Setup_Curricular_G {
+  +SetupCuG_ID (PK) : VARCHAR(20)
+  SetupCuG_date : DATE
+  SetupCuG_number : INT
+  SetupCuG_Cno (FK) : VARCHAR(10)
+  SetupCuG_Cname : VARCHAR(20)
+  SetupCuG_Ccredit : TINYINT
+  SetupCuG_Cclasshour : INT
+  SetupCuG_Ceattri : ENUM('无','大作业','线上','线下开卷','线下闭卷')
+  SetupCuG_description : VARCHAR(50)
+  SetupCuG_status : ENUM('等待审核','已经通过','已经取消')
+  SetupCuG_createtime : DATETIME
+}
+
+class Setup_Curricular_P {
+  +SetupCuP_ID (PK) : VARCHAR(20)
+  SetupCuP_date : DATE
+  SetupCuP_number : INT
+  SetupCuP_Cno (FK) : VARCHAR(10)
+  SetupCuP_Cname : VARCHAR(20)
+  SetupCuP_Ccredit : TINYINT
+  SetupCuP_Cclasshour : INT
+  SetupCuP_Ceattri : ENUM('无','大作业','线上','线下开卷','线下闭卷')
+  SetupCuP_description : VARCHAR(50)
+  SetupCuP_status : ENUM('等待审核','等待选课','已经通过','未能开课','已经取消')
+  SetupCuP_createPno (FK) : VARCHAR(10)
+  SetupCuP_createtime : DATETIME
+}
+
+class Setup_Course {
+  +SetupCo_Courno (PK) : VARCHAR(20)
+  SetupCo_campus (FK) : VARCHAR(8)
+  SetupCo_pmax : INT
+  SetupCo_status : ENUM('等待审核','等待选课','未能开课','已经通过','已经取消')
+  SetupCo_createPno (FK) : VARCHAR(10)
+  SetupCo_createtime : DATETIME
+}
+
+class SetupCo_Prof {
+  +SetupCo_Courno (PK,FK) : VARCHAR(20)
+  +SetupCo_Pno (PK,FK) : VARCHAR(10)
+}
+
+class SetupCo_DofW {
+  +SetupCo_Courno (PK,FK) : VARCHAR(20)
+  +SetupCo_dayofweek (PK,FK) : ENUM('1','2','3','4','5','6','7')
+}
+
+class Arrange_Course {
+  +ArrangeCo_Courno (PK,FK) : VARCHAR(20)
+  +ArrangeCo_classhour (PK) : INT
+  ArrangeCo_Lno (FK) : ENUM('01','02','03','04','05','06','07','08','09','10','11','12','13')
+  ArrangeCo_date (FK) : VARCHAR(10)
+  ArrangeCo_Clrmname (FK) : VARCHAR(30)
+  ArrangeCo_Pno (FK) : VARCHAR(10)
+  ArrangeCo_status : ENUM('待上课','调课中','上课中','已结束')
+}
+
+class Setup_Exam {
+  +SetupE_ID (PK) : VARCHAR(20)
+  SetupE_date : DATE
+  SetupE_number : INT
+  SetupE_Cno (FK) : VARCHAR(10)
+  SetupE_Eno : VARCHAR(10)
+  SetupE_Esemeno : VARCHAR(5)
+  SetupE_Enumber : INT
+  SetupE_Eattri : ENUM('正考','补缓考','其他')
+  SetupE_Etime_begin : DATETIME
+  SetupE_Etime_end : DATETIME
+  SetupE_status : ENUM('等待审核','审核通过','已经取消')
+}
+
+class Arrange_Exam {
+  +ArrangeE_ID (PK) : VARCHAR(14)
+  ArrangeE_Eno (FK) : VARCHAR(10)
+  ArrangeE_number : INT
+  ArrangeE_Clrmname (FK) : VARCHAR(30)
+}
+
+class Take_Exam {
+  +TakingE_ArrangeEID (PK,FK) : VARCHAR(13)
+  +TakingE_Sno (PK,FK) : VARCHAR(10)
+  TakingE_Seatno : INT
+  TakingE_Status : ENUM('等待开考','已经参考','申请缓考','考试取消')
+  TakingE_Grade : FLOAT
+  TakingE_G2Pno (FK) : VARCHAR(10)
+  TakingE_GIsValid : BOOLEAN
+}
+
+class Invigilate {
+  +Invigilate_ArrangeEID (PK,FK) : VARCHAR(13)
+  +Invigilate_Pno (PK,FK) : VARCHAR(10)
+  Invigilate_Status : ENUM('等待开始','已经监考','安排调整','考试取消')
+}
+
+class TP_Curricular {
+  +TPno (PK,FK) : VARCHAR(11)
+  +Cno (PK,FK) : VARCHAR(10)
+}
+
+class Prerequisite_temp {
+  +Cno_later (PK,FK) : VARCHAR(10)
+  +Cno_former (PK,FK) : VARCHAR(10)
+}
+
+class Prerequisite {
+  +Cno_later (PK,FK) : VARCHAR(10)
+  +Cno_former (PK,FK) : VARCHAR(10)
+}
+
+class Pursuit {
+  +Pursue_Sno (PK,FK) : VARCHAR(10)
+  +Pursue_Courno (PK,FK) : VARCHAR(10)
+}
+
+class Enrollment {
+  +Enroll_Courno (PK,FK) : VARCHAR(20)
+  +Enroll_Sno (PK,FK) : VARCHAR(10)
+  Enroll_Cno (FK,UK-part) : VARCHAR(10)
+}
+
+class Msg_Send {
+  +Msg_no (PK,FK) : VARCHAR(20)
+  +Send_Uno (PK,FK) : VARCHAR(10)
+  Send_time : DATETIME
+  Send_display : BOOLEAN
+}
+
+class Msg_Receive {
+  +Msg_no (PK,FK) : VARCHAR(20)
+  +Receive_Uno (PK,FK) : VARCHAR(10)
+  Receive_time : DATETIME
+  Receive_haveread : BOOLEAN
+  Receive_display : BOOLEAN
+}
+
+class Curricular_isOpen {
+  +Semeno (PK,FK) : VARCHAR(10)
+  Curricular_isOpen : BOOLEAN
+}
+
+class Course_isOpen {
+  +Semeno (PK,FK) : VARCHAR(10)
+  Course_isOpen : BOOLEAN
+}
+
+class Enroll_isOpen {
+  +Semeno (PK,FK) : VARCHAR(10)
+  Enroll_isOpen : BOOLEAN
+}
+
+class trg_course_closed_update_setup_course {
+  event : AFTER UPDATE
+  on_table : Course
+  action : update Setup_Course
+}
+
+class trg_cno_pool_available_delete_prerequisite {
+  event : AFTER UPDATE
+  on_table : Cno_Pool
+  action : delete Prerequisite
+}
+
+Department "1" -- "0..*" Domain : Dom_dept
+Domain "1" -- "0..*" TrainingProgram : TPdom
+Domain "1" -- "0..*" Class : Class_dom
+
+Campus "1" -- "0..*" Building : Bd_cam
+Building "1" -- "0..*" Classroom : Clrm_bd
+
+Semester "1" -- "0..*" Date : Date_seme
+Dayofweek "1" -- "0..*" Date : Date_dayofweek
+Lesson "1" -- "0..*" Arrange_Course : ArrangeCo_Lno
+
+User "1" -- "0..1" Student : Sno=Uno
+User "1" -- "0..1" Professor : Pno=Uno
+User "1" -- "0..1" Dept_Adm : DAno=Uno
+User "1" -- "0..1" Univ_Adm : UAno=Uno
+
+Class "1" -- "0..*" Student : Sclass
+
+Department "1" -- "0..*" Professor : Pdept
+Department "1" -- "0..*" Dept_Adm : DAdept
+Department "1" -- "0..*" Cno_Pool : Cdept
+
+Cno_Pool "1" -- "0..1" Curricular : Cno
+
+Curricular "1" -- "0..*" Course : Cour_cno
+Semester "1" -- "0..*" Course : Cour_seme
+
+Curricular "1" -- "0..*" Exam : E_cno
+Message "1" -- "0..*" Msg_Send : Msg_no
+Message "1" -- "0..*" Msg_Receive : Msg_no
+User "1" -- "0..*" Msg_Send : Send_Uno
+User "1" -- "0..*" Msg_Receive : Receive_Uno
+Message "0..1" -- "0..*" Message : Msg_wdMsgno
+
+Course "1" -- "0..*" Arrange_Course : ArrangeCo_Courno
+Date "1" -- "0..*" Arrange_Course : ArrangeCo_date
+Classroom "1" -- "0..*" Arrange_Course : ArrangeCo_Clrmname
+Professor "0..1" -- "0..*" Arrange_Course : ArrangeCo_Pno
+
+Cno_Pool "1" -- "0..*" Setup_Curricular_G : SetupCuG_Cno
+Cno_Pool "1" -- "0..*" Setup_Curricular_P : SetupCuP_Cno
+Professor "1" -- "0..*" Setup_Curricular_P : SetupCuP_createPno
+
+Campus "1" -- "0..*" Setup_Course : SetupCo_campus
+Professor "1" -- "0..*" Setup_Course : SetupCo_createPno
+Setup_Course "1" -- "0..*" SetupCo_Prof : SetupCo_Courno
+Professor "1" -- "0..*" SetupCo_Prof : SetupCo_Pno
+Setup_Course "1" -- "0..*" SetupCo_DofW : SetupCo_Courno
+Dayofweek "1" -- "0..*" SetupCo_DofW : SetupCo_dayofweek
+
+Curricular "1" -- "0..*" Setup_Exam : SetupE_Cno
+Exam "1" -- "0..*" Arrange_Exam : ArrangeE_Eno
+Classroom "1" -- "0..*" Arrange_Exam : ArrangeE_Clrmname
+Arrange_Exam "1" -- "0..*" Take_Exam : TakingE_ArrangeEID
+Student "1" -- "0..*" Take_Exam : TakingE_Sno
+Professor "0..1" -- "0..*" Take_Exam : TakingE_G2Pno
+Arrange_Exam "1" -- "0..*" Invigilate : Invigilate_ArrangeEID
+Professor "1" -- "0..*" Invigilate : Invigilate_Pno
+
+TrainingProgram "1" -- "0..*" TP_Curricular : TPno
+Curricular "1" -- "0..*" TP_Curricular : Cno
+
+Cno_Pool "1" -- "0..*" Prerequisite_temp : Cno_later
+Curricular "1" -- "0..*" Prerequisite_temp : Cno_former
+Curricular "1" -- "0..*" Prerequisite : Cno_later
+Curricular "1" -- "0..*" Prerequisite : Cno_former
+
+Student "1" -- "0..*" Pursuit : Pursue_Sno
+Course "1" -- "0..*" Pursuit : Pursue_Courno
+
+Course "1" -- "0..*" Enrollment : Enroll_Courno
+Student "1" -- "0..*" Enrollment : Enroll_Sno
+Curricular "1" -- "0..*" Enrollment : Enroll_Cno
+
+Semester "1" -- "0..1" Curricular_isOpen : Semeno
+Semester "1" -- "0..1" Course_isOpen : Semeno
+Semester "1" -- "0..1" Enroll_isOpen : Semeno
+
+trg_course_closed_update_setup_course ..> Course
+trg_course_closed_update_setup_course ..> Setup_Course
+trg_cno_pool_available_delete_prerequisite ..> Cno_Pool
+trg_cno_pool_available_delete_prerequisite ..> Prerequisite
