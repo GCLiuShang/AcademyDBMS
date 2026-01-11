@@ -2,8 +2,14 @@ const express = require('express');
 const db = require('../db');
 const { getCurrentBusinessFlags } = require('../services/businessService');
 const { insertSystemMessageToMany } = require('../services/messageService');
+const { requireAuth } = require('../services/sessionService');
+const { authorize } = require('../services/userService');
+const { verifyPassword } = require('../services/passwordService');
 
 const router = express.Router();
+
+router.use(requireAuth);
+router.use('/business/control', authorize(['学校教务处管理员']));
 
 router.get('/business/status', async (req, res) => {
   try {
@@ -26,37 +32,22 @@ router.get('/business/status', async (req, res) => {
 });
 
 router.post('/business/control/update', async (req, res) => {
-  const { uno, oldPassword, curricularOpen, courseOpen, enrollOpen } = req.body;
-  if (!uno || !oldPassword) {
+  const { oldPassword, curricularOpen, courseOpen, enrollOpen } = req.body;
+  const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
+  if (!oldPassword) {
     return res.status(400).json({ success: false, message: 'Missing parameters' });
-  }
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   }
 
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
 
-    const [userRows] = await connection.execute('SELECT Urole FROM User WHERE Uno = ? FOR UPDATE', [uno]);
-    if (userRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    const role = userRows[0].Urole;
-
-    const [authRows] = await connection.execute(
-      'SELECT Uno FROM User WHERE Uno = ? AND Upswd = SHA2(?, 256)',
-      [uno, oldPassword]
-    );
-    if (authRows.length === 0) {
+    const [authRows] = await connection.execute('SELECT Upswd FROM User WHERE Uno = ? FOR UPDATE', [uno]);
+    const storedHash = authRows.length > 0 ? authRows[0].Upswd : null;
+    const ok = await verifyPassword(oldPassword, storedHash);
+    if (!ok) {
       await connection.rollback();
       return res.status(403).json({ success: false, code: 'WRONG_PASSWORD', message: 'Wrong password' });
-    }
-
-    if (role !== '学校教务处管理员') {
-      await connection.rollback();
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
     }
 
     const [semeRows] = await connection.execute('SELECT Seme_no FROM Semester ORDER BY Seme_no DESC LIMIT 1 FOR UPDATE');

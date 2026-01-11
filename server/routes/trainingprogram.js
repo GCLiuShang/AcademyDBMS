@@ -1,7 +1,13 @@
 const express = require('express');
 const db = require('../db');
+const { requireAuth } = require('../services/sessionService');
+const { authorize, authorizeTrainingProgramDomain } = require('../services/userService');
 
 const router = express.Router();
+
+router.use(requireAuth);
+router.use(authorize(['学院教学办管理员'], { dept: 'deptAdmin' }));
+router.use(authorizeTrainingProgramDomain());
 
 const escapeLike = (value) => String(value).replace(/([\\%_])/g, '\\$1');
 
@@ -49,18 +55,6 @@ const isOwnTrainingProgramView = (viewName, uno) => {
   return viewName.startsWith('View_TrainingProgram_') && viewName.includes(`_${safeUno}_`);
 };
 
-const getDeptAdminDept = async (uno) => {
-  const [userRows] = await db.execute('SELECT Urole FROM User WHERE Uno = ?', [uno]);
-  if (userRows.length === 0) return { ok: false, status: 404, message: 'User not found' };
-  if (userRows[0].Urole !== '学院教学办管理员') return { ok: false, status: 403, message: 'Unauthorized role' };
-
-  const [deptRows] = await db.execute(`SELECT DAdept FROM Dept_Adm WHERE DAno = ?`, [uno]);
-  if (deptRows.length === 0) return { ok: false, status: 404, message: 'Dept admin not found' };
-  const dept = deptRows[0].DAdept;
-  if (!dept) return { ok: false, status: 400, message: 'Dept not found' };
-  return { ok: true, dept };
-};
-
 const parseTpno = (tpno) => {
   if (typeof tpno !== 'string') return null;
   const trimmed = tpno.trim();
@@ -85,9 +79,8 @@ const buildSearchWhere = (query, mapping) => {
 };
 
 router.post('/trainingprogram/view/init', async (req, res) => {
-  const { uno, tpno, type } = req.body || {};
-  if (!uno || typeof uno !== 'string') return res.status(400).json({ success: false, message: 'Uno is required' });
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) return res.status(400).json({ success: false, message: 'Invalid Uno format' });
+  const { tpno, type } = req.body || {};
+  const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
 
   const parsed = parseTpno(tpno);
   if (!parsed) return res.status(400).json({ success: false, message: 'Invalid TPno' });
@@ -98,12 +91,6 @@ router.post('/trainingprogram/view/init', async (req, res) => {
   }
 
   try {
-    const auth = await getDeptAdminDept(uno);
-    if (!auth.ok) return res.status(auth.status).json({ success: false, message: auth.message });
-
-    const [domRows] = await db.execute('SELECT Dom_no FROM Domain WHERE Dom_no = ? AND Dom_dept = ?', [parsed.dom, auth.dept]);
-    if (domRows.length === 0) return res.status(403).json({ success: false, message: 'Unauthorized domain' });
-
     const viewName = buildViewName(viewType, uno, parsed.tpno);
     await db.execute(`DROP VIEW IF EXISTS ${viewName}`);
 
@@ -156,9 +143,8 @@ router.post('/trainingprogram/view/init', async (req, res) => {
 });
 
 router.post('/trainingprogram/view/cleanup', async (req, res) => {
-  const { uno, viewName } = req.body || {};
-  if (!uno || typeof uno !== 'string') return res.status(400).json({ success: false, message: 'Uno is required' });
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) return res.status(400).json({ success: false, message: 'Invalid Uno format' });
+  const { viewName } = req.body || {};
+  const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
   if (!isOwnTrainingProgramView(viewName, uno)) {
     return res.status(400).json({ success: false, message: 'Invalid view name' });
   }
@@ -173,20 +159,12 @@ router.post('/trainingprogram/view/cleanup', async (req, res) => {
 });
 
 router.get('/trainingprogram/credits/get', async (req, res) => {
-  const { uno, tpno } = req.query;
-  if (!uno || typeof uno !== 'string') return res.status(400).json({ success: false, message: 'Uno is required' });
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) return res.status(400).json({ success: false, message: 'Invalid Uno format' });
+  const { tpno } = req.query;
 
   const parsed = parseTpno(tpno);
   if (!parsed) return res.status(400).json({ success: false, message: 'Invalid TPno' });
 
   try {
-    const auth = await getDeptAdminDept(uno);
-    if (!auth.ok) return res.status(auth.status).json({ success: false, message: auth.message });
-
-    const [domRows] = await db.execute('SELECT Dom_no FROM Domain WHERE Dom_no = ? AND Dom_dept = ?', [parsed.dom, auth.dept]);
-    if (domRows.length === 0) return res.status(403).json({ success: false, message: 'Unauthorized domain' });
-
     const [rows] = await db.execute(
       `SELECT TPcredit_GB, TPcredit_ZB, TPcredit_ZX, TPcredit_TX, TPcredit_GX
        FROM TrainingProgram
@@ -211,9 +189,7 @@ router.get('/trainingprogram/credits/get', async (req, res) => {
 });
 
 router.get('/trainingprogram/status/get', async (req, res) => {
-  const { uno, tpno } = req.query;
-  if (!uno || typeof uno !== 'string') return res.status(400).json({ success: false, message: 'Uno is required' });
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) return res.status(400).json({ success: false, message: 'Invalid Uno format' });
+  const { tpno } = req.query;
 
   const parsed = parseTpno(tpno);
   if (!parsed) return res.status(400).json({ success: false, message: 'Invalid TPno' });
@@ -225,23 +201,17 @@ router.get('/trainingprogram/status/get', async (req, res) => {
     await connection.beginTransaction();
     inTransaction = true;
 
-    const auth = await getDeptAdminDept(uno);
-    if (!auth.ok) {
-      await connection.rollback();
-      return res.status(auth.status).json({ success: false, message: auth.message });
-    }
-
     const [domRows] = await connection.execute(
       `SELECT d.Dom_no, d.Dom_name, dep.Dept_name
        FROM Domain d
        JOIN Department dep ON dep.Dept_no = d.Dom_dept
-       WHERE d.Dom_no = ? AND d.Dom_dept = ?
+       WHERE d.Dom_no = ?
        FOR UPDATE`,
-      [parsed.dom, auth.dept]
+      [parsed.dom]
     );
     if (domRows.length === 0) {
       await connection.rollback();
-      return res.status(403).json({ success: false, message: 'Unauthorized domain' });
+      return res.status(404).json({ success: false, message: 'Domain not found' });
     }
 
     const tpname = `${String(domRows[0].Dept_name || '')}${String(domRows[0].Dom_name || '')}培养方案（${String(parsed.year)}年版）`;
@@ -277,9 +247,7 @@ router.get('/trainingprogram/status/get', async (req, res) => {
 });
 
 router.post('/trainingprogram/status/submit', async (req, res) => {
-  const { uno, tpno } = req.body || {};
-  if (!uno || typeof uno !== 'string') return res.status(400).json({ success: false, message: 'Uno is required' });
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) return res.status(400).json({ success: false, message: 'Invalid Uno format' });
+  const { tpno } = req.body || {};
 
   const parsed = parseTpno(tpno);
   if (!parsed) return res.status(400).json({ success: false, message: 'Invalid TPno' });
@@ -291,38 +259,17 @@ router.post('/trainingprogram/status/submit', async (req, res) => {
     await connection.beginTransaction();
     inTransaction = true;
 
-    const [userRows] = await connection.execute('SELECT Urole FROM User WHERE Uno = ? FOR UPDATE', [uno]);
-    if (userRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    if (userRows[0].Urole !== '学院教学办管理员') {
-      await connection.rollback();
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
-    }
-
-    const [deptRows] = await connection.execute('SELECT DAdept FROM Dept_Adm WHERE DAno = ? FOR UPDATE', [uno]);
-    if (deptRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'Dept admin not found' });
-    }
-    const dept = deptRows[0].DAdept;
-    if (!dept) {
-      await connection.rollback();
-      return res.status(400).json({ success: false, message: 'Dept not found' });
-    }
-
     const [domRows] = await connection.execute(
       `SELECT d.Dom_no, d.Dom_name, dep.Dept_name
        FROM Domain d
        JOIN Department dep ON dep.Dept_no = d.Dom_dept
-       WHERE d.Dom_no = ? AND d.Dom_dept = ?
+       WHERE d.Dom_no = ?
        FOR UPDATE`,
-      [parsed.dom, dept]
+      [parsed.dom]
     );
     if (domRows.length === 0) {
       await connection.rollback();
-      return res.status(403).json({ success: false, message: 'Unauthorized domain' });
+      return res.status(404).json({ success: false, message: 'Domain not found' });
     }
 
     const tpname = `${String(domRows[0].Dept_name || '')}${String(domRows[0].Dom_name || '')}培养方案（${String(parsed.year)}年版）`;
@@ -370,9 +317,7 @@ router.post('/trainingprogram/status/submit', async (req, res) => {
 });
 
 router.post('/trainingprogram/credits/update', async (req, res) => {
-  const { uno, tpno, TPcredit_GB, TPcredit_ZB, TPcredit_ZX, TPcredit_TX, TPcredit_GX } = req.body || {};
-  if (!uno || typeof uno !== 'string') return res.status(400).json({ success: false, message: 'Uno is required' });
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) return res.status(400).json({ success: false, message: 'Invalid Uno format' });
+  const { tpno, TPcredit_GB, TPcredit_ZB, TPcredit_ZX, TPcredit_TX, TPcredit_GX } = req.body || {};
 
   const parsed = parseTpno(tpno);
   if (!parsed) return res.status(400).json({ success: false, message: 'Invalid TPno' });
@@ -396,38 +341,17 @@ router.post('/trainingprogram/credits/update', async (req, res) => {
     await connection.beginTransaction();
     inTransaction = true;
 
-    const [userRows] = await connection.execute('SELECT Urole FROM User WHERE Uno = ? FOR UPDATE', [uno]);
-    if (userRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    if (userRows[0].Urole !== '学院教学办管理员') {
-      await connection.rollback();
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
-    }
-
-    const [deptRows] = await connection.execute('SELECT DAdept FROM Dept_Adm WHERE DAno = ? FOR UPDATE', [uno]);
-    if (deptRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'Dept admin not found' });
-    }
-    const dept = deptRows[0].DAdept;
-    if (!dept) {
-      await connection.rollback();
-      return res.status(400).json({ success: false, message: 'Dept not found' });
-    }
-
     const [domRows] = await connection.execute(
       `SELECT d.Dom_no, d.Dom_name, dep.Dept_name
        FROM Domain d
        JOIN Department dep ON dep.Dept_no = d.Dom_dept
-       WHERE d.Dom_no = ? AND d.Dom_dept = ?
+       WHERE d.Dom_no = ?
        FOR UPDATE`,
-      [parsed.dom, dept]
+      [parsed.dom]
     );
     if (domRows.length === 0) {
       await connection.rollback();
-      return res.status(403).json({ success: false, message: 'Unauthorized domain' });
+      return res.status(404).json({ success: false, message: 'Domain not found' });
     }
 
     const tpname = `${String(domRows[0].Dept_name || '')}${String(domRows[0].Dom_name || '')}培养方案（${String(parsed.year)}年版）`;
@@ -496,8 +420,7 @@ router.post('/trainingprogram/credits/update', async (req, res) => {
 });
 
 router.get('/trainingprogram/courses/selected', async (req, res) => {
-  const { uno, tpno, page = 1, limit = 20, orderBy, orderDir, ...rest } = req.query;
-  if (!uno || typeof uno !== 'string') return res.status(400).json({ success: false, message: 'Uno is required' });
+  const { tpno, page = 1, limit = 20, orderBy, orderDir, ...rest } = req.query;
 
   const parsed = parseTpno(tpno);
   if (!parsed) return res.status(400).json({ success: false, message: 'Invalid TPno' });
@@ -507,15 +430,6 @@ router.get('/trainingprogram/courses/selected', async (req, res) => {
   const offset = (pageNum - 1) * limitNum;
 
   try {
-    const auth = await getDeptAdminDept(uno);
-    if (!auth.ok) return res.status(auth.status).json({ success: false, message: auth.message });
-
-    const [domRows] = await db.execute('SELECT Dom_no FROM Domain WHERE Dom_no = ? AND Dom_dept = ? FOR UPDATE', [
-      parsed.dom,
-      auth.dept,
-    ]);
-    if (domRows.length === 0) return res.status(403).json({ success: false, message: 'Unauthorized domain' });
-
     const search = buildSearchWhere(
       { ...rest },
       {
@@ -585,8 +499,7 @@ router.get('/trainingprogram/courses/selected', async (req, res) => {
 });
 
 router.get('/trainingprogram/courses/available', async (req, res) => {
-  const { uno, tpno, page = 1, limit = 20, orderBy, orderDir, ...rest } = req.query;
-  if (!uno || typeof uno !== 'string') return res.status(400).json({ success: false, message: 'Uno is required' });
+  const { tpno, page = 1, limit = 20, orderBy, orderDir, ...rest } = req.query;
 
   const parsed = parseTpno(tpno);
   if (!parsed) return res.status(400).json({ success: false, message: 'Invalid TPno' });
@@ -596,14 +509,7 @@ router.get('/trainingprogram/courses/available', async (req, res) => {
   const offset = (pageNum - 1) * limitNum;
 
   try {
-    const auth = await getDeptAdminDept(uno);
-    if (!auth.ok) return res.status(auth.status).json({ success: false, message: auth.message });
-
-    const [domRows] = await db.execute('SELECT Dom_no FROM Domain WHERE Dom_no = ? AND Dom_dept = ? FOR UPDATE', [
-      parsed.dom,
-      auth.dept,
-    ]);
-    if (domRows.length === 0) return res.status(403).json({ success: false, message: 'Unauthorized domain' });
+    const dept = req.authz && req.authz.dept ? String(req.authz.dept) : '';
 
     const search = buildSearchWhere(
       { ...rest },
@@ -617,7 +523,7 @@ router.get('/trainingprogram/courses/available', async (req, res) => {
     );
 
     const whereParts = [`cp.Cdept = ?`, `cu.Cstatus = '正常'`, ...search.whereParts];
-    const params = [auth.dept, ...search.params];
+    const params = [dept, ...search.params];
     const whereSql = whereParts.length > 0 ? `WHERE ${whereParts.join(' AND ')}` : '';
 
     const orderMap = {
@@ -680,14 +586,14 @@ router.get('/trainingprogram/courses/available', async (req, res) => {
 });
 
 router.post('/trainingprogram/tp-curricular/add', async (req, res) => {
-  const { uno, tpno, cno } = req.body || {};
-  if (!uno || typeof uno !== 'string') return res.status(400).json({ success: false, message: 'Uno is required' });
+  const { tpno, cno } = req.body || {};
 
   const parsed = parseTpno(tpno);
   if (!parsed) return res.status(400).json({ success: false, message: 'Invalid TPno' });
   if (typeof cno !== 'string' || !/^C[A-Z]{2}[A-Z]{2}[0-9A-F]{2}[0-9A-F]{3}$/.test(cno.trim())) {
     return res.status(400).json({ success: false, message: 'Invalid Cno' });
   }
+  const dept = req.authz && req.authz.dept ? String(req.authz.dept) : '';
 
   const connection = await db.getConnection();
   let inTransaction = false;
@@ -695,27 +601,6 @@ router.post('/trainingprogram/tp-curricular/add', async (req, res) => {
     await ensureTrainingProgramTpStatusEnum();
     await connection.beginTransaction();
     inTransaction = true;
-
-    const [userRows] = await connection.execute('SELECT Urole FROM User WHERE Uno = ? FOR UPDATE', [uno]);
-    if (userRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    if (userRows[0].Urole !== '学院教学办管理员') {
-      await connection.rollback();
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
-    }
-
-    const [deptRows] = await connection.execute('SELECT DAdept FROM Dept_Adm WHERE DAno = ? FOR UPDATE', [uno]);
-    if (deptRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'Dept admin not found' });
-    }
-    const dept = deptRows[0].DAdept;
-    if (!dept) {
-      await connection.rollback();
-      return res.status(400).json({ success: false, message: 'Dept not found' });
-    }
 
     const [domRows] = await connection.execute(
       `SELECT d.Dom_no, d.Dom_name, dep.Dept_name
@@ -779,9 +664,7 @@ router.post('/trainingprogram/tp-curricular/add', async (req, res) => {
 });
 
 router.post('/trainingprogram/tp-curricular/import', async (req, res) => {
-  const { uno, fromTpno, toTpno } = req.body || {};
-  if (!uno || typeof uno !== 'string') return res.status(400).json({ success: false, message: 'Uno is required' });
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) return res.status(400).json({ success: false, message: 'Invalid Uno format' });
+  const { fromTpno, toTpno } = req.body || {};
 
   const fromParsed = parseTpno(fromTpno);
   if (!fromParsed) return res.status(400).json({ success: false, message: 'Invalid fromTpno' });
@@ -789,6 +672,7 @@ router.post('/trainingprogram/tp-curricular/import', async (req, res) => {
   if (!toParsed) return res.status(400).json({ success: false, message: 'Invalid toTpno' });
   if (fromParsed.tpno === toParsed.tpno) return res.status(400).json({ success: false, message: 'Same TPno' });
   if (fromParsed.dom !== toParsed.dom) return res.status(400).json({ success: false, message: 'Domain mismatch' });
+  const dept = req.authz && req.authz.dept ? String(req.authz.dept) : '';
 
   const connection = await db.getConnection();
   let inTransaction = false;
@@ -796,27 +680,6 @@ router.post('/trainingprogram/tp-curricular/import', async (req, res) => {
     await ensureTrainingProgramTpStatusEnum();
     await connection.beginTransaction();
     inTransaction = true;
-
-    const [userRows] = await connection.execute('SELECT Urole FROM User WHERE Uno = ? FOR UPDATE', [uno]);
-    if (userRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    if (userRows[0].Urole !== '学院教学办管理员') {
-      await connection.rollback();
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
-    }
-
-    const [deptRows] = await connection.execute('SELECT DAdept FROM Dept_Adm WHERE DAno = ? FOR UPDATE', [uno]);
-    if (deptRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'Dept admin not found' });
-    }
-    const dept = deptRows[0].DAdept;
-    if (!dept) {
-      await connection.rollback();
-      return res.status(400).json({ success: false, message: 'Dept not found' });
-    }
 
     const [domRows] = await connection.execute(
       `SELECT d.Dom_no, d.Dom_name, dep.Dept_name
@@ -881,39 +744,18 @@ router.post('/trainingprogram/tp-curricular/import', async (req, res) => {
 });
 
 router.post('/trainingprogram/tp-curricular/remove', async (req, res) => {
-  const { uno, tpno, cno } = req.body || {};
-  if (!uno || typeof uno !== 'string') return res.status(400).json({ success: false, message: 'Uno is required' });
+  const { tpno, cno } = req.body || {};
 
   const parsed = parseTpno(tpno);
   if (!parsed) return res.status(400).json({ success: false, message: 'Invalid TPno' });
   if (typeof cno !== 'string' || !/^C[A-Z]{2}[A-Z]{2}[0-9A-F]{2}[0-9A-F]{3}$/.test(cno.trim())) {
     return res.status(400).json({ success: false, message: 'Invalid Cno' });
   }
+  const dept = req.authz && req.authz.dept ? String(req.authz.dept) : '';
 
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
-
-    const [userRows] = await connection.execute('SELECT Urole FROM User WHERE Uno = ? FOR UPDATE', [uno]);
-    if (userRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    if (userRows[0].Urole !== '学院教学办管理员') {
-      await connection.rollback();
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
-    }
-
-    const [deptRows] = await connection.execute('SELECT DAdept FROM Dept_Adm WHERE DAno = ? FOR UPDATE', [uno]);
-    if (deptRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'Dept admin not found' });
-    }
-    const dept = deptRows[0].DAdept;
-    if (!dept) {
-      await connection.rollback();
-      return res.status(400).json({ success: false, message: 'Dept not found' });
-    }
 
     const [domRows] = await connection.execute('SELECT Dom_no FROM Domain WHERE Dom_no = ? AND Dom_dept = ? FOR UPDATE', [
       parsed.dom,

@@ -102,7 +102,7 @@ const Accountsettings = () => {
   const fetchInfo = async () => {
     if (!userInfo) return;
     try {
-      const res = await fetch(`/api/account/info?uno=${encodeURIComponent(userInfo.Uno)}`);
+      const res = await fetch('/api/account/info');
       const json = await res.json();
       if (json.success) {
         setRole(json.role);
@@ -178,7 +178,7 @@ const Accountsettings = () => {
       const res = await fetch('/api/account/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uno: userInfo.Uno, oldPassword, updates })
+        body: JSON.stringify({ oldPassword, updates })
       });
       const json = await res.json();
       if (!json.success) {

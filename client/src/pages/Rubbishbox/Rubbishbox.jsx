@@ -59,11 +59,7 @@ const Rubbishbox = () => {
 
     const initView = async () => {
       try {
-        const res = await fetch('/api/rubbishbox/view/init', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uno: userInfo.Uno })
-        });
+        const res = await fetch('/api/rubbishbox/view/init', { method: 'POST' });
         const json = await res.json();
         if (json.success) {
           setReceivedViewName(json.receivedViewName);
@@ -81,11 +77,7 @@ const Rubbishbox = () => {
     return () => {
       const currentUserInfo = userInfoRef.current;
       if (currentUserInfo && currentUserInfo.Uno) {
-        fetch('/api/rubbishbox/view/cleanup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uno: currentUserInfo.Uno })
-        }).catch(console.error);
+        fetch('/api/rubbishbox/view/cleanup', { method: 'POST' }).catch(console.error);
       }
     };
   }, [userInfo]);
@@ -199,7 +191,6 @@ const Rubbishbox = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          uno: userInfo.Uno,
           msg_no: row.Msg_no,
           type: side === 'sent' ? 'sent' : 'received'
         })

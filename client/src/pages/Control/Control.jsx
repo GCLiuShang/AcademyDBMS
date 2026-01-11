@@ -91,7 +91,6 @@ const Control = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          uno: userInfo.Uno,
           oldPassword: confirmPassword,
           curricularOpen,
           courseOpen,

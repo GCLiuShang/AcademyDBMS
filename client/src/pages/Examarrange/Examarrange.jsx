@@ -76,7 +76,7 @@ const Examarrange = () => {
   const fetchExamOptions = useCallback(
     async (query) => {
       if (!userInfoRef.current?.Uno) return [];
-      const body = { uno: userInfoRef.current.Uno, query };
+      const body = { query };
       const res = await fetch(`${API_BASE}/api/examarrange/exam/search`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -92,7 +92,7 @@ const Examarrange = () => {
   const fetchProfOptions = useCallback(
     async (query) => {
       if (!userInfoRef.current?.Uno) return [];
-      const body = { uno: userInfoRef.current.Uno, query };
+      const body = { query };
       const res = await fetch(`${API_BASE}/api/examarrange/prof/search`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -158,7 +158,7 @@ const Examarrange = () => {
         const res = await fetch(`${API_BASE}/api/examarrange/exam/details`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uno: userInfoRef.current.Uno, eno }),
+          body: JSON.stringify({ eno }),
         });
         const json = await res.json();
         if (json.success) {
@@ -209,7 +209,6 @@ const Examarrange = () => {
     setStudentsLoading(true);
     try {
       const body = {
-        uno: userInfo.Uno,
         eno: selectedExam.Eno,
         page: studentsPage,
         limit: studentsPageSize,
@@ -251,7 +250,6 @@ const Examarrange = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            uno: userInfo.Uno,
             eno: selectedExam.Eno,
             profPnos: profs.map((p) => p.Pno),
           }),
@@ -293,7 +291,7 @@ const Examarrange = () => {
       const res = await fetch(`${API_BASE}/api/examarrange/arrange`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uno: userInfo.Uno, arrangeId }),
+        body: JSON.stringify({ arrangeId }),
       });
       const json = await res.json();
       if (json.success) {

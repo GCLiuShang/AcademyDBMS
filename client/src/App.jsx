@@ -3,7 +3,7 @@ import { BreadcrumbProvider } from './components/Breadcrumb/BreadcrumbContext';
 import Login from './pages/Login/Login';
 import StudentDashboard from './pages/Dashboard/StudentDashboard';
 import ProfessorDashboard from './pages/Dashboard/ProfessorDashboard';
-import DepmAdmDashboard from './pages/Dashboard/DepmAdmDashboard';
+import DeptAdmDashboard from './pages/Dashboard/DeptAdmDashboard';
 import UnivAdmDashboard from './pages/Dashboard/UnivAdmDashboard';
 import Receivebox from './pages/Receivebox/Receivebox';
 import Sendbox from './pages/Sendbox/Sendbox';
@@ -42,7 +42,7 @@ function App() {
             
             <Route path="/student/dashboard" element={<StudentDashboard />} />
             <Route path="/professor/dashboard" element={<ProfessorDashboard />} />
-            <Route path="/dept/dashboard" element={<DepmAdmDashboard />} />
+            <Route path="/dept/dashboard" element={<DeptAdmDashboard />} />
             <Route path="/admin/dashboard" element={<UnivAdmDashboard />} />
             
             <Route path="/receivebox" element={<Receivebox />} />

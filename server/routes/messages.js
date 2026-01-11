@@ -1,16 +1,15 @@
 const express = require('express');
 const db = require('../db');
 const { getNextSequenceNumber } = require('../services/sequenceService');
+const { requireAuth } = require('../services/sessionService');
 
 const router = express.Router();
 
+router.use(requireAuth);
+
 // 3. 获取新消息 (轮询用)
 router.get('/messages/new', async (req, res) => {
-  const { uno } = req.query;
-  
-  if (!uno) {
-    return res.status(400).json({ success: false, message: 'Uno is required' });
-  }
+  const uno = String(req.user.Uno);
 
   try {
     // 3.1 刷新活跃时间
@@ -105,8 +104,9 @@ router.get('/messages/new', async (req, res) => {
 
 // 4. 标记消息已读
 router.post('/messages/read', async (req, res) => {
-  const { uno, msg_no } = req.body;
-  if (!uno || !msg_no) return res.status(400).json({ success: false, message: 'Missing parameters' });
+  const { msg_no } = req.body;
+  const uno = String(req.user.Uno);
+  if (!msg_no) return res.status(400).json({ success: false, message: 'Missing parameters' });
 
   try {
     const query = `UPDATE Msg_Receive SET Receive_haveread = 1, Receive_time = NOW() WHERE Msg_no = ? AND Receive_Uno = ?`;
@@ -120,8 +120,9 @@ router.post('/messages/read', async (req, res) => {
 
 // 5. 软删除消息
 router.post('/messages/delete', async (req, res) => {
-  const { uno, msg_no, type } = req.body;
-  if (!uno || !msg_no) return res.status(400).json({ success: false, message: 'Missing parameters' });
+  const { msg_no, type } = req.body;
+  const uno = String(req.user.Uno);
+  if (!msg_no) return res.status(400).json({ success: false, message: 'Missing parameters' });
 
   try {
     const query = (type === 'sent') 
@@ -138,8 +139,9 @@ router.post('/messages/delete', async (req, res) => {
 
 // 5.5 恢复消息 (从回收站恢复显示)
 router.post('/messages/restore', async (req, res) => {
-  const { uno, msg_no, type } = req.body;
-  if (!uno || !msg_no) return res.status(400).json({ success: false, message: 'Missing parameters' });
+  const { msg_no, type } = req.body;
+  const uno = String(req.user.Uno);
+  if (!msg_no) return res.status(400).json({ success: false, message: 'Missing parameters' });
 
   try {
     const query = (type === 'sent')
@@ -155,8 +157,9 @@ router.post('/messages/restore', async (req, res) => {
 });
 
 router.post('/messages/send', async (req, res) => {
-  const { senderUno, receiverUnos, category, priority, content, wdMsgNo } = req.body;
-  if (!senderUno || !Array.isArray(receiverUnos) || receiverUnos.length === 0) {
+  const { receiverUnos, category, priority, content, wdMsgNo } = req.body;
+  const authedUno = String(req.user.Uno);
+  if (!Array.isArray(receiverUnos) || receiverUnos.length === 0) {
     return res.status(400).json({ success: false, message: 'Missing parameters' });
   }
 
@@ -198,7 +201,7 @@ router.post('/messages/send', async (req, res) => {
     await connection.execute(
       `INSERT INTO Msg_Send (Msg_no, Send_Uno, Send_time, Send_display)
        VALUES (?, ?, ?, ?)`,
-      [msgNo, senderUno, now, true]
+      [msgNo, authedUno, now, true]
     );
 
     for (const receiverUno of uniqueReceivers) {
@@ -222,8 +225,7 @@ router.post('/messages/send', async (req, res) => {
 
 // 6. 获取回收站消息
 router.get('/messages/trash', async (req, res) => {
-  const { uno } = req.query;
-  if (!uno) return res.status(400).json({ success: false, message: 'Uno is required' });
+  const uno = String(req.user.Uno);
 
   try {
     const receivedQuery = `
@@ -269,8 +271,7 @@ router.get('/messages/trash', async (req, res) => {
 
 // 7. 仪表盘消息列表
 router.get('/dashboard/messages', async (req, res) => {
-  const { uno } = req.query;
-  if (!uno) return res.status(400).json({ success: false, message: 'User number (uno) is required' });
+  const uno = String(req.user.Uno);
 
   try {
     const receivedQuery = `
@@ -320,9 +321,7 @@ router.get('/dashboard/messages', async (req, res) => {
 
 // ReceiveBox 视图管理接口
 router.post('/receivebox/view/init', async (req, res) => {
-  const { uno } = req.body;
-  if (!uno) return res.status(400).json({ success: false, message: 'Uno is required' });
-
+  const uno = String(req.user.Uno);
   if (!/^[a-zA-Z0-9]+$/.test(uno)) {
     return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   }
@@ -363,9 +362,7 @@ router.post('/receivebox/view/init', async (req, res) => {
 });
 
 router.post('/receivebox/view/cleanup', async (req, res) => {
-  const { uno } = req.body;
-  if (!uno) return res.status(400).json({ success: false, message: 'Uno is required' });
-
+  const uno = String(req.user.Uno);
   if (!/^[a-zA-Z0-9]+$/.test(uno)) {
     return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   }
@@ -383,9 +380,7 @@ router.post('/receivebox/view/cleanup', async (req, res) => {
 
 // SendBox 视图管理接口
 router.post('/sendbox/view/init', async (req, res) => {
-  const { uno } = req.body;
-  if (!uno) return res.status(400).json({ success: false, message: 'Uno is required' });
-
+  const uno = String(req.user.Uno);
   if (!/^[a-zA-Z0-9]+$/.test(uno)) {
     return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   }
@@ -424,9 +419,7 @@ router.post('/sendbox/view/init', async (req, res) => {
 });
 
 router.post('/sendbox/view/cleanup', async (req, res) => {
-  const { uno } = req.body;
-  if (!uno) return res.status(400).json({ success: false, message: 'Uno is required' });
-
+  const uno = String(req.user.Uno);
   if (!/^[a-zA-Z0-9]+$/.test(uno)) {
     return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   }
@@ -444,9 +437,7 @@ router.post('/sendbox/view/cleanup', async (req, res) => {
 
 // RubbishBox 视图管理接口
 router.post('/rubbishbox/view/init', async (req, res) => {
-  const { uno } = req.body;
-  if (!uno) return res.status(400).json({ success: false, message: 'Uno is required' });
-
+  const uno = String(req.user.Uno);
   if (!/^[a-zA-Z0-9]+$/.test(uno)) {
     return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   }
@@ -509,9 +500,7 @@ router.post('/rubbishbox/view/init', async (req, res) => {
 });
 
 router.post('/rubbishbox/view/cleanup', async (req, res) => {
-  const { uno } = req.body;
-  if (!uno) return res.status(400).json({ success: false, message: 'Uno is required' });
-
+  const uno = String(req.user.Uno);
   if (!/^[a-zA-Z0-9]+$/.test(uno)) {
     return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   }

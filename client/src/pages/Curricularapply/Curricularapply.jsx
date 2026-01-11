@@ -169,7 +169,7 @@ const Curricularapply = () => {
     const fetchAccountInfo = async () => {
       if (!userInfo?.Uno) return;
       try {
-        const res = await fetch(`/api/account/info?uno=${userInfo.Uno}`);
+        const res = await fetch('/api/account/info');
         const json = await res.json();
         if (json.success) setAccountInfo(json.data || null);
       } catch {
@@ -192,7 +192,7 @@ const Curricularapply = () => {
         const res = await fetch('/api/curricularapply/view/init', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uno: userInfo.Uno }),
+          body: JSON.stringify({}),
         });
         const json = await res.json();
         if (json.success) setViewName(json.viewName);
@@ -209,7 +209,7 @@ const Curricularapply = () => {
       fetch('/api/curricularapply/view/cleanup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uno: currentUser.Uno }),
+        body: JSON.stringify({}),
       }).catch(() => {});
     };
   }, [userInfo?.Uno]);
@@ -271,7 +271,6 @@ const Curricularapply = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          uno: userInfo.Uno,
           cattri,
           cseme,
           cname: cname.trim(),
@@ -330,7 +329,7 @@ const Curricularapply = () => {
       const res = await fetch('/api/curricularapply/cancel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uno: userInfo.Uno, applyId: row.ApplyID }),
+        body: JSON.stringify({ applyId: row.ApplyID }),
       });
       const json = await res.json();
       if (json.success) {

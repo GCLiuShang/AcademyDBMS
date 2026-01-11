@@ -1,7 +1,10 @@
 const express = require('express');
 const { chat } = require('../services/aiService');
+const { requireAuth } = require('../services/sessionService');
 
 const router = express.Router();
+
+router.use(requireAuth);
 
 router.post('/ai/chat', async (req, res) => {
   const {

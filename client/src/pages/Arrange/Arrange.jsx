@@ -789,7 +789,6 @@ const Arrange = () => {
   const fetchTransactionTable = useCallback(async () => {
     if (!userInfo?.Uno) return;
     const params = new URLSearchParams({
-      uno: userInfo.Uno,
       page: String(txnTablePage),
       limit: String(txnTablePageSize),
       ...(txnTableSearchParams || {}),
@@ -915,7 +914,6 @@ const Arrange = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            uno: userInfo.Uno,
             courno,
             selectedDay: courseSelectedDay,
             perSessionLessons: per,
@@ -933,7 +931,6 @@ const Arrange = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            uno: userInfo.Uno,
             setupEId: selectedTxn.id,
             classrooms: selectedExamRooms,
           }),

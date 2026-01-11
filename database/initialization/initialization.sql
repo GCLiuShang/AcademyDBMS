@@ -235,30 +235,30 @@ INSERT IGNORE INTO Lesson (Lno, Ltime_begin, Ltime_end) VALUES
 -- 插入用户数据 (10个，5种角色各2个)
 -- 学生用户
 INSERT IGNORE INTO User (Uno, Upswd, Urole, Utime, Ustatus) VALUES
-('S202300001', SHA2('student123', 256), '学生', NOW(), '离线'),
-('S202300002', SHA2('student123', 256), '学生', NOW(), '离线'),
-('S202300003', SHA2('student123', 256), '学生', NOW(), '离线'),
-('S202300004', SHA2('student123', 256), '学生', NOW(), '离线'),
-('S202300005', SHA2('student123', 256), '学生', NOW(), '离线');
+('S202300001', '$2b$12$TCwC69iFf0vozq2bbj0m/.UIAHVDRfcPz4hDRW1aXnOZalSCfwksO', '学生', NOW(), '离线'),
+('S202300002', '$2b$12$TCwC69iFf0vozq2bbj0m/.UIAHVDRfcPz4hDRW1aXnOZalSCfwksO', '学生', NOW(), '离线'),
+('S202300003', '$2b$12$TCwC69iFf0vozq2bbj0m/.UIAHVDRfcPz4hDRW1aXnOZalSCfwksO', '学生', NOW(), '离线'),
+('S202300004', '$2b$12$TCwC69iFf0vozq2bbj0m/.UIAHVDRfcPz4hDRW1aXnOZalSCfwksO', '学生', NOW(), '离线'),
+('S202300005', '$2b$12$TCwC69iFf0vozq2bbj0m/.UIAHVDRfcPz4hDRW1aXnOZalSCfwksO', '学生', NOW(), '离线');
 
 
 -- 教授用户
 INSERT IGNORE INTO User (Uno, Upswd, Urole, Utime, Ustatus) VALUES
-('P202100001', SHA2('professor123', 256), '教授', NOW(), '离线'),
-('P202100002', SHA2('professor123', 256), '教授', NOW(), '离线'),
-('P202100003', SHA2('professor123', 256), '教授', NOW(), '离线'),
-('P202100004', SHA2('professor123', 256), '教授', NOW(), '离线'),
-('P202100005', SHA2('professor123', 256), '教授', NOW(), '离线');
+('P202100001', '$2b$12$dLpz0uI5.tmeW8U.4670Ceiw5OZBu4Mcw9Q3tfviRBdTfNgCJdUtG', '教授', NOW(), '离线'),
+('P202100002', '$2b$12$dLpz0uI5.tmeW8U.4670Ceiw5OZBu4Mcw9Q3tfviRBdTfNgCJdUtG', '教授', NOW(), '离线'),
+('P202100003', '$2b$12$dLpz0uI5.tmeW8U.4670Ceiw5OZBu4Mcw9Q3tfviRBdTfNgCJdUtG', '教授', NOW(), '离线'),
+('P202100004', '$2b$12$dLpz0uI5.tmeW8U.4670Ceiw5OZBu4Mcw9Q3tfviRBdTfNgCJdUtG', '教授', NOW(), '离线'),
+('P202100005', '$2b$12$dLpz0uI5.tmeW8U.4670Ceiw5OZBu4Mcw9Q3tfviRBdTfNgCJdUtG', '教授', NOW(), '离线');
 
 -- 学院教学办管理员用户
 INSERT IGNORE INTO User (Uno, Upswd, Urole, Utime, Ustatus) VALUES
-('DA20190001', SHA2('deptadm123', 256), '学院教学办管理员', NOW(), '离线'),
-('DA20190002', SHA2('deptadm123', 256), '学院教学办管理员', NOW(), '离线');
+('DA20190001', '$2b$12$aNXUiiBTq.Z8ZLnVhK0DIur0iojVM8ch1Bo4iDHqUJ.7qkWFrNI/W', '学院教学办管理员', NOW(), '离线'),
+('DA20190002', '$2b$12$aNXUiiBTq.Z8ZLnVhK0DIur0iojVM8ch1Bo4iDHqUJ.7qkWFrNI/W', '学院教学办管理员', NOW(), '离线');
 
 -- 学校教务处管理员用户
 INSERT IGNORE INTO User (Uno, Upswd, Urole, Utime, Ustatus) VALUES
-('UA20190001', SHA2('univadm123', 256), '学校教务处管理员', NOW(), '离线'),
-('UA20190002', SHA2('univadm123', 256), '学校教务处管理员', NOW(), '离线');
+('UA20190001', '$2b$12$mCB4GQNplorjsKq7NGymseAEjFH5EibdwL/xH37JXOv0V5Lxj6WB2', '学校教务处管理员', NOW(), '离线'),
+('UA20190002', '$2b$12$mCB4GQNplorjsKq7NGymseAEjFH5EibdwL/xH37JXOv0V5Lxj6WB2', '学校教务处管理员', NOW(), '离线');
 
 -- 其他人员用户
 INSERT IGNORE INTO User (Uno, Upswd, Urole, Utime, Ustatus) VALUES

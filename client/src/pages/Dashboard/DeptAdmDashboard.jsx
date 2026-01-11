@@ -1,7 +1,7 @@
 import React from 'react';
 import BaseDashboard from './Dashboard';
 
-const DepmAdmDashboard = () => {
+const DeptAdmDashboard = () => {
   const businessItems = [
     { id: 'deptadmin-biz-account', label: '账户设置', icon: '/images/dashboard/account.svg', url: '/accountsettings' },
     { id: 'deptadmin-biz-curricularapply', label: '开课申请', icon: '/images/dashboard/curricularapply.svg', url: '/curricularapply' },
@@ -14,4 +14,4 @@ const DepmAdmDashboard = () => {
   return <BaseDashboard systemRole="学院教学办管理员" businessItems={businessItems} />;
 };
 
-export default DepmAdmDashboard;
+export default DeptAdmDashboard;

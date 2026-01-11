@@ -1,12 +1,26 @@
 const https = require('https');
+const fs = require('fs');
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function readSecretFile(filePath) {
+  const p = typeof filePath === 'string' ? filePath.trim() : '';
+  if (!p) return '';
+  try {
+    const content = fs.readFileSync(p, 'utf8');
+    return typeof content === 'string' ? content.trim() : '';
+  } catch {
+    return '';
+  }
+}
+
 function getEnvString(key, fallbackKeys = []) {
   const keys = [key, ...fallbackKeys];
   for (const k of keys) {
+    const fileValue = readSecretFile(process.env[`${k}_FILE`]);
+    if (fileValue) return fileValue;
     const v = process.env[k];
     if (typeof v === 'string' && v.trim()) return v.trim();
   }
@@ -89,9 +103,9 @@ async function chatCompletions({
   timeoutMs,
   retries,
 } = {}) {
-  const api = getEnvString('API', ['AI_API', 'MAAS_API']);
-  const apiKey = getEnvString('API_KEY', ['AI_API_KEY', 'MAAS_API_KEY']);
-  const resolvedModel = model || getEnvString('MODEL', ['AI_MODEL']);
+  const api = getEnvString('AI_API', ['API', 'MAAS_API']);
+  const apiKey = getEnvString('AI_API_KEY', ['API_KEY', 'MAAS_API_KEY']);
+  const resolvedModel = model || getEnvString('AI_MODEL', ['MODEL']);
   const resolvedTimeoutMs = Number.isFinite(Number(timeoutMs))
     ? Math.max(1000, Math.floor(Number(timeoutMs)))
     : getEnvInt('AI_TIMEOUT_MS', 20000);

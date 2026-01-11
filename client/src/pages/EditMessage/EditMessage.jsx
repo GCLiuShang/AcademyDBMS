@@ -62,16 +62,8 @@ const EditMessage = () => {
     return new Map(selectedReceivers.map(r => [r.Uno, r]));
   }, [selectedReceivers]);
 
-  const fetchUsersByUno = useCallback(async (query) => {
-    const params = new URLSearchParams({ uno: query, limit: 50 });
-    const res = await fetch(`/api/users/search?${params.toString()}`);
-    const json = await res.json();
-    if (json.success) return json.data || [];
-    return [];
-  }, []);
-
-  const fetchUsersByName = useCallback(async (query) => {
-    const params = new URLSearchParams({ name: query, limit: 50 });
+  const fetchUsers = useCallback(async (query) => {
+    const params = new URLSearchParams({ q: query, limit: 50 });
     const res = await fetch(`/api/users/search?${params.toString()}`);
     const json = await res.json();
     if (json.success) return json.data || [];
@@ -96,7 +88,7 @@ const EditMessage = () => {
 
     receiverSearchTimerRef.current = setTimeout(async () => {
       try {
-        const rows = await fetchUsersByUno(receiverQuery.trim());
+        const rows = await fetchUsers(receiverQuery.trim());
         setReceiverOptions(rows);
       } catch (err) {
         console.error('Search receiver error:', err);
@@ -107,7 +99,7 @@ const EditMessage = () => {
     return () => {
       if (receiverSearchTimerRef.current) clearTimeout(receiverSearchTimerRef.current);
     };
-  }, [receiverQuery, fetchUsersByUno]);
+  }, [receiverQuery, fetchUsers]);
 
   useEffect(() => {
     if (userSearchTimerRef.current) clearTimeout(userSearchTimerRef.current);
@@ -117,7 +109,7 @@ const EditMessage = () => {
 
     userSearchTimerRef.current = setTimeout(async () => {
       try {
-        const rows = await fetchUsersByName(q);
+        const rows = await fetchUsers(q);
         setUserSearchResults(rows);
       } catch (err) {
         console.error('Search user error:', err);
@@ -128,7 +120,7 @@ const EditMessage = () => {
     return () => {
       if (userSearchTimerRef.current) clearTimeout(userSearchTimerRef.current);
     };
-  }, [userSearchQuery, fetchUsersByName]);
+  }, [userSearchQuery, fetchUsers]);
 
   const addReceiver = (user) => {
     if (!user || !user.Uno) return;
@@ -156,7 +148,6 @@ const EditMessage = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          senderUno: userInfo.Uno,
           receiverUnos: selectedReceivers.map(r => r.Uno),
           category: msgCategory,
           priority: msgPriority,

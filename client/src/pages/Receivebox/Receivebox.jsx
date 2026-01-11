@@ -51,11 +51,7 @@ const Receivebox = () => {
 
     const initView = async () => {
       try {
-        const res = await fetch('/api/receivebox/view/init', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uno: userInfo.Uno })
-        });
+        const res = await fetch('/api/receivebox/view/init', { method: 'POST' });
         const json = await res.json();
         if (json.success) {
           setViewName(json.viewName);
@@ -74,11 +70,7 @@ const Receivebox = () => {
       if (currentUserInfo && currentUserInfo.Uno) {
           // Use sendBeacon for more reliable cleanup on unload, or fetch with keepalive (if supported)
           // But standard fetch is fine for component unmount
-          fetch('/api/receivebox/view/cleanup', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ uno: currentUserInfo.Uno })
-          }).catch(console.error);
+          fetch('/api/receivebox/view/cleanup', { method: 'POST' }).catch(console.error);
       }
     };
   }, [userInfo]); // Only re-run if Uno changes
@@ -140,9 +132,11 @@ const Receivebox = () => {
     Promise.all(
       missing.map(async (uno) => {
         try {
-          const res = await fetch(`/api/account/info?uno=${encodeURIComponent(uno)}`);
+          const params = new URLSearchParams({ q: String(uno), limit: '1' });
+          const res = await fetch(`/api/users/search?${params.toString()}`);
           const json = await res.json();
-          if (json?.success && json?.role) return [uno, json.role];
+          const row = Array.isArray(json?.data) ? json.data[0] : null;
+          if (json?.success && row?.Urole) return [uno, row.Urole];
         } catch {
           return null;
         }
@@ -206,7 +200,7 @@ const Receivebox = () => {
       const res = await fetch('/api/messages/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uno: userInfo.Uno, msg_no: row.Msg_no, type: 'received' })
+        body: JSON.stringify({ msg_no: row.Msg_no, type: 'received' })
       });
       if (res.ok) {
         fetchData(); // Refresh

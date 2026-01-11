@@ -1,6 +1,8 @@
 const express = require('express');
 const db = require('../db');
 const { sendSystemMessage, sendWelcomeMessage } = require('../services/messageService');
+const { createSession, revokeSession, setSessionCookie, clearSessionCookie } = require('../services/sessionService');
+const { verifyPassword } = require('../services/passwordService');
 
 const router = express.Router();
 
@@ -42,12 +44,8 @@ router.post('/login', async (req, res) => {
       }
     }
 
-    const [match] = await db.execute(
-      'SELECT * FROM User WHERE Uno = ? AND Upswd = SHA2(?, 256)',
-      [username, password]
-    );
-
-    if (match.length > 0) {
+    const ok = await verifyPassword(password, user.Upswd);
+    if (ok) {
       if (user.Ustatus === '在线') {
         const kickMsg = '您的账号在另一处登录，即将注销登录，若并非您操作请在重新登录后修改密码。';
         await sendSystemMessage(username, kickMsg, '重要');
@@ -65,6 +63,18 @@ router.post('/login', async (req, res) => {
         'UPDATE User SET Ustatus = ?, Ulosetimes = 0, Ulasttrytime = NOW() WHERE Uno = ?',
         ['在线', username]
       );
+
+      await db.execute(`UPDATE User_Session SET Revoked = 1 WHERE Uno = ?`, [username]);
+      const ua = typeof req.headers['user-agent'] === 'string' ? req.headers['user-agent'] : null;
+      const ipRaw =
+        typeof req.headers['x-forwarded-for'] === 'string'
+          ? req.headers['x-forwarded-for']
+          : typeof req.ip === 'string'
+            ? req.ip
+            : '';
+      const ip = ipRaw ? String(ipRaw).split(',')[0].trim() : null;
+      const { sid } = await createSession({ uno: username, ua, ip });
+      setSessionCookie(res, sid, req);
 
       const userWithoutPassword = { ...user };
       userWithoutPassword.Ustatus = '在线';
@@ -151,13 +161,17 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/logout', async (req, res) => {
-  const { username } = req.body;
-  if (!username) {
-    return res.status(400).json({ success: false, message: 'Username is required' });
-  }
-
   try {
-    await db.execute('UPDATE User SET Ustatus = ? WHERE Uno = ?', ['离线', username]);
+    if (req.sessionSid) {
+      await revokeSession(req.sessionSid);
+    }
+    clearSessionCookie(res, req);
+
+    const username = req.user && req.user.Uno ? req.user.Uno : '';
+    if (username) {
+      await db.execute('UPDATE User SET Ustatus = ? WHERE Uno = ?', ['离线', username]);
+    }
+
     res.json({ success: true, message: 'Logout successful' });
   } catch (error) {
     console.error('Database error:', error);

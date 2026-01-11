@@ -2,8 +2,15 @@ const express = require('express');
 const db = require('../db');
 const { getCurrentBusinessFlags } = require('../services/businessService');
 const { insertSystemMessageToMany } = require('../services/messageService');
+const { requireAuth } = require('../services/sessionService');
+const { authorize } = require('../services/userService');
 
 const router = express.Router();
+
+router.use(requireAuth);
+router.use('/courseapply', authorize(['教授'], { dept: 'professor' }));
+router.use('/courseajust', authorize(['教授']));
+router.use('/arrange', authorize(['学校教务处管理员']));
 
 router.post('/course/search', async (req, res) => {
   const { query, limit } = req.body;
@@ -35,23 +42,11 @@ router.post('/course/search', async (req, res) => {
 });
 
 router.post('/courseapply/view/init', async (req, res) => {
-  const { uno } = req.body;
-  if (!uno) return res.status(400).json({ success: false, message: 'Uno is required' });
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
-  }
+  const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
+  const dept = req.authz && req.authz.dept ? String(req.authz.dept) : '';
+  if (!dept) return res.status(400).json({ success: false, message: 'Professor department not found' });
 
   try {
-    const [userRows] = await db.execute('SELECT Urole FROM User WHERE Uno = ?', [uno]);
-    if (userRows.length === 0) return res.status(404).json({ success: false, message: 'User not found' });
-    const role = userRows[0].Urole;
-    if (role !== '教授') return res.status(403).json({ success: false, message: 'Unauthorized role' });
-
-    const [deptRows] = await db.execute('SELECT Pdept FROM Professor WHERE Pno = ?', [uno]);
-    if (deptRows.length === 0) return res.status(404).json({ success: false, message: 'Professor not found' });
-    const dept = deptRows[0].Pdept;
-    if (!dept) return res.status(400).json({ success: false, message: 'Professor department not found' });
-
     const cnoPoolViewName = `View_Courseapply_CnoPool_${uno}`;
     const profViewName = `View_Courseapply_Prof_${uno}`;
     await db.execute(`DROP VIEW IF EXISTS ${cnoPoolViewName}`);
@@ -107,11 +102,7 @@ router.post('/courseapply/view/init', async (req, res) => {
 });
 
 router.post('/courseapply/view/cleanup', async (req, res) => {
-  const { uno } = req.body;
-  if (!uno) return res.status(400).json({ success: false, message: 'Uno is required' });
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
-  }
+  const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
 
   const cnoPoolViewName = `View_Courseapply_CnoPool_${uno}`;
   const profViewName = `View_Courseapply_Prof_${uno}`;
@@ -126,13 +117,13 @@ router.post('/courseapply/view/cleanup', async (req, res) => {
 });
 
 router.post('/courseapply/submit', async (req, res) => {
-  const { uno, cno, campus, pmax, professorPnos, days } = req.body;
-  if (!uno || !cno || !campus || !pmax || !Array.isArray(professorPnos) || !Array.isArray(days)) {
+  const { cno, campus, pmax, professorPnos, days } = req.body;
+  const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
+  const dept = req.authz && req.authz.dept ? String(req.authz.dept) : '';
+  if (!cno || !campus || !pmax || !Array.isArray(professorPnos) || !Array.isArray(days)) {
     return res.status(400).json({ success: false, message: 'Missing parameters' });
   }
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
-  }
+  if (!dept) return res.status(400).json({ success: false, message: 'Professor department not found' });
   if (typeof cno !== 'string' || cno.length === 0 || cno.length > 10) {
     return res.status(400).json({ success: false, message: 'Invalid Cno' });
   }
@@ -173,28 +164,6 @@ router.post('/courseapply/submit', async (req, res) => {
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
-
-    const [userRows] = await connection.execute('SELECT Urole FROM User WHERE Uno = ? FOR UPDATE', [uno]);
-    if (userRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    const role = userRows[0].Urole;
-    if (role !== '教授') {
-      await connection.rollback();
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
-    }
-
-    const [deptRows] = await connection.execute('SELECT Pdept FROM Professor WHERE Pno = ? FOR UPDATE', [uno]);
-    if (deptRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'Professor not found' });
-    }
-    const dept = deptRows[0].Pdept;
-    if (!dept) {
-      await connection.rollback();
-      return res.status(400).json({ success: false, message: 'Professor department not found' });
-    }
 
     const [cnoRows] = await connection.execute(
       `SELECT Cno, Cattri FROM Cno_Pool WHERE Cno = ? AND Cdept = ? AND Cno_status != '可用' FOR UPDATE`,
@@ -383,18 +352,9 @@ router.post('/courseapply/submit', async (req, res) => {
 });
 
 router.post('/courseajust/view/init', async (req, res) => {
-  const { uno } = req.body;
-  if (!uno) return res.status(400).json({ success: false, message: 'Uno is required' });
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
-  }
+  const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
 
   try {
-    const [userRows] = await db.execute('SELECT Urole FROM User WHERE Uno = ?', [uno]);
-    if (userRows.length === 0) return res.status(404).json({ success: false, message: 'User not found' });
-    const role = userRows[0].Urole;
-    if (role !== '教授') return res.status(403).json({ success: false, message: 'Unauthorized role' });
-
     const viewName = `View_Courseajust_${uno}`;
     await db.execute(`DROP VIEW IF EXISTS ${viewName}`);
 
@@ -432,11 +392,7 @@ router.post('/courseajust/view/init', async (req, res) => {
 });
 
 router.post('/courseajust/view/cleanup', async (req, res) => {
-  const { uno } = req.body;
-  if (!uno) return res.status(400).json({ success: false, message: 'Uno is required' });
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
-  }
+  const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
 
   const viewName = `View_Courseajust_${uno}`;
   try {
@@ -449,12 +405,10 @@ router.post('/courseajust/view/cleanup', async (req, res) => {
 });
 
 router.post('/courseajust/replace', async (req, res) => {
-  const { uno, courno, classhour } = req.body;
-  if (!uno || !courno || classhour === undefined || classhour === null) {
+  const { courno, classhour } = req.body;
+  const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
+  if (!courno || classhour === undefined || classhour === null) {
     return res.status(400).json({ success: false, message: 'Missing parameters' });
-  }
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   }
   if (!/^[A-Z0-9]{10}-[0-9]{5}-[0-9A-F]{3}$/.test(String(courno))) {
     return res.status(400).json({ success: false, message: 'Invalid Cour_no format' });
@@ -467,16 +421,6 @@ router.post('/courseajust/replace', async (req, res) => {
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
-
-    const [userRows] = await connection.execute('SELECT Urole FROM User WHERE Uno = ? FOR UPDATE', [uno]);
-    if (userRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    if (userRows[0].Urole !== '教授') {
-      await connection.rollback();
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
-    }
 
     const [eligibleRows] = await connection.execute(
       `
@@ -559,11 +503,11 @@ router.post('/courseajust/replace', async (req, res) => {
 });
 
 router.post('/arrange/course/submit', async (req, res) => {
-  const { uno, courno, selectedDay, perSessionLessons, weeks } = req.body;
-  if (!uno || !courno || !selectedDay || perSessionLessons === undefined || perSessionLessons === null || !Array.isArray(weeks)) {
+  const { courno, selectedDay, perSessionLessons, weeks } = req.body;
+  const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
+  if (!courno || !selectedDay || perSessionLessons === undefined || perSessionLessons === null || !Array.isArray(weeks)) {
     return res.status(400).json({ success: false, message: 'Missing parameters' });
   }
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   if (!/^[A-Z0-9]{10}-[0-9]{5}-[0-9A-F]{3}$/.test(String(courno))) {
     return res.status(400).json({ success: false, message: 'Invalid Cour_no format' });
   }
@@ -605,16 +549,6 @@ router.post('/arrange/course/submit', async (req, res) => {
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
-
-    const [userRows] = await connection.execute('SELECT Urole FROM User WHERE Uno = ? FOR UPDATE', [uno]);
-    if (userRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    if (userRows[0].Urole !== '学校教务处管理员') {
-      await connection.rollback();
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
-    }
 
     const [setupRows] = await connection.execute(
       `SELECT SetupCo_Courno, SetupCo_campus, SetupCo_pmax, SetupCo_status

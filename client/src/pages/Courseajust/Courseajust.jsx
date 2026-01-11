@@ -51,7 +51,7 @@ const Courseajust = () => {
         const res = await fetch(`${API_BASE}/api/courseajust/view/init`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uno: userInfo.Uno }),
+          body: JSON.stringify({}),
         });
         const json = await res.json();
         if (json.success && json.viewName) {
@@ -72,7 +72,7 @@ const Courseajust = () => {
       fetch(`${API_BASE}/api/courseajust/view/cleanup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uno: currentUser.Uno }),
+        body: JSON.stringify({}),
       }).catch(() => {});
     };
   }, [userInfo?.Uno]);
@@ -122,7 +122,6 @@ const Courseajust = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            uno: userInfo.Uno,
             courno: row.ArrangeCo_Courno,
             classhour: row.ArrangeCo_classhour,
           }),

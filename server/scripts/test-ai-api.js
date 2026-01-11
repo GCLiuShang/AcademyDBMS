@@ -75,9 +75,9 @@ async function postJson(urlString, headers, jsonBody, { timeoutMs, insecureTls }
 }
 
 async function main() {
-  const api = getEnv('API', ['AI_API', 'MAAS_API']);
-  const model = getEnv('MODEL', ['AI_MODEL']);
-  const apiKey = getEnv('API_KEY', ['AI_API_KEY', 'MAAS_API_KEY']);
+  const api = getEnv('AI_API', ['API', 'MAAS_API']);
+  const model = getEnv('AI_MODEL', ['MODEL']);
+  const apiKey = getEnv('AI_API_KEY', ['API_KEY', 'MAAS_API_KEY']);
 
   const prompt = (process.argv.slice(2).join(' ') || '你好').trim();
   const timeoutMs = Number(getEnv('AI_TIMEOUT_MS')) || 20000;

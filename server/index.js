@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const fs = require('fs');
 const { initScheduler } = require('./services/scheduler');
+const { attachSessionUser, enforceUnoConsistency } = require('./services/sessionService');
 const messagesRouter = require('./routes/messages');
 const authRouter = require('./routes/auth');
 const accountRouter = require('./routes/account');
@@ -22,6 +23,8 @@ const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(bodyParser.json());
+app.use(attachSessionUser);
+app.use(enforceUnoConsistency());
 
 app.use('/api', messagesRouter);
 app.use('/api', authRouter);

@@ -44,7 +44,7 @@ const TrainingprogramEdit = () => {
   const [availableSearchParams, setAvailableSearchParams] = useState({});
   const [availableViewName, setAvailableViewName] = useState(null);
 
-  const viewRef = useRef({ uno: null, selected: null, available: null });
+  const viewRef = useRef({ selected: null, available: null });
 
   const [tpStatus, setTpStatus] = useState('');
 
@@ -86,7 +86,7 @@ const TrainingprogramEdit = () => {
     const fetchAccountInfo = async () => {
       if (!userInfo?.Uno) return;
       try {
-        const res = await fetch(`${API_BASE}/api/account/info?uno=${userInfo.Uno}`);
+        const res = await fetch(`${API_BASE}/api/account/info`);
         const json = await res.json();
         if (json?.success) setAccountInfo(json.data || null);
         else {
@@ -208,27 +208,26 @@ const TrainingprogramEdit = () => {
     let cancelled = false;
 
     const cleanupViews = async () => {
-      const uno = viewRef.current.uno;
       const selected = viewRef.current.selected;
       const available = viewRef.current.available;
-      viewRef.current = { uno: null, selected: null, available: null };
+      viewRef.current = { selected: null, available: null };
 
       const jobs = [];
-      if (uno && selected) {
+      if (selected) {
         jobs.push(
           fetch(`${API_BASE}/api/trainingprogram/view/cleanup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ uno, viewName: selected }),
+            body: JSON.stringify({ viewName: selected }),
           }).catch(() => {})
         );
       }
-      if (uno && available) {
+      if (available) {
         jobs.push(
           fetch(`${API_BASE}/api/trainingprogram/view/cleanup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ uno, viewName: available }),
+            body: JSON.stringify({ viewName: available }),
           }).catch(() => {})
         );
       }
@@ -236,8 +235,7 @@ const TrainingprogramEdit = () => {
     };
 
     const initViews = async () => {
-      const uno = userInfo?.Uno;
-      if (!uno || !tpNo) {
+      if (!userInfo?.Uno || !tpNo) {
         await cleanupViews();
         if (!cancelled) {
           setSelectedViewName(null);
@@ -252,7 +250,7 @@ const TrainingprogramEdit = () => {
         const selectedRes = await fetch(`${API_BASE}/api/trainingprogram/view/init`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uno, tpno: tpNo, type: 'selected' }),
+          body: JSON.stringify({ tpno: tpNo, type: 'selected' }),
         });
         const selectedJson = await selectedRes.json();
         const nextSelectedView = selectedJson?.success ? selectedJson.viewName : null;
@@ -260,18 +258,18 @@ const TrainingprogramEdit = () => {
         const availableRes = await fetch(`${API_BASE}/api/trainingprogram/view/init`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uno, tpno: tpNo, type: 'available' }),
+          body: JSON.stringify({ tpno: tpNo, type: 'available' }),
         });
         const availableJson = await availableRes.json();
         const nextAvailableView = availableJson?.success ? availableJson.viewName : null;
 
         if (cancelled) return;
-        viewRef.current = { uno, selected: nextSelectedView, available: nextAvailableView };
+        viewRef.current = { selected: nextSelectedView, available: nextAvailableView };
         setSelectedViewName(nextSelectedView);
         setAvailableViewName(nextAvailableView);
       } catch {
         if (cancelled) return;
-        viewRef.current = { uno: null, selected: null, available: null };
+        viewRef.current = { selected: null, available: null };
         setSelectedViewName(null);
         setAvailableViewName(null);
       }
@@ -362,7 +360,7 @@ const TrainingprogramEdit = () => {
       return;
     }
     try {
-      const params = new URLSearchParams({ uno: userInfo.Uno, tpno: tpNo });
+      const params = new URLSearchParams({ tpno: tpNo });
       const res = await fetch(`${API_BASE}/api/trainingprogram/status/get?${params.toString()}`);
       const json = await res.json();
       if (!json?.success) {
@@ -400,7 +398,7 @@ const TrainingprogramEdit = () => {
     }
 
     try {
-      const params = new URLSearchParams({ uno: userInfo.Uno, tpno: tpNo });
+      const params = new URLSearchParams({ tpno: tpNo });
       const res = await fetch(`${API_BASE}/api/trainingprogram/credits/get?${params.toString()}`);
       const json = await res.json();
       if (!json?.success) return;
@@ -459,7 +457,7 @@ const TrainingprogramEdit = () => {
         const res = await fetch(`${API_BASE}/api/trainingprogram/credits/update`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uno: userInfo.Uno, tpno: tpNo, [key]: n }),
+          body: JSON.stringify({ tpno: tpNo, [key]: n }),
         });
         const json = await res.json();
         if (!json?.success) {
@@ -490,7 +488,7 @@ const TrainingprogramEdit = () => {
         await fetch(`${API_BASE}/api/trainingprogram/tp-curricular/add`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uno: userInfo.Uno, tpno: tpNo, cno: row.Cno }),
+          body: JSON.stringify({ tpno: tpNo, cno: row.Cno }),
         });
       } finally {
         fetchSelected();
@@ -508,7 +506,7 @@ const TrainingprogramEdit = () => {
         await fetch(`${API_BASE}/api/trainingprogram/tp-curricular/remove`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uno: userInfo.Uno, tpno: tpNo, cno: row.Cno }),
+          body: JSON.stringify({ tpno: tpNo, cno: row.Cno }),
         });
       } finally {
         fetchSelected();
@@ -619,7 +617,7 @@ const TrainingprogramEdit = () => {
       const res = await fetch(`${API_BASE}/api/trainingprogram/tp-curricular/import`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uno: userInfo.Uno, fromTpno: latestTpNo, toTpno: tpNo }),
+        body: JSON.stringify({ fromTpno: latestTpNo, toTpno: tpNo }),
       });
       const json = await res.json();
       if (!json?.success) {
@@ -643,7 +641,7 @@ const TrainingprogramEdit = () => {
       const res = await fetch(`${API_BASE}/api/trainingprogram/status/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uno: userInfo.Uno, tpno: tpNo }),
+        body: JSON.stringify({ tpno: tpNo }),
       });
       const json = await res.json();
       if (!json?.success) {

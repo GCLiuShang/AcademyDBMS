@@ -1,8 +1,15 @@
 const express = require('express');
 const db = require('../db');
 const { getNextSequenceNumber } = require('../services/sequenceService');
+const { authorize } = require('../services/userService');
+const { requireAuth } = require('../services/sessionService');
 
 const router = express.Router();
+
+router.use(requireAuth);
+router.use('/examapply', authorize(['学院教学办管理员'], { dept: 'deptAdmin' }));
+router.use('/examarrange', authorize(['学院教学办管理员'], { dept: 'deptAdmin' }));
+router.use('/arrange', authorize(['学校教务处管理员']));
 
 function parseStrictDateTime(dateStr, timeStr) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
@@ -54,22 +61,9 @@ function makeExamArrangeId(eno, num) {
 }
 
 router.post('/examapply/view/init', async (req, res) => {
-  const { uno } = req.body;
-  if (!uno) return res.status(400).json({ success: false, message: 'Uno is required' });
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
-  }
-
   try {
-    const [userRows] = await db.execute('SELECT Urole FROM User WHERE Uno = ?', [uno]);
-    if (userRows.length === 0) return res.status(404).json({ success: false, message: 'User not found' });
-    const role = userRows[0].Urole;
-    if (role !== '学院教学办管理员') return res.status(403).json({ success: false, message: 'Unauthorized role' });
-
-    const [deptRows] = await db.execute('SELECT DAdept FROM Dept_Adm WHERE DAno = ?', [uno]);
-    if (deptRows.length === 0) return res.status(404).json({ success: false, message: 'Dept admin not found' });
-    const dept = deptRows[0].DAdept;
-    if (!dept) return res.status(400).json({ success: false, message: 'Dept not found' });
+    const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
+    const dept = req.authz && req.authz.dept ? String(req.authz.dept) : '';
 
     const viewName = `View_Examapply_Curricular_${uno}`;
     await db.execute(`DROP VIEW IF EXISTS ${viewName}`);
@@ -100,14 +94,9 @@ router.post('/examapply/view/init', async (req, res) => {
 });
 
 router.post('/examapply/view/cleanup', async (req, res) => {
-  const { uno } = req.body;
-  if (!uno) return res.status(400).json({ success: false, message: 'Uno is required' });
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
-  }
-
-  const viewName = `View_Examapply_Curricular_${uno}`;
   try {
+    const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
+    const viewName = `View_Examapply_Curricular_${uno}`;
     await db.execute(`DROP VIEW IF EXISTS ${viewName}`);
     res.json({ success: true });
   } catch (error) {
@@ -117,12 +106,9 @@ router.post('/examapply/view/cleanup', async (req, res) => {
 });
 
 router.post('/examapply/submit', async (req, res) => {
-  const { uno, cno, eattri, date, time, durationMinutes } = req.body;
-  if (!uno || !cno || !eattri || !date || !time || durationMinutes === undefined || durationMinutes === null) {
+  const { cno, eattri, date, time, durationMinutes } = req.body;
+  if (!cno || !eattri || !date || !time || durationMinutes === undefined || durationMinutes === null) {
     return res.status(400).json({ success: false, message: 'Missing parameters' });
-  }
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   }
   if (typeof cno !== 'string' || cno.length === 0 || cno.length > 10) {
     return res.status(400).json({ success: false, message: 'Invalid Cno' });
@@ -166,27 +152,7 @@ router.post('/examapply/submit', async (req, res) => {
   try {
     await connection.beginTransaction();
 
-    const [userRows] = await connection.execute('SELECT Urole FROM User WHERE Uno = ? FOR UPDATE', [uno]);
-    if (userRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    const role = userRows[0].Urole;
-    if (role !== '学院教学办管理员') {
-      await connection.rollback();
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
-    }
-
-    const [deptRows] = await connection.execute('SELECT DAdept FROM Dept_Adm WHERE DAno = ? FOR UPDATE', [uno]);
-    if (deptRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'Dept admin not found' });
-    }
-    const dept = deptRows[0].DAdept;
-    if (!dept) {
-      await connection.rollback();
-      return res.status(400).json({ success: false, message: 'Dept not found' });
-    }
+    const dept = req.authz && req.authz.dept ? String(req.authz.dept) : '';
 
     const [curricularRows] = await connection.execute(
       `SELECT C.Cno
@@ -251,6 +217,9 @@ router.post('/examapply/submit', async (req, res) => {
     return res.json({ success: true, setupEId, eno });
   } catch (error) {
     await connection.rollback();
+    if (error && error.status) {
+      return res.status(error.status).json({ success: false, message: error.message });
+    }
     console.error('Error submitting exam apply:', error);
     return res.status(500).json({ success: false, message: 'Internal server error' });
   } finally {
@@ -259,11 +228,7 @@ router.post('/examapply/submit', async (req, res) => {
 });
 
 router.get('/arrange/transactions/list', async (req, res) => {
-  const { uno, page = 1, limit = 20, searchId } = req.query;
-  if (!uno) return res.status(400).json({ success: false, message: 'Uno is required' });
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
-  }
+  const { page = 1, limit = 20, searchId } = req.query;
 
   const pageNum = parseInt(page, 10) || 1;
   const limitNum = parseInt(limit, 10) || 20;
@@ -271,14 +236,6 @@ router.get('/arrange/transactions/list', async (req, res) => {
   const searchIdVal = searchId ? String(searchId).trim() : '';
 
   try {
-    const [userRows] = await db.execute('SELECT Urole FROM User WHERE Uno = ?', [uno]);
-    if (userRows.length === 0) {
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    if (userRows[0].Urole !== '学校教务处管理员') {
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
-    }
-
     let courseWhere = `SetupCo_status = '等待审核'`;
     let examWhere = `SetupE_status = '等待审核'`;
     const courseParams = [];
@@ -386,17 +343,19 @@ router.get('/arrange/transactions/list', async (req, res) => {
       },
     });
   } catch (error) {
+    if (error && error.status) {
+      return res.status(error.status).json({ success: false, message: error.message });
+    }
     console.error('Error fetching arrange transactions:', error);
     return res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
 
 router.post('/arrange/exam/submit', async (req, res) => {
-  const { uno, setupEId, classrooms } = req.body;
-  if (!uno || !setupEId || !Array.isArray(classrooms)) {
+  const { setupEId, classrooms } = req.body;
+  if (!setupEId || !Array.isArray(classrooms)) {
     return res.status(400).json({ success: false, message: 'Missing parameters' });
   }
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   if (!/^SETCE[0-9]{8}-[0-9A-F]{6}$/.test(String(setupEId))) {
     return res.status(400).json({ success: false, message: 'Invalid SetupE_ID format' });
   }
@@ -413,16 +372,6 @@ router.post('/arrange/exam/submit', async (req, res) => {
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
-
-    const [userRows] = await connection.execute('SELECT Urole FROM User WHERE Uno = ? FOR UPDATE', [uno]);
-    if (userRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    if (userRows[0].Urole !== '学校教务处管理员') {
-      await connection.rollback();
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
-    }
 
     const [setupRows] = await connection.execute(
       `SELECT SetupE_ID, SetupE_Cno, SetupE_Eno, SetupE_Esemeno, SetupE_Eattri, SetupE_Etime_begin, SetupE_Etime_end, SetupE_status
@@ -557,12 +506,9 @@ router.post('/arrange/exam/submit', async (req, res) => {
 });
 
 router.post('/examarrange/exam/search', async (req, res) => {
-  const { uno, query } = req.body;
-  if (!uno || typeof query !== 'string') {
+  const { query } = req.body;
+  if (typeof query !== 'string') {
     return res.status(400).json({ success: false, message: 'Missing parameters' });
-  }
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   }
   const q = query.trim();
   if (q.length < 5) {
@@ -570,23 +516,7 @@ router.post('/examarrange/exam/search', async (req, res) => {
   }
 
   try {
-    const [userRows] = await db.execute('SELECT Urole FROM User WHERE Uno = ?', [uno]);
-    if (userRows.length === 0) {
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    const role = userRows[0].Urole;
-    if (role !== '学院教学办管理员') {
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
-    }
-
-    const [deptRows] = await db.execute('SELECT DAdept FROM Dept_Adm WHERE DAno = ?', [uno]);
-    if (deptRows.length === 0) {
-      return res.status(404).json({ success: false, message: 'Dept admin not found' });
-    }
-    const dept = deptRows[0].DAdept;
-    if (!dept) {
-      return res.status(400).json({ success: false, message: 'Dept not found' });
-    }
+    const dept = req.authz && req.authz.dept ? String(req.authz.dept) : '';
 
     const like = `%${q}%`;
     const [rows] = await db.execute(
@@ -615,12 +545,9 @@ router.post('/examarrange/exam/search', async (req, res) => {
 });
 
 router.post('/examarrange/prof/search', async (req, res) => {
-  const { uno, query } = req.body;
-  if (!uno || typeof query !== 'string') {
+  const { query } = req.body;
+  if (typeof query !== 'string') {
     return res.status(400).json({ success: false, message: 'Missing parameters' });
-  }
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   }
   const q = query.trim();
   if (q.length < 2) {
@@ -628,23 +555,7 @@ router.post('/examarrange/prof/search', async (req, res) => {
   }
 
   try {
-    const [userRows] = await db.execute('SELECT Urole FROM User WHERE Uno = ?', [uno]);
-    if (userRows.length === 0) {
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    const role = userRows[0].Urole;
-    if (role !== '学院教学办管理员') {
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
-    }
-
-    const [deptRows] = await db.execute('SELECT DAdept FROM Dept_Adm WHERE DAno = ?', [uno]);
-    if (deptRows.length === 0) {
-      return res.status(404).json({ success: false, message: 'Dept admin not found' });
-    }
-    const dept = deptRows[0].DAdept;
-    if (!dept) {
-      return res.status(400).json({ success: false, message: 'Dept not found' });
-    }
+    const dept = req.authz && req.authz.dept ? String(req.authz.dept) : '';
 
     const like = `%${q}%`;
     const [rows] = await db.execute(
@@ -667,35 +578,16 @@ router.post('/examarrange/prof/search', async (req, res) => {
 });
 
 router.post('/examarrange/exam/details', async (req, res) => {
-  const { uno, eno } = req.body;
-  if (!uno || !eno) {
+  const { eno } = req.body;
+  if (!eno) {
     return res.status(400).json({ success: false, message: 'Missing parameters' });
-  }
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   }
   if (!/^E[0-9]{5}[0-9A-F]{3}[ZHT]$/.test(String(eno))) {
     return res.status(400).json({ success: false, message: 'Invalid Eno format' });
   }
 
   try {
-    const [userRows] = await db.execute('SELECT Urole FROM User WHERE Uno = ?', [uno]);
-    if (userRows.length === 0) {
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    const role = userRows[0].Urole;
-    if (role !== '学院教学办管理员') {
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
-    }
-
-    const [deptRows] = await db.execute('SELECT DAdept FROM Dept_Adm WHERE DAno = ?', [uno]);
-    if (deptRows.length === 0) {
-      return res.status(404).json({ success: false, message: 'Dept admin not found' });
-    }
-    const dept = deptRows[0].DAdept;
-    if (!dept) {
-      return res.status(400).json({ success: false, message: 'Dept not found' });
-    }
+    const dept = req.authz && req.authz.dept ? String(req.authz.dept) : '';
 
     const [examRows] = await db.execute(
       `SELECT
@@ -777,12 +669,9 @@ router.post('/examarrange/exam/details', async (req, res) => {
 });
 
 router.post('/examarrange/invigilate/save', async (req, res) => {
-  const { uno, eno, profPnos } = req.body;
-  if (!uno || !eno || !Array.isArray(profPnos)) {
+  const { eno, profPnos } = req.body;
+  if (!eno || !Array.isArray(profPnos)) {
     return res.status(400).json({ success: false, message: 'Missing parameters' });
-  }
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   }
   if (!/^E[0-9]{5}[0-9A-F]{3}[ZHT]$/.test(String(eno))) {
     return res.status(400).json({ success: false, message: 'Invalid Eno format' });
@@ -800,27 +689,7 @@ router.post('/examarrange/invigilate/save', async (req, res) => {
   try {
     await connection.beginTransaction();
 
-    const [userRows] = await connection.execute('SELECT Urole FROM User WHERE Uno = ? FOR UPDATE', [uno]);
-    if (userRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    const role = userRows[0].Urole;
-    if (role !== '学院教学办管理员') {
-      await connection.rollback();
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
-    }
-
-    const [deptRows] = await connection.execute('SELECT DAdept FROM Dept_Adm WHERE DAno = ? FOR UPDATE', [uno]);
-    if (deptRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'Dept admin not found' });
-    }
-    const dept = deptRows[0].DAdept;
-    if (!dept) {
-      await connection.rollback();
-      return res.status(400).json({ success: false, message: 'Dept not found' });
-    }
+    const dept = req.authz && req.authz.dept ? String(req.authz.dept) : '';
 
     const [examRows] = await connection.execute(
       `SELECT e.Eno, e.E_cno
@@ -894,12 +763,9 @@ router.post('/examarrange/invigilate/save', async (req, res) => {
 });
 
 router.post('/examarrange/students', async (req, res) => {
-  const { uno, eno, page = 1, limit = 20, search } = req.body;
-  if (!uno || !eno) {
+  const { eno, page = 1, limit = 20, search } = req.body;
+  if (!eno) {
     return res.status(400).json({ success: false, message: 'Missing parameters' });
-  }
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   }
   if (!/^E[0-9]{5}[0-9A-F]{3}[ZHT]$/.test(String(eno))) {
     return res.status(400).json({ success: false, message: 'Invalid Eno format' });
@@ -912,23 +778,7 @@ router.post('/examarrange/students', async (req, res) => {
   const searchSno = typeof search === 'string' ? search.trim() : '';
 
   try {
-    const [userRows] = await db.execute('SELECT Urole FROM User WHERE Uno = ?', [uno]);
-    if (userRows.length === 0) {
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    const role = userRows[0].Urole;
-    if (role !== '学院教学办管理员') {
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
-    }
-
-    const [deptRows] = await db.execute('SELECT DAdept FROM Dept_Adm WHERE DAno = ?', [uno]);
-    if (deptRows.length === 0) {
-      return res.status(404).json({ success: false, message: 'Dept admin not found' });
-    }
-    const dept = deptRows[0].DAdept;
-    if (!dept) {
-      return res.status(400).json({ success: false, message: 'Dept not found' });
-    }
+    const dept = req.authz && req.authz.dept ? String(req.authz.dept) : '';
 
     const [examRows] = await db.execute(
       `SELECT e.Eno, e.E_cno
@@ -1040,12 +890,9 @@ router.post('/examarrange/students', async (req, res) => {
 });
 
 router.post('/examarrange/arrange', async (req, res) => {
-  const { uno, arrangeId } = req.body;
-  if (!uno || !arrangeId) {
+  const { arrangeId } = req.body;
+  if (!arrangeId) {
     return res.status(400).json({ success: false, message: 'Missing parameters' });
-  }
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   }
   if (!/^[A-Z0-9]{10}-[0-9A-F]{3}$/.test(String(arrangeId))) {
     return res.status(400).json({ success: false, message: 'Invalid ArrangeE_ID format' });
@@ -1055,27 +902,7 @@ router.post('/examarrange/arrange', async (req, res) => {
   try {
     await connection.beginTransaction();
 
-    const [userRows] = await connection.execute('SELECT Urole FROM User WHERE Uno = ? FOR UPDATE', [uno]);
-    if (userRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    const role = userRows[0].Urole;
-    if (role !== '学院教学办管理员') {
-      await connection.rollback();
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
-    }
-
-    const [deptRows] = await connection.execute('SELECT DAdept FROM Dept_Adm WHERE DAno = ? FOR UPDATE', [uno]);
-    if (deptRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'Dept admin not found' });
-    }
-    const dept = deptRows[0].DAdept;
-    if (!dept) {
-      await connection.rollback();
-      return res.status(400).json({ success: false, message: 'Dept not found' });
-    }
+    const dept = req.authz && req.authz.dept ? String(req.authz.dept) : '';
 
     const [arrRows] = await connection.execute(
       `SELECT

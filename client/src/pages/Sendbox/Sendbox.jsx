@@ -51,11 +51,7 @@ const Sendbox = () => {
 
     const initView = async () => {
       try {
-        const res = await fetch('/api/sendbox/view/init', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uno: userInfo.Uno })
-        });
+        const res = await fetch('/api/sendbox/view/init', { method: 'POST' });
         const json = await res.json();
         if (json.success) {
           setViewName(json.viewName);
@@ -72,11 +68,7 @@ const Sendbox = () => {
     return () => {
       const currentUserInfo = userInfoRef.current;
       if (currentUserInfo && currentUserInfo.Uno) {
-        fetch('/api/sendbox/view/cleanup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uno: currentUserInfo.Uno })
-        }).catch(console.error);
+        fetch('/api/sendbox/view/cleanup', { method: 'POST' }).catch(console.error);
       }
     };
   }, [userInfo]);
@@ -154,7 +146,7 @@ const Sendbox = () => {
       const res = await fetch('/api/messages/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uno: userInfo.Uno, msg_no: row.Msg_no, type: 'sent' })
+        body: JSON.stringify({ msg_no: row.Msg_no, type: 'sent' })
       });
       if (res.ok) {
         fetchData();
@@ -181,9 +173,11 @@ const Sendbox = () => {
     Promise.all(
       missing.map(async (uno) => {
         try {
-          const res = await fetch(`/api/account/info?uno=${encodeURIComponent(uno)}`);
+          const params = new URLSearchParams({ q: String(uno), limit: '1' });
+          const res = await fetch(`/api/users/search?${params.toString()}`);
           const json = await res.json();
-          if (json?.success && json?.role) return [uno, json.role];
+          const row = Array.isArray(json?.data) ? json.data[0] : null;
+          if (json?.success && row?.Urole) return [uno, row.Urole];
         } catch {
           return null;
         }

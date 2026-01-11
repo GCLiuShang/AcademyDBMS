@@ -124,7 +124,7 @@ const Examapply = () => {
         const res = await fetch('/api/examapply/view/init', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uno: userInfo.Uno }),
+          body: JSON.stringify({}),
         });
         const json = await res.json();
         if (json.success) setViewName(json.viewName);
@@ -141,7 +141,7 @@ const Examapply = () => {
       fetch('/api/examapply/view/cleanup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uno: currentUser.Uno }),
+        body: JSON.stringify({}),
       }).catch(() => {});
     };
   }, [userInfo?.Uno]);
@@ -241,7 +241,6 @@ const Examapply = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          uno: userInfo.Uno,
           cno: selectedCourse.Cno,
           eattri: examAttri,
           date: dateStr,

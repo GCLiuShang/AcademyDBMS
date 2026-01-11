@@ -152,7 +152,7 @@ const Courseapply = () => {
         const res = await fetch('/api/courseapply/view/init', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uno: userInfo.Uno }),
+          body: JSON.stringify({}),
         });
         const json = await res.json();
         if (json.success) {
@@ -176,7 +176,7 @@ const Courseapply = () => {
       fetch('/api/courseapply/view/cleanup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uno: currentUser.Uno }),
+        body: JSON.stringify({}),
       }).catch(() => {});
     };
   }, [userInfo?.Uno]);
@@ -333,7 +333,6 @@ const Courseapply = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          uno: userInfo.Uno,
           cno: selectedCourse.Cno,
           campus,
           pmax: finalPmax,

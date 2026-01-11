@@ -52,7 +52,7 @@ const Curricularapprove = () => {
         const res = await fetch('/api/curricularapprove/view/init', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uno: userInfo.Uno }),
+          body: JSON.stringify({}),
         });
         const json = await res.json();
         if (json.success) setViewName(json.viewName);
@@ -70,7 +70,7 @@ const Curricularapprove = () => {
       fetch('/api/curricularapprove/view/cleanup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uno: currentUser.Uno }),
+        body: JSON.stringify({}),
       }).catch(() => {});
     };
   }, [userInfo?.Uno]);
@@ -123,7 +123,7 @@ const Curricularapprove = () => {
         const res = await fetch('/api/curricularapprove/pass', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uno: userInfo.Uno, applyId: row.ApplyID }),
+          body: JSON.stringify({ applyId: row.ApplyID }),
         });
         const json = await res.json();
         if (json.success) {

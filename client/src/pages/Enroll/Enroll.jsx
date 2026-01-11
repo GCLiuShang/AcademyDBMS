@@ -76,7 +76,6 @@ const Enroll = () => {
     setLeftLoading(true);
     try {
       const body = {
-        uno: userInfo.Uno,
         page: leftPage,
         limit: leftPageSize,
       };
@@ -130,7 +129,6 @@ const Enroll = () => {
     setRightLoading(true);
     try {
       const body = {
-        uno: userInfo.Uno,
         page: rightPage,
         limit: rightPageSize,
       };
@@ -200,7 +198,6 @@ const Enroll = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            uno: userInfo.Uno,
             courno: row.courNo,
           }),
         });
@@ -231,7 +228,6 @@ const Enroll = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            uno: userInfo.Uno,
             courno: row.courNo,
           }),
         });

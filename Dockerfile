@@ -1,4 +1,6 @@
-FROM node:20-alpine AS build
+ARG NODE_IMAGE=node:20-alpine
+
+FROM ${NODE_IMAGE} AS build
 
 WORKDIR /app
 
@@ -13,14 +15,16 @@ RUN npm --prefix ./server ci --omit=dev
 
 COPY server ./server
 
-FROM node:20-alpine
+FROM ${NODE_IMAGE} AS runtime
 
 ENV NODE_ENV=production
 
 WORKDIR /app/server
 
-COPY --from=build /app/server /app/server
-COPY --from=build /app/client/dist /app/client/dist
+COPY --from=build --chown=node:node /app/server /app/server
+COPY --from=build --chown=node:node /app/client/dist /app/client/dist
+
+USER node
 
 EXPOSE 3001
 

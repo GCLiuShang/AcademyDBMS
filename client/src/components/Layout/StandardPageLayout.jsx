@@ -98,7 +98,7 @@ const StandardPageLayout = ({
         // 动态导入 axios，避免顶部 import 可能的问题，或者假设顶部已经 import axios from 'axios'
         // 为了保险，建议在文件顶部添加 import axios from 'axios';
         // 这里暂时使用 fetch
-        const response = await fetch(`/api/messages/new?uno=${encodeURIComponent(user.Uno)}`);
+        const response = await fetch('/api/messages/new');
         const data = await response.json();
 
         if (response.status === 401) {
@@ -126,7 +126,7 @@ const StandardPageLayout = ({
             fetch('/api/messages/read', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ uno: user.Uno, msg_no: msg.Msg_no })
+              body: JSON.stringify({ msg_no: msg.Msg_no })
             }).catch(err => console.error('Failed to mark read:', err));
           });
         }
@@ -218,17 +218,10 @@ const StandardPageLayout = ({
   }, []);
 
   const handleLogoutWrapper = async () => {
-    const user = getCurrentUserFromStorage();
-    if (user && user.Uno) {
-      try {
-        await fetch('/api/logout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: user.Uno })
-        });
-      } catch (err) {
-        console.error('Logout failed:', err);
-      }
+    try {
+      await fetch('/api/logout', { method: 'POST' });
+    } catch (err) {
+      console.error('Logout failed:', err);
     }
     sessionStorage.removeItem('currentUno');
     if (onLogout) onLogout();

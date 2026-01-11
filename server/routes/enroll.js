@@ -1,13 +1,17 @@
 const express = require('express');
 const db = require('../db');
 const { getCurrentBusinessFlags } = require('../services/businessService');
+const { requireAuth } = require('../services/sessionService');
+const { authorize } = require('../services/userService');
 
 const router = express.Router();
 
+router.use(requireAuth);
+router.use(authorize(['学生']));
+
 router.post('/enroll/available', async (req, res) => {
-  const { uno, page = 1, limit = 20, searchName } = req.body;
-  if (!uno) return res.status(400).json({ success: false, message: 'Missing Uno' });
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) return res.status(400).json({ success: false, message: 'Invalid Uno format' });
+  const { page = 1, limit = 20, searchName } = req.body || {};
+  const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
 
   const pageNum = Math.max(1, Number(page) || 1);
   const limitNumRaw = Number(limit) || 20;
@@ -16,14 +20,6 @@ router.post('/enroll/available', async (req, res) => {
   const search = typeof searchName === 'string' ? searchName.trim() : '';
 
   try {
-    const [userRows] = await db.execute('SELECT Urole FROM User WHERE Uno = ?', [uno]);
-    if (userRows.length === 0) {
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    if (userRows[0].Urole !== '学生') {
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
-    }
-
     const [semeRows] = await db.execute('SELECT Seme_no FROM Semester ORDER BY Seme_no DESC LIMIT 1');
     if (semeRows.length === 0) {
       return res.status(400).json({ success: false, message: 'Semester not found' });
@@ -249,9 +245,8 @@ router.post('/enroll/available', async (req, res) => {
 });
 
 router.post('/enroll/selected', async (req, res) => {
-  const { uno, page = 1, limit = 20, searchName } = req.body;
-  if (!uno) return res.status(400).json({ success: false, message: 'Missing Uno' });
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) return res.status(400).json({ success: false, message: 'Invalid Uno format' });
+  const { page = 1, limit = 20, searchName } = req.body || {};
+  const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
 
   const pageNum = Math.max(1, Number(page) || 1);
   const limitNumRaw = Number(limit) || 20;
@@ -260,14 +255,6 @@ router.post('/enroll/selected', async (req, res) => {
   const search = typeof searchName === 'string' ? searchName.trim() : '';
 
   try {
-    const [userRows] = await db.execute('SELECT Urole FROM User WHERE Uno = ?', [uno]);
-    if (userRows.length === 0) {
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    if (userRows[0].Urole !== '学生') {
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
-    }
-
     const [semeRows] = await db.execute('SELECT Seme_no FROM Semester ORDER BY Seme_no DESC LIMIT 1');
     if (semeRows.length === 0) {
       return res.status(400).json({ success: false, message: 'Semester not found' });
@@ -470,12 +457,10 @@ router.post('/enroll/selected', async (req, res) => {
 });
 
 router.post('/enroll/select', async (req, res) => {
-  const { uno, courno } = req.body;
-  if (!uno || !courno) {
+  const { courno } = req.body || {};
+  const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
+  if (!courno) {
     return res.status(400).json({ success: false, message: 'Missing parameters' });
-  }
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   }
   if (!/^[A-Z0-9]{10}-[0-9]{5}-[0-9A-F]{3}$/.test(String(courno))) {
     return res.status(400).json({ success: false, message: 'Invalid Cour_no format' });
@@ -489,16 +474,6 @@ router.post('/enroll/select', async (req, res) => {
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
-
-    const [userRows] = await connection.execute('SELECT Urole FROM User WHERE Uno = ? FOR UPDATE', [uno]);
-    if (userRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    if (userRows[0].Urole !== '学生') {
-      await connection.rollback();
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
-    }
 
     const [semeRows] = await connection.execute('SELECT Seme_no FROM Semester ORDER BY Seme_no DESC LIMIT 1 FOR UPDATE');
     if (semeRows.length === 0) {
@@ -662,12 +637,10 @@ router.post('/enroll/select', async (req, res) => {
 });
 
 router.post('/enroll/drop', async (req, res) => {
-  const { uno, courno } = req.body;
-  if (!uno || !courno) {
+  const { courno } = req.body || {};
+  const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
+  if (!courno) {
     return res.status(400).json({ success: false, message: 'Missing parameters' });
-  }
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   }
   if (!/^[A-Z0-9]{10}-[0-9]{5}-[0-9A-F]{3}$/.test(String(courno))) {
     return res.status(400).json({ success: false, message: 'Invalid Cour_no format' });
@@ -681,16 +654,6 @@ router.post('/enroll/drop', async (req, res) => {
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
-
-    const [userRows] = await connection.execute('SELECT Urole FROM User WHERE Uno = ? FOR UPDATE', [uno]);
-    if (userRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    if (userRows[0].Urole !== '学生') {
-      await connection.rollback();
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
-    }
 
     const [enrollRows] = await connection.execute(
       `

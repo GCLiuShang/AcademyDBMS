@@ -97,7 +97,7 @@ const BaseDashboard = ({ systemRole, queryItems = [], businessItems = [] }) => {
         const user = getCurrentUserFromStorage();
         if (!user || !user.Uno) return;
 
-        const response = await fetch(`/api/dashboard/messages?uno=${encodeURIComponent(user.Uno)}`);
+        const response = await fetch('/api/dashboard/messages');
         const data = await response.json();
         
         if (data.success) {

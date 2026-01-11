@@ -291,7 +291,6 @@ const Useradd = () => {
     if (!canSubmit || !userInfo?.Uno) return;
 
     const payload = {
-      uno: userInfo.Uno,
       userType: selectedTypeKey,
       name: name.trim(),
       sex: sex || null,

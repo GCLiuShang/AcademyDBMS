@@ -10,6 +10,10 @@
 **/.env.*
 !**/.env.example
 
+# Local secrets
+**/secrets/
+**/.secrets/
+
 # Logs
 **/logs/
 **/*.log

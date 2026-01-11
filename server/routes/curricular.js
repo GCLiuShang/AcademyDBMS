@@ -2,21 +2,17 @@ const express = require('express');
 const db = require('../db');
 const { getNextSequenceNumber } = require('../services/sequenceService');
 const { getCurrentBusinessFlags } = require('../services/businessService');
+const { requireAuth } = require('../services/sessionService');
+const { authorize } = require('../services/userService');
 
 const router = express.Router();
 
-router.post('/curricularapply/view/init', async (req, res) => {
-  const { uno } = req.body;
-  if (!uno) return res.status(400).json({ success: false, message: 'Uno is required' });
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
-  }
+router.use(requireAuth);
 
+router.post('/curricularapply/view/init', authorize(['教授', '学院教学办管理员'], { dept: 'auto' }), async (req, res) => {
+  const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
+  const role = req.user && req.user.Urole ? String(req.user.Urole) : '';
   try {
-    const [userRows] = await db.execute('SELECT Urole FROM User WHERE Uno = ?', [uno]);
-    if (userRows.length === 0) return res.status(404).json({ success: false, message: 'User not found' });
-    const role = userRows[0].Urole;
-
     const viewName = `View_CurricularApply_${uno}`;
     await db.execute(`DROP VIEW IF EXISTS ${viewName}`);
 
@@ -43,47 +39,36 @@ router.post('/curricularapply/view/init', async (req, res) => {
       return res.json({ success: true, viewName });
     }
 
-    if (role === '学院教学办管理员') {
-      const [deptRows] = await db.execute('SELECT DAdept FROM Dept_Adm WHERE DAno = ?', [uno]);
-      if (deptRows.length === 0) return res.status(404).json({ success: false, message: 'Dept admin not found' });
-      const dept = deptRows[0].DAdept;
+    const dept = req.authz && req.authz.dept ? String(req.authz.dept) : '';
 
-      const createViewSql = `
-        CREATE VIEW ${viewName} AS
-        SELECT
-          G.SetupCuG_ID as ApplyID,
-          G.SetupCuG_Cname as Cname,
-          G.SetupCuG_Cno as Cno,
-          G.SetupCuG_createtime as CreateTime,
-          DATE_FORMAT(G.SetupCuG_createtime, '%m-%d') as ApplyDate,
-          G.SetupCuG_status as Status,
-          CP.Cdept as Cdept,
-          CP.Cseme as Cseme,
-          G.SetupCuG_Cclasshour as Cclasshour,
-          G.SetupCuG_Ceattri as Ceattri,
-          G.SetupCuG_description as Description
-        FROM Setup_Curricular_G G
-        JOIN Cno_Pool CP ON G.SetupCuG_Cno = CP.Cno
-        WHERE CP.Cdept = '${dept}'
-      `;
-      await db.execute(createViewSql);
-      return res.json({ success: true, viewName });
-    }
-
-    return res.status(403).json({ success: false, message: 'Unauthorized role' });
+    const createViewSql = `
+      CREATE VIEW ${viewName} AS
+      SELECT
+        G.SetupCuG_ID as ApplyID,
+        G.SetupCuG_Cname as Cname,
+        G.SetupCuG_Cno as Cno,
+        G.SetupCuG_createtime as CreateTime,
+        DATE_FORMAT(G.SetupCuG_createtime, '%m-%d') as ApplyDate,
+        G.SetupCuG_status as Status,
+        CP.Cdept as Cdept,
+        CP.Cseme as Cseme,
+        G.SetupCuG_Cclasshour as Cclasshour,
+        G.SetupCuG_Ceattri as Ceattri,
+        G.SetupCuG_description as Description
+      FROM Setup_Curricular_G G
+      JOIN Cno_Pool CP ON G.SetupCuG_Cno = CP.Cno
+      WHERE CP.Cdept = '${dept}'
+    `;
+    await db.execute(createViewSql);
+    return res.json({ success: true, viewName });
   } catch (error) {
     console.error('Error creating CurricularApply view:', error);
     return res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
 
-router.post('/curricularapply/view/cleanup', async (req, res) => {
-  const { uno } = req.body;
-  if (!uno) return res.status(400).json({ success: false, message: 'Uno is required' });
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
-  }
-
+router.post('/curricularapply/view/cleanup', authorize(['教授', '学院教学办管理员']), async (req, res) => {
+  const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
   const viewName = `View_CurricularApply_${uno}`;
   try {
     await db.execute(`DROP VIEW IF EXISTS ${viewName}`);
@@ -94,13 +79,12 @@ router.post('/curricularapply/view/cleanup', async (req, res) => {
   }
 });
 
-router.post('/curricularapply/submit', async (req, res) => {
-  const { uno, cattri, cseme, cname, credit, classhour, ceattri, description, prerequisites } = req.body;
-  if (!uno || !cattri || !cseme || !cname || !classhour) {
+router.post('/curricularapply/submit', authorize(['教授', '学院教学办管理员'], { dept: 'auto' }), async (req, res) => {
+  const { cattri, cseme, cname, credit, classhour, ceattri, description, prerequisites } = req.body || {};
+  const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
+  const role = req.user && req.user.Urole ? String(req.user.Urole) : '';
+  if (!cattri || !cseme || !cname || !classhour) {
     return res.status(400).json({ success: false, message: 'Missing parameters' });
-  }
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   }
   if (typeof cname !== 'string' || cname.length === 0 || cname.length > 19) {
     return res.status(400).json({ success: false, message: 'Invalid course name' });
@@ -217,44 +201,29 @@ router.post('/curricularapply/submit', async (req, res) => {
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
-
-    const [userRows] = await connection.execute('SELECT Urole FROM User WHERE Uno = ? FOR UPDATE', [uno]);
-    if (userRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    const role = userRows[0].Urole;
-    if (role === '教授' && prereqList.length > 0) {
+    const isProfessor = role === '教授';
+    if (isProfessor && prereqList.length > 0) {
       await connection.rollback();
       return res.status(400).json({ success: false, message: 'Invalid prerequisites' });
     }
 
     let dept = null;
-    if (role === '教授') {
+    if (isProfessor) {
       if (!(cattri === '通识选修' || cattri === '个性课程')) {
         await connection.rollback();
         return res.status(400).json({ success: false, message: 'Invalid course attribute for professor' });
       }
-      const [rows] = await connection.execute('SELECT Pdept FROM Professor WHERE Pno = ? FOR UPDATE', [uno]);
-      if (rows.length === 0) {
-        await connection.rollback();
-        return res.status(404).json({ success: false, message: 'Professor not found' });
-      }
-      dept = rows[0].Pdept;
-    } else if (role === '学院教学办管理员') {
+      dept = req.authz && req.authz.dept ? String(req.authz.dept) : null;
+    } else {
       if (!(cattri === '公共必修' || cattri === '专业必修' || cattri === '专业选修')) {
         await connection.rollback();
         return res.status(400).json({ success: false, message: 'Invalid course attribute for dept admin' });
       }
-      const [rows] = await connection.execute('SELECT DAdept FROM Dept_Adm WHERE DAno = ? FOR UPDATE', [uno]);
-      if (rows.length === 0) {
-        await connection.rollback();
-        return res.status(404).json({ success: false, message: 'Dept admin not found' });
-      }
-      dept = rows[0].DAdept;
-    } else {
+      dept = req.authz && req.authz.dept ? String(req.authz.dept) : null;
+    }
+    if (!dept) {
       await connection.rollback();
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
+      return res.status(400).json({ success: false, message: 'Dept not found' });
     }
 
     let cno = null;
@@ -281,7 +250,7 @@ router.post('/curricularapply/submit', async (req, res) => {
       );
     }
 
-    if (role === '教授') {
+    if (isProfessor) {
       const seq = await getNextSequenceNumber(connection, 'Setup_Curricular_P', 'SetupCuP_number', { SetupCuP_date: dateStrDash });
       const seqHex = Number(seq).toString(16).toUpperCase().padStart(5, '0');
       const applyId = `SETCUP${dateStr}-${seqHex}`;
@@ -341,23 +310,15 @@ router.post('/curricularapply/submit', async (req, res) => {
   }
 });
 
-router.post('/curricularapply/cancel', async (req, res) => {
-  const { uno, applyId } = req.body;
-  if (!uno || !applyId) return res.status(400).json({ success: false, message: 'Missing parameters' });
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
-  }
+router.post('/curricularapply/cancel', authorize(['教授', '学院教学办管理员'], { dept: 'auto' }), async (req, res) => {
+  const { applyId } = req.body || {};
+  const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
+  const role = req.user && req.user.Urole ? String(req.user.Urole) : '';
+  if (!applyId) return res.status(400).json({ success: false, message: 'Missing parameters' });
 
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
-
-    const [userRows] = await connection.execute('SELECT Urole FROM User WHERE Uno = ? FOR UPDATE', [uno]);
-    if (userRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    const role = userRows[0].Urole;
 
     if (role === '教授') {
       const [rows] = await connection.execute(
@@ -380,37 +341,27 @@ router.post('/curricularapply/cancel', async (req, res) => {
       return res.json({ success: true });
     }
 
-    if (role === '学院教学办管理员') {
-      const [deptRows] = await connection.execute('SELECT DAdept FROM Dept_Adm WHERE DAno = ? FOR UPDATE', [uno]);
-      if (deptRows.length === 0) {
-        await connection.rollback();
-        return res.status(404).json({ success: false, message: 'Dept admin not found' });
-      }
-      const dept = deptRows[0].DAdept;
+    const dept = req.authz && req.authz.dept ? String(req.authz.dept) : '';
 
-      const [rows] = await connection.execute(
-        `SELECT G.SetupCuG_Cno as Cno, G.SetupCuG_status as Status
-         FROM Setup_Curricular_G G
-         JOIN Cno_Pool CP ON G.SetupCuG_Cno = CP.Cno
-         WHERE G.SetupCuG_ID = ? AND CP.Cdept = ? FOR UPDATE`,
-        [applyId, dept]
-      );
-      if (rows.length === 0) {
-        await connection.rollback();
-        return res.status(404).json({ success: false, message: 'Apply not found' });
-      }
-      if (rows[0].Status !== '等待审核') {
-        await connection.rollback();
-        return res.status(400).json({ success: false, message: 'Only pending apply can be cancelled' });
-      }
-      await connection.execute(`UPDATE Setup_Curricular_G SET SetupCuG_status = '已经取消' WHERE SetupCuG_ID = ?`, [applyId]);
-      await connection.execute(`UPDATE Cno_Pool SET Cno_status = '可用' WHERE Cno = ?`, [rows[0].Cno]);
-      await connection.commit();
-      return res.json({ success: true });
+    const [rows] = await connection.execute(
+      `SELECT G.SetupCuG_Cno as Cno, G.SetupCuG_status as Status
+       FROM Setup_Curricular_G G
+       JOIN Cno_Pool CP ON G.SetupCuG_Cno = CP.Cno
+       WHERE G.SetupCuG_ID = ? AND CP.Cdept = ? FOR UPDATE`,
+      [applyId, dept]
+    );
+    if (rows.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({ success: false, message: 'Apply not found' });
     }
-
-    await connection.rollback();
-    return res.status(403).json({ success: false, message: 'Unauthorized role' });
+    if (rows[0].Status !== '等待审核') {
+      await connection.rollback();
+      return res.status(400).json({ success: false, message: 'Only pending apply can be cancelled' });
+    }
+    await connection.execute(`UPDATE Setup_Curricular_G SET SetupCuG_status = '已经取消' WHERE SetupCuG_ID = ?`, [applyId]);
+    await connection.execute(`UPDATE Cno_Pool SET Cno_status = '可用' WHERE Cno = ?`, [rows[0].Cno]);
+    await connection.commit();
+    return res.json({ success: true });
   } catch (error) {
     await connection.rollback();
     console.error('Error cancelling curricular apply:', error);
@@ -420,25 +371,18 @@ router.post('/curricularapply/cancel', async (req, res) => {
   }
 });
 
-router.post('/curricularapprove/view/init', async (req, res) => {
-  const { uno } = req.body;
-  if (!uno) return res.status(400).json({ success: false, message: 'Uno is required' });
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
-  }
-
+router.post(
+  '/curricularapprove/view/init',
+  authorize(['学院教学办管理员', '学校教务处管理员'], { dept: 'auto' }),
+  async (req, res) => {
+    const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
+    const role = req.user && req.user.Urole ? String(req.user.Urole) : '';
   try {
-    const [userRows] = await db.execute('SELECT Urole FROM User WHERE Uno = ?', [uno]);
-    if (userRows.length === 0) return res.status(404).json({ success: false, message: 'User not found' });
-    const role = userRows[0].Urole;
-
     const viewName = `View_CurricularApprove_${uno}`;
     await db.execute(`DROP VIEW IF EXISTS ${viewName}`);
 
     if (role === '学院教学办管理员') {
-      const [deptRows] = await db.execute('SELECT DAdept FROM Dept_Adm WHERE DAno = ?', [uno]);
-      if (deptRows.length === 0) return res.status(404).json({ success: false, message: 'Dept admin not found' });
-      const dept = deptRows[0].DAdept;
+      const dept = req.authz && req.authz.dept ? String(req.authz.dept) : '';
 
       const createViewSql = `
         CREATE VIEW ${viewName} AS
@@ -463,44 +407,36 @@ router.post('/curricularapprove/view/init', async (req, res) => {
       return res.json({ success: true, viewName });
     }
 
-    if (role === '学校教务处管理员') {
-      const createViewSql = `
-        CREATE VIEW ${viewName} AS
-        SELECT
-          G.SetupCuG_ID as ApplyID,
-          G.SetupCuG_Cname as Cname,
-          CP.Cattri as Cattri,
-          CP.Cdept as Applicant,
-          G.SetupCuG_Cno as Cno,
-          G.SetupCuG_createtime as CreateTime,
-          DATE_FORMAT(G.SetupCuG_createtime, '%Y-%m-%d %H:%i') as ApplyTime,
-          CP.Cdept as Cdept,
-          CP.Cseme as Cseme,
-          G.SetupCuG_Cclasshour as Cclasshour,
-          G.SetupCuG_Ceattri as Ceattri,
-          G.SetupCuG_description as Description
-        FROM Setup_Curricular_G G
-        JOIN Cno_Pool CP ON G.SetupCuG_Cno = CP.Cno
-        WHERE G.SetupCuG_status = '等待审核'
-      `;
-      await db.execute(createViewSql);
-      return res.json({ success: true, viewName });
-    }
-
-    return res.status(403).json({ success: false, message: 'Unauthorized role' });
+    const createViewSql = `
+      CREATE VIEW ${viewName} AS
+      SELECT
+        G.SetupCuG_ID as ApplyID,
+        G.SetupCuG_Cname as Cname,
+        CP.Cattri as Cattri,
+        CP.Cdept as Applicant,
+        G.SetupCuG_Cno as Cno,
+        G.SetupCuG_createtime as CreateTime,
+        DATE_FORMAT(G.SetupCuG_createtime, '%Y-%m-%d %H:%i') as ApplyTime,
+        CP.Cdept as Cdept,
+        CP.Cseme as Cseme,
+        G.SetupCuG_Cclasshour as Cclasshour,
+        G.SetupCuG_Ceattri as Ceattri,
+        G.SetupCuG_description as Description
+      FROM Setup_Curricular_G G
+      JOIN Cno_Pool CP ON G.SetupCuG_Cno = CP.Cno
+      WHERE G.SetupCuG_status = '等待审核'
+    `;
+    await db.execute(createViewSql);
+    return res.json({ success: true, viewName });
   } catch (error) {
     console.error('Error creating CurricularApprove view:', error);
     return res.status(500).json({ success: false, message: 'Internal server error' });
   }
-});
-
-router.post('/curricularapprove/view/cleanup', async (req, res) => {
-  const { uno } = req.body;
-  if (!uno) return res.status(400).json({ success: false, message: 'Uno is required' });
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   }
+);
 
+router.post('/curricularapprove/view/cleanup', authorize(['学院教学办管理员', '学校教务处管理员']), async (req, res) => {
+  const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
   const viewName = `View_CurricularApprove_${uno}`;
   try {
     await db.execute(`DROP VIEW IF EXISTS ${viewName}`);
@@ -511,12 +447,14 @@ router.post('/curricularapprove/view/cleanup', async (req, res) => {
   }
 });
 
-router.post('/curricularapprove/pass', async (req, res) => {
-  const { uno, applyId } = req.body;
-  if (!uno || !applyId) return res.status(400).json({ success: false, message: 'Missing parameters' });
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid Uno format' });
-  }
+router.post(
+  '/curricularapprove/pass',
+  authorize(['学院教学办管理员', '学校教务处管理员'], { dept: 'auto' }),
+  async (req, res) => {
+    const { applyId } = req.body || {};
+    const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
+    const role = req.user && req.user.Urole ? String(req.user.Urole) : '';
+    if (!applyId) return res.status(400).json({ success: false, message: 'Missing parameters' });
 
   const connection = await db.getConnection();
   try {
@@ -533,20 +471,8 @@ router.post('/curricularapprove/pass', async (req, res) => {
       await connection.execute(`DELETE FROM Prerequisite_temp WHERE Cno_later = ?`, [cnoLater]);
     };
 
-    const [userRows] = await connection.execute('SELECT Urole FROM User WHERE Uno = ? FOR UPDATE', [uno]);
-    if (userRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-    const role = userRows[0].Urole;
-
     if (role === '学院教学办管理员') {
-      const [deptRows] = await connection.execute('SELECT DAdept FROM Dept_Adm WHERE DAno = ? FOR UPDATE', [uno]);
-      if (deptRows.length === 0) {
-        await connection.rollback();
-        return res.status(404).json({ success: false, message: 'Dept admin not found' });
-      }
-      const dept = deptRows[0].DAdept;
+      const dept = req.authz && req.authz.dept ? String(req.authz.dept) : '';
 
       const [rows] = await connection.execute(
         `SELECT
@@ -590,50 +516,45 @@ router.post('/curricularapprove/pass', async (req, res) => {
       return res.json({ success: true });
     }
 
-    if (role === '学校教务处管理员') {
-      const [rows] = await connection.execute(
-        `SELECT
-           SetupCuG_Cno as Cno,
-           SetupCuG_Cname as Cname,
-           SetupCuG_Ccredit as Ccredit,
-           SetupCuG_Cclasshour as Cclasshour,
-           SetupCuG_Ceattri as Ceattri,
-           SetupCuG_description as Description,
-           SetupCuG_status as Status
-         FROM Setup_Curricular_G
-         WHERE SetupCuG_ID = ? FOR UPDATE`,
-        [applyId]
-      );
-      if (rows.length === 0) {
-        await connection.rollback();
-        return res.status(404).json({ success: false, message: 'Apply not found' });
-      }
-      if (rows[0].Status !== '等待审核') {
-        await connection.rollback();
-        return res.status(400).json({ success: false, message: 'Only pending apply can be approved' });
-      }
-
-      await connection.execute(
-        `INSERT INTO Curricular (Cno, Cname, Ccredit, C_classhour, C_eattri, Cdescription, Cstatus)
-         VALUES (?, ?, ?, ?, ?, ?, '正常') AS new
-         ON DUPLICATE KEY UPDATE
-           Cname = new.Cname,
-           Ccredit = new.Ccredit,
-           C_classhour = new.C_classhour,
-           C_eattri = new.C_eattri,
-           Cdescription = new.Cdescription,
-           Cstatus = '正常'`,
-        [rows[0].Cno, rows[0].Cname, rows[0].Ccredit, rows[0].Cclasshour, rows[0].Ceattri, rows[0].Description ?? null]
-      );
-      await connection.execute(`UPDATE Setup_Curricular_G SET SetupCuG_status = '已经通过' WHERE SetupCuG_ID = ?`, [applyId]);
-      await connection.execute(`UPDATE Cno_Pool SET Cno_status = '不可用' WHERE Cno = ?`, [rows[0].Cno]);
-      await movePrerequisitesFromTemp(rows[0].Cno);
-      await connection.commit();
-      return res.json({ success: true });
+    const [rows] = await connection.execute(
+      `SELECT
+         SetupCuG_Cno as Cno,
+         SetupCuG_Cname as Cname,
+         SetupCuG_Ccredit as Ccredit,
+         SetupCuG_Cclasshour as Cclasshour,
+         SetupCuG_Ceattri as Ceattri,
+         SetupCuG_description as Description,
+         SetupCuG_status as Status
+       FROM Setup_Curricular_G
+       WHERE SetupCuG_ID = ? FOR UPDATE`,
+      [applyId]
+    );
+    if (rows.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({ success: false, message: 'Apply not found' });
+    }
+    if (rows[0].Status !== '等待审核') {
+      await connection.rollback();
+      return res.status(400).json({ success: false, message: 'Only pending apply can be approved' });
     }
 
-    await connection.rollback();
-    return res.status(403).json({ success: false, message: 'Unauthorized role' });
+    await connection.execute(
+      `INSERT INTO Curricular (Cno, Cname, Ccredit, C_classhour, C_eattri, Cdescription, Cstatus)
+       VALUES (?, ?, ?, ?, ?, ?, '正常') AS new
+       ON DUPLICATE KEY UPDATE
+         Cname = new.Cname,
+         Ccredit = new.Ccredit,
+         C_classhour = new.C_classhour,
+         C_eattri = new.C_eattri,
+         Cdescription = new.Cdescription,
+         Cstatus = '正常'`,
+      [rows[0].Cno, rows[0].Cname, rows[0].Ccredit, rows[0].Cclasshour, rows[0].Ceattri, rows[0].Description ?? null]
+    );
+    await connection.execute(`UPDATE Setup_Curricular_G SET SetupCuG_status = '已经通过' WHERE SetupCuG_ID = ?`, [applyId]);
+    await connection.execute(`UPDATE Cno_Pool SET Cno_status = '不可用' WHERE Cno = ?`, [rows[0].Cno]);
+    await movePrerequisitesFromTemp(rows[0].Cno);
+    await connection.commit();
+    return res.json({ success: true });
   } catch (error) {
     await connection.rollback();
     console.error('Error approving curricular apply:', error);
@@ -641,6 +562,7 @@ router.post('/curricularapprove/pass', async (req, res) => {
   } finally {
     connection.release();
   }
-});
+  }
+);
 
 module.exports = router;

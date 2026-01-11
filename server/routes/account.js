@@ -1,15 +1,22 @@
 const express = require('express');
 const db = require('../db');
 const { getNextSequenceNumber } = require('../services/sequenceService');
-const { getUserRoleByUno, getUserProfileByRole } = require('../services/userService');
+const { getUserRoleByUno, getUserProfileByRole, authorize } = require('../services/userService');
+const { requireAuth } = require('../services/sessionService');
+const { hashPassword, verifyPassword } = require('../services/passwordService');
 
 const router = express.Router();
 
+router.use(requireAuth);
+
 router.get('/users/search', async (req, res) => {
-  const { uno, name, limit = 50 } = req.query;
+  const { q, limit = 50 } = req.query;
   const limitNum = Math.min(parseInt(limit) || 50, 200);
 
-  if (!uno && !name) {
+  const escapeLike = (value) => String(value).replace(/([\\%_])/g, '\\$1');
+  const query = typeof q === 'string' ? q.trim() : '';
+
+  if (!query) {
     return res.status(400).json({ success: false, message: 'Missing parameters' });
   }
 
@@ -27,20 +34,21 @@ router.get('/users/search', async (req, res) => {
       LEFT JOIN Other O ON U.Uno = O.Ono
     `;
 
-    if (uno) {
-      const sql = `${baseSql} WHERE U.Uno LIKE ? AND U.Uno <> 'O000000000' LIMIT ${limitNum}`;
-      const [rows] = await db.execute(sql, [`%${uno}%`]);
-      return res.json({ success: true, data: rows });
-    }
-
-    const like = `%${name}%`;
+    const like = `%${escapeLike(query)}%`;
     const sql = `
       ${baseSql}
-      WHERE (S.Sname LIKE ? OR P.Pname LIKE ? OR DA.DAname LIKE ? OR UA.UAname LIKE ? OR O.Oname LIKE ?)
-        AND U.Uno <> 'O000000000'
+      WHERE U.Uno <> 'O000000000'
+        AND (
+          U.Uno LIKE ? ESCAPE '\\\\'
+          OR COALESCE(S.Sname, '') LIKE ? ESCAPE '\\\\'
+          OR COALESCE(P.Pname, '') LIKE ? ESCAPE '\\\\'
+          OR COALESCE(DA.DAname, '') LIKE ? ESCAPE '\\\\'
+          OR COALESCE(UA.UAname, '') LIKE ? ESCAPE '\\\\'
+          OR COALESCE(O.Oname, '') LIKE ? ESCAPE '\\\\'
+        )
       LIMIT ${limitNum}
     `;
-    const [rows] = await db.execute(sql, [like, like, like, like, like]);
+    const [rows] = await db.execute(sql, [like, like, like, like, like, like]);
     return res.json({ success: true, data: rows });
   } catch (error) {
     console.error('Error searching users:', error);
@@ -49,8 +57,7 @@ router.get('/users/search', async (req, res) => {
 });
 
 router.get('/account/info', async (req, res) => {
-  const { uno } = req.query;
-  if (!uno) return res.status(400).json({ success: false, message: 'Uno is required' });
+  const uno = String(req.user.Uno);
 
   try {
     const user = await getUserRoleByUno(uno);
@@ -67,8 +74,9 @@ router.get('/account/info', async (req, res) => {
 });
 
 router.post('/account/update', async (req, res) => {
-  const { uno, oldPassword, updates } = req.body;
-  if (!uno || !oldPassword || !updates || typeof updates !== 'object') {
+  const { oldPassword, updates } = req.body;
+  const uno = String(req.user.Uno);
+  if (!oldPassword || !updates || typeof updates !== 'object') {
     return res.status(400).json({ success: false, message: 'Missing parameters' });
   }
 
@@ -78,11 +86,10 @@ router.post('/account/update', async (req, res) => {
   }
   const role = user.Urole;
 
-  const [authRows] = await db.execute(
-    'SELECT Uno FROM User WHERE Uno = ? AND Upswd = SHA2(?, 256)',
-    [uno, oldPassword]
-  );
-  if (authRows.length === 0) {
+  const [authRows] = await db.execute('SELECT Upswd FROM User WHERE Uno = ?', [uno]);
+  const storedHash = authRows.length > 0 ? authRows[0].Upswd : null;
+  const ok = await verifyPassword(oldPassword, storedHash);
+  if (!ok) {
     return res
       .status(403)
       .json({ success: false, code: 'WRONG_PASSWORD', message: 'Wrong password' });
@@ -113,10 +120,8 @@ router.post('/account/update', async (req, res) => {
     await connection.beginTransaction();
 
     if (allowed.has('Upswd') && typeof updates.Upswd === 'string' && updates.Upswd.length > 0) {
-      await connection.execute('UPDATE User SET Upswd = SHA2(?, 256) WHERE Uno = ?', [
-        updates.Upswd,
-        uno,
-      ]);
+      const nextHash = await hashPassword(updates.Upswd);
+      await connection.execute('UPDATE User SET Upswd = ? WHERE Uno = ?', [nextHash, uno]);
     }
 
     if (role === '学生') {
@@ -178,9 +183,8 @@ router.post('/account/update', async (req, res) => {
   }
 });
 
-router.post('/useradd/submit', async (req, res) => {
+router.post('/useradd/submit', authorize(['学校教务处管理员']), async (req, res) => {
   const {
-    uno,
     userType,
     name,
     sex,
@@ -193,12 +197,10 @@ router.post('/useradd/submit', async (req, res) => {
     password,
   } = req.body;
 
-  if (!uno || !userType || !name || !year || !password) {
-    return res.status(400).json({ success: false, message: 'Missing parameters' });
-  }
+  const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
 
-  if (!/^[a-zA-Z0-9]+$/.test(uno)) {
-    return res.status(400).json({ success: false, message: 'Invalid operator Uno format' });
+  if (!userType || !name || !year || !password) {
+    return res.status(400).json({ success: false, message: 'Missing parameters' });
   }
 
   if (!/^[0-9]{4}$/.test(String(year))) {
@@ -248,19 +250,6 @@ router.post('/useradd/submit', async (req, res) => {
   try {
     await connection.beginTransaction();
 
-    const [operatorRows] = await connection.execute(
-      'SELECT Urole FROM User WHERE Uno = ? FOR UPDATE',
-      [uno]
-    );
-    if (operatorRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ success: false, message: 'Operator not found' });
-    }
-    if (operatorRows[0].Urole !== '学校教务处管理员') {
-      await connection.rollback();
-      return res.status(403).json({ success: false, message: 'Unauthorized role' });
-    }
-
     const yearNum = Number(year);
 
     let newUno = null;
@@ -305,8 +294,8 @@ router.post('/useradd/submit', async (req, res) => {
       newUno = `S${yearNum}${hex}`;
 
       await connection.execute(
-        'INSERT INTO User (Uno, Upswd, Urole) VALUES (?, SHA2(?, 256), ?)',
-        [newUno, trimmedPassword, urole]
+        'INSERT INTO User (Uno, Upswd, Urole) VALUES (?, ?, ?)',
+        [newUno, await hashPassword(trimmedPassword), urole]
       );
       await connection.execute(
         'INSERT INTO Student (Sno, Syear, Snumber, Sname, Ssex, Sclass) VALUES (?, ?, ?, ?, ?, ?)',
@@ -346,8 +335,8 @@ router.post('/useradd/submit', async (req, res) => {
           : null;
 
       await connection.execute(
-        'INSERT INTO User (Uno, Upswd, Urole) VALUES (?, SHA2(?, 256), ?)',
-        [newUno, trimmedPassword, urole]
+        'INSERT INTO User (Uno, Upswd, Urole) VALUES (?, ?, ?)',
+        [newUno, await hashPassword(trimmedPassword), urole]
       );
       await connection.execute(
         'INSERT INTO Professor (Pno, Pyear, Pnumber, Pname, Psex, Ptitle, Pdept, Poffice) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
@@ -378,8 +367,8 @@ router.post('/useradd/submit', async (req, res) => {
       newUno = `DA${yearNum}${hex}`;
 
       await connection.execute(
-        'INSERT INTO User (Uno, Upswd, Urole) VALUES (?, SHA2(?, 256), ?)',
-        [newUno, trimmedPassword, urole]
+        'INSERT INTO User (Uno, Upswd, Urole) VALUES (?, ?, ?)',
+        [newUno, await hashPassword(trimmedPassword), urole]
       );
       await connection.execute(
         'INSERT INTO Dept_Adm (DAno, DAyear, DAnumber, DAdept, DAname) VALUES (?, ?, ?, ?, ?)',
@@ -399,8 +388,8 @@ router.post('/useradd/submit', async (req, res) => {
       newUno = `UA${yearNum}${hex}`;
 
       await connection.execute(
-        'INSERT INTO User (Uno, Upswd, Urole) VALUES (?, SHA2(?, 256), ?)',
-        [newUno, trimmedPassword, urole]
+        'INSERT INTO User (Uno, Upswd, Urole) VALUES (?, ?, ?)',
+        [newUno, await hashPassword(trimmedPassword), urole]
       );
       await connection.execute(
         'INSERT INTO Univ_Adm (UAno, UAyear, UAnumber, UAname) VALUES (?, ?, ?, ?)',
@@ -420,4 +409,3 @@ router.post('/useradd/submit', async (req, res) => {
 });
 
 module.exports = router;
-

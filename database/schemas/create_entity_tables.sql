@@ -143,6 +143,22 @@ CREATE TABLE User (
     CHECK (Ulosetimes BETWEEN 0 AND 5)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表: 存储所有用户基本信息';
 
+-- 创建会话表
+CREATE TABLE User_Session (
+    Sid CHAR(64) NOT NULL COMMENT '会话ID: 64位hex字符串',
+    Uno VARCHAR(10) NOT NULL COMMENT '用户编号',
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '会话创建时间',
+    LastSeenAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最近活跃时间',
+    ExpiresAt DATETIME NOT NULL COMMENT '会话过期时间',
+    Ip VARCHAR(64) DEFAULT NULL COMMENT '客户端IP(可选)',
+    Ua VARCHAR(255) DEFAULT NULL COMMENT '客户端User-Agent(可选)',
+    Revoked TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否已注销',
+    PRIMARY KEY (Sid),
+    KEY idx_user_session_uno (Uno),
+    KEY idx_user_session_expires (ExpiresAt),
+    FOREIGN KEY (Uno) REFERENCES User(Uno) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='登录会话表: 服务端会话存储';
+
 -- 创建学生表
 CREATE TABLE Student (
     Sno VARCHAR(10) NOT NULL COMMENT '学生学号: "S" + Syear(4) + Snumber(转16进制对应的5位字符串), ex: S202505FA1',
