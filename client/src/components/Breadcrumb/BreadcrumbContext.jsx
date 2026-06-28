@@ -11,7 +11,7 @@ export const useBreadcrumb = () => {
 };
 
 export const BreadcrumbProvider = ({ children }) => {
-  // Initialize from sessionStorage to survive refreshes
+  // 从 sessionStorage 初始化，支持刷新后恢复
   const [path, setPath] = useState(() => {
     try {
       const saved = sessionStorage.getItem('breadcrumbPath');
@@ -21,26 +21,22 @@ export const BreadcrumbProvider = ({ children }) => {
     }
   });
 
-  // Persist to sessionStorage whenever path changes
+  // path 变化时持久化到 sessionStorage
   useEffect(() => {
     sessionStorage.setItem('breadcrumbPath', JSON.stringify(path));
   }, [path]);
 
   /**
-   * Reset path completely (usually for top-level pages like Dashboard)
+   * 重置整个路径（用于 Dashboard 等顶层页面）
    */
   const setBreadcrumb = useCallback((newPath) => {
     setPath(newPath);
   }, []);
 
   /**
-   * Signal that a page has been entered.
-   * Logic:
-   * 1. If the item already exists in the path, assume we navigated back to it -> Slice path to that item.
-   * 2. If it's new, append it.
-   * 
-   * This logic inherently supports "Forward" (append) and "Backward" (slice) animations 
-   * defined in StandardPageLayout and Breadcrumb components.
+   * 页面进入时调用。
+   * 如果路径中已有该项目 → 截断到该项（返回导航）。
+   * 如果是新项目 → 追加（向前导航）。
    */
   const updateBreadcrumb = useCallback((item) => {
     setPath((prevPath) => {
@@ -48,13 +44,12 @@ export const BreadcrumbProvider = ({ children }) => {
       const index = prevPath.findIndex((p) => p.id === item.id);
       
       if (index !== -1) {
-        // Exists: Slice everything after it (Go Back logic)
-        // Also update the item details (name might have changed)
+        // 如果存在：截断到该项之后（返回导航），并更新项目详情
         const newPath = prevPath.slice(0, index + 1);
         newPath[index] = item; 
         return newPath;
       } else {
-        // New: Append (Forward logic)
+        // 新项目：追加（向前导航）
         return [...prevPath, item];
       }
     });

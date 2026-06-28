@@ -59,7 +59,7 @@ const Rubbishbox = () => {
 
     const initView = async () => {
       try {
-        const res = await fetch('/api/rubbishbox/view/init', { method: 'POST' });
+        const res = await fetch('/api/academy/rubbishbox/view/init', { method: 'POST' });
         const json = await res.json();
         if (json.success) {
           setReceivedViewName(json.receivedViewName);
@@ -77,7 +77,7 @@ const Rubbishbox = () => {
     return () => {
       const currentUserInfo = userInfoRef.current;
       if (currentUserInfo && currentUserInfo.Uno) {
-        fetch('/api/rubbishbox/view/cleanup', { method: 'POST' }).catch(console.error);
+        fetch('/api/academy/rubbishbox/view/cleanup', { method: 'POST' }).catch(console.error);
       }
     };
   }, [userInfo]);
@@ -113,7 +113,7 @@ const Rubbishbox = () => {
         }, {})
       });
 
-      const res = await fetch(`/api/common/table/list?${params}`);
+      const res = await fetch(`/api/academy/common/table/list?${params}`);
       const json = await res.json();
       if (json.success) {
         setReceivedData(json.data);
@@ -140,7 +140,7 @@ const Rubbishbox = () => {
         }, {})
       });
 
-      const res = await fetch(`/api/common/table/list?${params}`);
+      const res = await fetch(`/api/academy/common/table/list?${params}`);
       const json = await res.json();
       if (json.success) {
         setSentData(json.data);
@@ -174,7 +174,7 @@ const Rubbishbox = () => {
         limit: 1,
         search_Msg_no: row.Msg_no,
       });
-      const res = await fetch(`/api/common/table/list?${params.toString()}`);
+      const res = await fetch(`/api/academy/common/table/list?${params.toString()}`);
       const json = await res.json();
       if (json.success && Array.isArray(json.data) && json.data.length > 0) {
         setDetailsMeta(json.data[0]);
@@ -187,7 +187,7 @@ const Rubbishbox = () => {
   const handleRestore = async (side, row) => {
     if (!userInfo) return;
     try {
-      const res = await fetch('/api/messages/restore', {
+      const res = await fetch('/api/academy/messages/restore', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -257,22 +257,26 @@ const Rubbishbox = () => {
       <div className="rubbishbox-details-title">
         <div className="rubbishbox-details-main">{detailsRow?.ReceiverName || ''}</div>
         <div className="rubbishbox-details-meta">
-          <div className="rubbishbox-details-time">
+          <span className="rubbishbox-details-time">
             {detailsRow?.Receive_time ? formatDateTime(detailsRow.Receive_time) : ''}
-          </div>
-          <div className="rubbishbox-details-category">{detailsMeta?.Msg_category || ''}</div>
-          <div className="rubbishbox-details-priority">{detailsMeta?.Msg_priority || ''}</div>
+          </span>
+          <span className="details-tag-category">{detailsMeta?.Msg_category || ''}</span>
+          <span className={`details-tag-priority ${detailsMeta?.Msg_priority === '重要' ? 'important' : 'normal'}`}>
+            {detailsMeta?.Msg_priority || '普通'}
+          </span>
         </div>
       </div>
     ) : (
       <div className="rubbishbox-details-title">
         <div className="rubbishbox-details-main">{detailsRow?.SenderName || ''}</div>
         <div className="rubbishbox-details-meta">
-          <div className="rubbishbox-details-time">
+          <span className="rubbishbox-details-time">
             {detailsRow?.Send_time ? formatDateTime(detailsRow.Send_time) : ''}
-          </div>
-          <div className="rubbishbox-details-category">{detailsMeta?.Msg_category || ''}</div>
-          <div className="rubbishbox-details-priority">{detailsMeta?.Msg_priority || ''}</div>
+          </span>
+          <span className="details-tag-category">{detailsMeta?.Msg_category || ''}</span>
+          <span className={`details-tag-priority ${detailsMeta?.Msg_priority === '重要' ? 'important' : 'normal'}`}>
+            {detailsMeta?.Msg_priority || '普通'}
+          </span>
         </div>
       </div>
     );

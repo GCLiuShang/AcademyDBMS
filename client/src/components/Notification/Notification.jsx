@@ -1,191 +1,130 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import './Notification.css';
 
-const Notification = ({ message, onDismiss }) => {
-  // message: { Msg_no, Msg_content, Msg_category, Msg_priority, SenderName, ... }
-  
-  const [stage, setStage] = useState('hidden'); // hidden -> sliding-in -> visible -> expanding -> expanded -> closing
-  const [contentVisible, setContentVisible] = useState(true);
-  const [isExpanded, setIsExpanded] = useState(false);
+const Notification = ({ message, onDismiss, onAction }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [fading, setFading] = useState(false);
+
+  const isImportant = message.Msg_priority === '重要';
+  const isKick = message._isKickNotification;
+  const isExpired = message._isSessionExpired;
+  const duration = (isKick || isExpired) ? 3000 : (isImportant ? 6000 : 3000);
 
   const formatDateTime = (value) => {
     if (!value) return '';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return '';
-    const yyyy = String(date.getFullYear());
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const dd = String(date.getDate()).padStart(2, '0');
-    const hh = String(date.getHours()).padStart(2, '0');
-    const min = String(date.getMinutes()).padStart(2, '0');
-    const ss = String(date.getSeconds()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
-  };
-  
-  // Parse Priority and Category for styles
-  const isImportant = message.Msg_priority === '重要';
-  const duration = isImportant ? 6000 : 3000;
-  
-  const categoryClass = {
-    '通知': 'text-category-notice',
-    '待办': 'text-category-todo', // Use '待办' as per prompt, map DB '代办' if needed
-    '代办': 'text-category-todo', // Mapping DB typo just in case
-    '系统': 'text-category-system',
-    '撤回': 'text-category-recall'
-  }[message.Msg_category] || 'text-category-system';
-
-  const priorityClass = isImportant ? 'priority-important' : 'priority-normal';
-
-  // Truncated content
-  const truncatedContent = message.Msg_content.length > 30 
-    ? message.Msg_content.substring(0, 30) + '...' 
-    : message.Msg_content;
-
-  const handleClose = () => {
-    // Slide out to RIGHT
-    setStage('closing');
-    setTimeout(() => {
-      onDismiss();
-    }, 300); // 0.3s animation
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '';
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    return `${mm}-${dd} ${hh}:${min}`;
   };
 
-  const handleExpandedClose = () => {
-    // Fade out everything
-    setStage('closing-expanded'); // Custom stage for fade out
-    setTimeout(() => {
-      onDismiss();
-    }, 300);
-  };
+  const handleDismiss = useCallback(() => {
+    setFading(true);
+    setTimeout(onDismiss, 300);
+  }, [onDismiss]);
 
-  // Effects for lifecycle
+  // 自动关闭倒计时
   useEffect(() => {
-    // 1. Slide in
-    const t1 = setTimeout(() => {
-      setStage('visible');
-    }, 100); // Small delay to allow render then animate
+    if (expanded) return;
+    const t = setTimeout(handleDismiss, duration);
+    return () => clearTimeout(t);
+  }, [expanded, duration, handleDismiss]);
 
-    return () => clearTimeout(t1);
-  }, []);
-
-  // Countdown Logic
-  useEffect(() => {
-    if (stage === 'visible' && !isExpanded) {
-      const timer = setTimeout(() => {
-        handleClose();
-      }, duration);
-      return () => clearTimeout(timer);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stage, isExpanded, duration]);
-
-  const handleClick = (e) => {
-    // If clicking close button, don't expand
-    if (e.target.closest('.close-btn')) return;
-    
-    if (isExpanded) return;
-
-    // Expand Sequence
-    // 1. Content fades out (0.2s)
-    setContentVisible(false);
-    
-    setTimeout(() => {
-      // 2. Box moves to center and expands (now 0.5s in CSS) + Overlay fades in
-      setIsExpanded(true);
-      setStage('expanded');
-      
-      // 3. Content fades back in (AFTER expansion finishes, i.e., 0.5s later)
-      setTimeout(() => {
-        setContentVisible(true);
-      }, 500);
-    }, 200);
+  const handleToggleExpand = (e) => {
+    if (e.target.closest('.ntf-close')) return;
+    setExpanded((p) => !p);
   };
 
-  // Render logic based on stage
-  let boxClass = 'notification-box ' + priorityClass;
-  boxClass += ` ${categoryClass}`;
-  if (!contentVisible) boxClass += ' notification-content-fading';
-  if (stage === 'hidden') {
-    // Initial state, off-screen right
-  } else if (stage === 'visible' || stage === 'sliding-in') {
-    boxClass += ' slide-in';
-  } else if (stage === 'closing') {
-    boxClass += ' slide-out'; // Slide left
-  } else if (stage === 'expanded') {
-    boxClass += ' expanded';
-  } else if (stage === 'closing-expanded') {
-    boxClass += ' expanded'; // Keep shape but opacity will be handled
-  }
-
-  // Overlay logic
-  const showOverlay = stage === 'expanded' || stage === 'closing-expanded';
-  const overlayClass = `notification-overlay ${showOverlay && stage !== 'closing-expanded' ? 'visible' : ''}`;
-
-  // Content Logic
-  const displayContent = isExpanded ? message.Msg_content : truncatedContent;
-  const sendTimeText = formatDateTime(
-    message.Send_time ??
-      message.SendTime ??
-      message.sendTime ??
-      message.Msg_Send?.Send_time
-  );
-  
-  // Inline styles for closing expanded (fade out)
-  const boxStyle = stage === 'closing-expanded' ? { opacity: 0 } : {};
+  const displayContent = expanded
+    ? message.Msg_content
+    : message.Msg_content?.length > 28
+      ? message.Msg_content.substring(0, 28) + '...'
+      : message.Msg_content;
 
   return (
-    <>
-      <div className={overlayClass}></div>
-      
-      <div 
-        className={boxClass} 
-        style={boxStyle}
-        onClick={handleClick}
-      >
-        <button 
-          className="close-btn" 
-          onClick={(e) => {
-            e.stopPropagation();
-            if (isExpanded) handleExpandedClose();
-            else handleClose();
-          }}
-        >
-          X
-        </button>
-        
-        <div className={`notification-header${isExpanded ? ' notification-header--expanded' : ''}`}>
-          {isExpanded ? (
-            <>
-              <h2 className="expanded-title">
-                <span className="expanded-sender">{message.SenderName}</span>
-                <span className="notification-meta notification-role">({message.SenderRole || ''})</span>
-                <span className="notification-meta notification-priority">{message.Msg_priority || ''}</span>
-                <span className="notification-meta notification-time">{sendTimeText}</span>
-              </h2>
-            </>
-          ) : (
-            <>
-              {message.SenderName} <span style={{ fontSize: '0.8em', opacity: 0.8 }}>({message.SenderRole})</span>
-            </>
+    <AnimatePresence>
+      {!fading && (
+        <>
+          {/* 展开时显示遮罩 */}
+          {expanded && (
+            <motion.div
+              className="ntf-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            />
           )}
-        </div>
-        
-        <div className="notification-body">
-          {displayContent}
-          {isExpanded && message.Msg_category === '撤回' && message.RecalledContent && (
-            <div className="recalled-section">
-              <div className="recalled-label">以下是被撤回的消息内容：</div>
-              <div>{message.RecalledContent}</div>
+
+          <motion.div
+            className={`ntf-box ${isImportant ? 'ntf-important' : 'ntf-normal'} ${expanded ? 'ntf-expanded' : ''}`}
+            initial={{ x: 400, opacity: 0 }}
+            animate={expanded ? { x: 0, opacity: 1 } : { x: 0, opacity: 1 }}
+            exit={expanded ? { scale: 0.92, opacity: 0 } : { x: 400, opacity: 0 }}
+            transition={expanded ? { duration: 0.35, ease: [0.34, 1.56, 0.64, 1] } : { duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+            onClick={handleToggleExpand}
+            layout
+          >
+            {/* 关闭按钮 */}
+            <button className="ntf-close" onClick={(e) => { e.stopPropagation(); handleDismiss(); }}>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                <line x1="4" y1="4" x2="12" y2="12" />
+                <line x1="12" y1="4" x2="4" y2="12" />
+              </svg>
+            </button>
+
+            {/* 头部 */}
+            <div className="ntf-header">
+              <span className="ntf-sender">{message.SenderName}</span>
+              {message.SenderRole && <span className="ntf-role">{message.SenderRole}</span>}
+              <span className="ntf-time">{formatDateTime(message.Send_time)}</span>
             </div>
-          )}
-        </div>
-        
-        {!isExpanded && stage === 'visible' && (
-          <div 
-            className={`countdown-line ${priorityClass} countdown-active`}
-            style={{ animationDuration: `${duration}ms` }}
-          ></div>
-        )}
-      </div>
-    </>
+
+            {/* 标签行 */}
+            <div className="ntf-tags">
+              <span className={`ntf-tag ntf-tag-priority ${isImportant ? 'important' : 'normal'}`}>
+                {message.Msg_priority || '普通'}
+              </span>
+              {message.Msg_category && (
+                <span className="ntf-tag ntf-tag-category">{message.Msg_category}</span>
+              )}
+            </div>
+
+            {/* 内容 */}
+            <div className={`ntf-body ${expanded ? 'ntf-body-scroll' : ''}`}>
+              {displayContent}
+            </div>
+
+            {/* 被踢/过期通知的操作按钮 */}
+            {(isKick || isExpired) && (
+              <div className="ntf-actions">
+                <button
+                  className="ntf-action-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAction && onAction('login');
+                  }}
+                >
+                  重新登录
+                </button>
+              </div>
+            )}
+
+            {/* 进度条 */}
+            {!expanded && (
+              <div
+                className={`ntf-progress ${isImportant ? 'ntf-progress-important' : 'ntf-progress-normal'}`}
+                style={{ animationDuration: `${duration}ms` }}
+              />
+            )}
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 };
 

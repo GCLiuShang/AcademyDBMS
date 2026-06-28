@@ -1,0 +1,27 @@
+ARG NODE_IMAGE=node:20-alpine
+
+FROM ${NODE_IMAGE}
+
+WORKDIR /app
+
+COPY docker/wait-for-it.sh /usr/local/bin/wait-for-it.sh
+RUN chmod +x /usr/local/bin/wait-for-it.sh
+
+RUN apk add --no-cache tini
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+COPY server/package.json server/package-lock.json /tmp/server/
+RUN mkdir -p /app/server && \
+    cp /tmp/server/package.json /app/server/ && \
+    cp /tmp/server/package-lock.json /app/server/
+RUN npm install --prefix /app/server && \
+    npm install --prefix /app/server nodemon
+
+RUN mkdir -p /app/client
+
+EXPOSE 3001
+
+ENV NODE_ENV=development
+
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD ["sh", "-c", "wait-for-it.sh db:3306 -t 60 -- npx nodemon --legacy-watch server/index.js"]

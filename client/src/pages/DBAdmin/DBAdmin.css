@@ -1,0 +1,435 @@
+.dbadmin-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ac-space-lg);
+  height: 100%;
+  padding: var(--ac-space-lg);
+  overflow: hidden;
+}
+
+/* 连接状态栏 */
+.dbadmin-connection-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--ac-space-sm) var(--ac-space-lg);
+  background: var(--ac-primary-bg);
+  border: 1px solid var(--ac-primary-light);
+  border-radius: var(--ac-radius-md);
+  flex-shrink: 0;
+}
+
+.dbadmin-connection-info {
+  display: flex;
+  align-items: center;
+  gap: var(--ac-space-sm);
+  font-size: var(--ac-font-sm);
+  color: var(--ac-text-secondary);
+}
+
+.dbadmin-connection-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ac-success);
+  box-shadow: 0 0 6px rgba(11, 138, 69, 0.4);
+}
+
+.dbadmin-connection-user strong { color: var(--ac-text-primary); }
+
+.dbadmin-logout-btn {
+  padding: var(--ac-space-xs) var(--ac-space-md);
+  border: 1px solid var(--ac-border);
+  border-radius: var(--ac-radius-sm);
+  background: var(--ac-white);
+  color: var(--ac-text-secondary);
+  font-size: var(--ac-font-xs);
+  cursor: pointer;
+  transition: all var(--ac-duration-fast) var(--ac-ease-default);
+}
+
+.dbadmin-logout-btn:hover { border-color: var(--ac-error); color: var(--ac-error); }
+
+/* SQL 编辑器区 */
+.dbadmin-editor-section {
+  background: var(--ac-white);
+  border: 1px solid var(--ac-border-lighter);
+  border-radius: var(--ac-radius-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  transition: height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dbadmin-editor-section.collapsed { flex: 0 0 auto !important; }
+
+.dbadmin-editor-header {
+  display: flex;
+  align-items: center;
+  padding: var(--ac-space-sm) var(--ac-space-md);
+  background: var(--ac-bg-secondary);
+  border-bottom: 1px solid var(--ac-border-lighter);
+  gap: var(--ac-space-sm);
+  flex-shrink: 0;
+  min-height: 36px;
+}
+
+.dbadmin-editor-label {
+  font-size: var(--ac-font-sm);
+  font-weight: 600;
+  color: var(--ac-text-primary);
+}
+
+.dbadmin-editor-hint { font-size: var(--ac-font-xs); color: var(--ac-text-tertiary); margin-left: auto; }
+
+/* 折叠按钮（通用） */
+.dbadmin-collapse-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: var(--ac-radius-sm);
+  background: transparent;
+  color: var(--ac-text-tertiary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--ac-duration-fast), color var(--ac-duration-fast);
+}
+
+.dbadmin-collapse-btn:hover { background: var(--ac-bg-hover); color: var(--ac-text-primary); }
+
+.collapse-arrow { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.collapse-arrow.expanded { transform: rotate(90deg); }
+
+/* 编辑器正文区 — 折叠动画 */
+.dbadmin-editor-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: opacity 0.2s ease;
+}
+
+.dbadmin-editor-body.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 代码编辑器主体 — 三栏：行号 | textarea | 关键词侧边栏 */
+.dbadmin-editor-wrapper {
+  display: flex;
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+/* 行号 */
+.dbadmin-line-numbers {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: var(--ac-space-sm) var(--ac-space-sm);
+  background: var(--ac-bg);
+  border-right: 1px solid var(--ac-border-lighter);
+  min-width: 40px;
+  user-select: none;
+  font-family: var(--ac-font-mono);
+  font-size: var(--ac-font-sm);
+  line-height: 1.6;
+  color: var(--ac-text-tertiary);
+  overflow: hidden;
+}
+
+.dbadmin-line-number {
+  line-height: 1.6;
+  padding: 0 4px;
+  white-space: nowrap;
+}
+
+/* textarea — 允许视觉换行，保持逻辑换行 */
+.dbadmin-sql-input {
+  flex: 1;
+  min-height: 0;
+  padding: var(--ac-space-sm);
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: var(--ac-font-mono);
+  font-size: var(--ac-font-sm);
+  line-height: 1.6;
+  color: var(--ac-text-primary);
+  background: var(--ac-white);
+  tab-size: 2;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.dbadmin-sql-input::placeholder { color: var(--ac-text-disabled); }
+
+.dbadmin-sql-input:focus { box-shadow: inset 0 0 0 1px var(--ac-primary); }
+
+.dbadmin-sql-input::-webkit-scrollbar { width: 6px; height: 6px; }
+.dbadmin-sql-input::-webkit-scrollbar-thumb { background: var(--ac-border-light); border-radius: 3px; }
+.dbadmin-sql-input::-webkit-scrollbar-thumb:hover { background: var(--ac-text-disabled); }
+
+/* 关键词侧边栏 */
+.dbadmin-keywords-sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 160px;
+  min-width: 0;
+  padding: var(--ac-space-sm);
+  background: var(--ac-bg);
+  border-left: 1px solid var(--ac-border-lighter);
+  overflow-y: auto;
+  opacity: 1;
+  transition: width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+              opacity 0.2s ease,
+              padding 0.2s ease;
+  gap: 3px;
+}
+
+.dbadmin-keywords-sidebar.collapsed {
+  width: 0;
+  opacity: 0;
+  padding: 0;
+  border-left: none;
+  overflow: hidden;
+}
+
+.dbadmin-keyword-chip {
+  padding: 3px 6px;
+  border: 1px solid var(--ac-border-lighter);
+  border-radius: var(--ac-radius-sm);
+  background: var(--ac-white);
+  color: var(--ac-primary);
+  font-size: 11px;
+  font-family: var(--ac-font-mono);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--ac-duration-fast);
+  text-align: left;
+}
+
+.dbadmin-keyword-chip:hover:not(:disabled) {
+  background: var(--ac-primary-bg);
+  border-color: var(--ac-primary);
+  color: var(--ac-primary-hover);
+}
+
+.dbadmin-keyword-chip:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* 工具栏 */
+.dbadmin-toolbar {
+  display: flex;
+  gap: var(--ac-space-sm);
+  padding: var(--ac-space-sm) var(--ac-space-lg);
+  background: var(--ac-bg);
+  border-top: 1px solid var(--ac-border-lighter);
+  flex-shrink: 0;
+}
+
+.dbadmin-btn {
+  padding: var(--ac-space-sm) var(--ac-space-xl);
+  border: none;
+  border-radius: var(--ac-radius-sm);
+  font-size: var(--ac-font-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--ac-duration-fast) var(--ac-ease-default);
+}
+
+.dbadmin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.dbadmin-btn-execute {
+  background: var(--ac-gradient-primary);
+  color: var(--ac-white);
+  letter-spacing: 4px;
+}
+
+.dbadmin-btn-execute:hover:not(:disabled) { box-shadow: var(--ac-shadow-glow); transform: translateY(-1px); }
+.dbadmin-btn-execute:active:not(:disabled) { transform: translateY(0); }
+
+.dbadmin-btn-clear {
+  background: var(--ac-white);
+  color: var(--ac-text-secondary);
+  border: 1px solid var(--ac-border);
+  letter-spacing: 4px;
+}
+
+.dbadmin-btn-clear:hover:not(:disabled) { background: var(--ac-bg-hover); border-color: var(--ac-border-light); }
+
+.dbadmin-btn-keywords {
+  background: var(--ac-white);
+  color: var(--ac-text-secondary);
+  border: 1px solid var(--ac-border);
+  margin-left: auto;
+}
+
+.dbadmin-btn-keywords:hover:not(:disabled) { background: var(--ac-bg-hover); border-color: var(--ac-border-light); }
+
+.dbadmin-btn-keywords.active {
+  background: var(--ac-primary);
+  color: var(--ac-white);
+  border-color: var(--ac-primary);
+}
+
+/* 结果展示区 */
+.dbadmin-result-section {
+  border: 1px solid var(--ac-border-lighter);
+  border-radius: var(--ac-radius-md);
+  overflow: hidden;
+  background: var(--ac-white);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  transition: height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dbadmin-result-section.collapsed { flex: 0 0 auto !important; }
+
+.dbadmin-result-header {
+  display: flex;
+  align-items: center;
+  padding: var(--ac-space-sm) var(--ac-space-md);
+  background: var(--ac-bg-secondary);
+  border-bottom: 1px solid var(--ac-border-lighter);
+  gap: var(--ac-space-sm);
+  flex-shrink: 0;
+  min-height: 36px;
+}
+
+.dbadmin-result-label { font-size: var(--ac-font-sm); font-weight: 600; color: var(--ac-text-primary); }
+.dbadmin-result-count { font-size: var(--ac-font-xs); color: var(--ac-text-tertiary); margin-left: auto; }
+
+.dbadmin-result-body {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+  transition: opacity 0.2s ease;
+}
+
+.dbadmin-result-body.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 结果表格 */
+.dbadmin-result-table { padding: 0; }
+
+/* 消息条 */
+.dbadmin-message {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ac-space-sm);
+  padding: var(--ac-space-lg);
+  margin: var(--ac-space-md);
+  border-radius: var(--ac-radius-md);
+  font-size: var(--ac-font-sm);
+  line-height: 1.5;
+  flex-direction: column;
+}
+
+.dbadmin-message-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: var(--ac-font-xs);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.dbadmin-message-success { background: var(--ac-success-bg); border: 1px solid var(--ac-success); color: var(--ac-text-primary); }
+.dbadmin-message-success .dbadmin-message-icon { background: var(--ac-success); color: white; }
+
+.dbadmin-message-error { background: var(--ac-error-bg); border: 1px solid var(--ac-error); color: var(--ac-text-primary); }
+.dbadmin-message-error .dbadmin-message-icon { background: var(--ac-error); color: white; }
+
+.dbadmin-security-detail {
+  font-size: var(--ac-font-xs);
+  color: var(--ac-text-tertiary);
+  margin-top: var(--ac-space-xs);
+  padding-top: var(--ac-space-xs);
+  border-top: 1px solid var(--ac-border-lighter);
+}
+
+/* NULL 值 */
+.dbadmin-null { color: var(--ac-text-disabled); font-style: italic; }
+
+/* 空状态 */
+.dbadmin-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ac-space-md);
+  padding: var(--ac-space-5xl);
+  color: var(--ac-text-disabled);
+}
+.dbadmin-empty-icon svg { opacity: 0.4; }
+.dbadmin-empty-text { font-size: var(--ac-font-sm); }
+
+/* 加载态 */
+.dbadmin-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ac-space-md);
+  padding: var(--ac-space-5xl);
+  color: var(--ac-text-tertiary);
+  font-size: var(--ac-font-sm);
+}
+
+.dbadmin-loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--ac-border-lighter);
+  border-top-color: var(--ac-primary);
+  border-radius: 50%;
+  animation: ac-spin 0.8s linear infinite;
+}
+
+@keyframes ac-spin { to { transform: rotate(360deg); } }
+
+/* DBAdmin 被踢蒙版 */
+.dbadmin-kicked-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 20000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dbadmin-kicked-content { text-align: center; color: #fff; animation: kickContentIn 0.4s ease-out; }
+
+.dbadmin-kicked-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #e74c3c;
+  color: #fff;
+  font-size: 32px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  animation: kickPulse 1s ease-in-out infinite;
+}
+
+.dbadmin-kicked-text { font-size: 22px; font-weight: 700; margin-bottom: 12px; }
+.dbadmin-kicked-sub { font-size: 14px; opacity: 0.6; }
+
+@keyframes kickContentIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes kickPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }

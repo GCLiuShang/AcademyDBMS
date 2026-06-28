@@ -5,7 +5,7 @@ DROP VIEW IF EXISTS `View_Classroom_Occupancy`;
 
 CREATE VIEW `View_Classroom_Occupancy` AS
 SELECT
-  '课程' COLLATE utf8mb4_0900_ai_ci AS `Occ_type`,
+  '课程' COLLATE utf8mb4_unicode_ci AS `Occ_type`,
   CONCAT(`ac`.`ArrangeCo_Courno`, '#', LPAD(`ac`.`ArrangeCo_classhour`, 4, '0')) AS `Occ_id`,
   `ac`.`ArrangeCo_Clrmname` AS `Clrm_name`,
   `ac`.`ArrangeCo_date` AS `Occ_date`,
@@ -18,8 +18,7 @@ SELECT
   NULL AS `Eno`,
   NULL AS `ArrangeE_ID`
 FROM `Arrange_Course` `ac`
-JOIN `Lesson` `l`
-  ON `l`.`Lno` = `ac`.`ArrangeCo_Lno`
+JOIN `Lesson` `l` ON `l`.`Lno` = `ac`.`ArrangeCo_Lno`
 WHERE `ac`.`ArrangeCo_Clrmname` IS NOT NULL
   AND `ac`.`ArrangeCo_date` IS NOT NULL
   AND `ac`.`ArrangeCo_Lno` IS NOT NULL
@@ -28,7 +27,7 @@ WHERE `ac`.`ArrangeCo_Clrmname` IS NOT NULL
 UNION ALL
 
 SELECT
-  '考试' COLLATE utf8mb4_0900_ai_ci AS `Occ_type`,
+  '考试' COLLATE utf8mb4_unicode_ci AS `Occ_type`,
   `ae`.`ArrangeE_ID` AS `Occ_id`,
   `ae`.`ArrangeE_Clrmname` AS `Clrm_name`,
   DATE(`se`.`SetupE_Etime_begin`) AS `Occ_date`,
@@ -41,22 +40,15 @@ SELECT
   `ae`.`ArrangeE_Eno` AS `Eno`,
   `ae`.`ArrangeE_ID` AS `ArrangeE_ID`
 FROM `Arrange_Exam` `ae`
-JOIN `Exam` `e`
-  ON `e`.`Eno` = `ae`.`ArrangeE_Eno`
+JOIN `Exam` `e` ON `e`.`Eno` = `ae`.`ArrangeE_Eno`
 JOIN (
   SELECT `se1`.*
   FROM `Setup_Exam` `se1`
   JOIN (
-    SELECT
-      `SetupE_Eno`,
-      MAX(`SetupE_ID`) AS `MaxSetupE_ID`
+    SELECT `SetupE_Eno`, MAX(`SetupE_ID`) AS `MaxSetupE_ID`
     FROM `Setup_Exam`
     WHERE `SetupE_status` = '审核通过'
     GROUP BY `SetupE_Eno`
-  ) `semax`
-    ON `semax`.`SetupE_Eno` = `se1`.`SetupE_Eno`
-   AND `semax`.`MaxSetupE_ID` = `se1`.`SetupE_ID`
-) `se`
-  ON `se`.`SetupE_Eno` = `ae`.`ArrangeE_Eno`
+  ) `semax` ON `semax`.`SetupE_Eno` = `se1`.`SetupE_Eno` AND `semax`.`MaxSetupE_ID` = `se1`.`SetupE_ID`
+) `se` ON `se`.`SetupE_Eno` = `ae`.`ArrangeE_Eno`
 WHERE `e`.`Estatus` NOT IN ('已结束', '已取消');
-

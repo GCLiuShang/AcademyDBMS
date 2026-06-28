@@ -1,110 +1,177 @@
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-common-vars: &common-vars
+  TZ: Asia/Shanghai
+
 services:
   db:
-    image: ${MYSQL_IMAGE:?missing MYSQL_IMAGE}
+    image: mysql:8.0
+    container_name: academydbms-db
+    hostname: db
+    profiles: ["dev", "prod"]
     restart: unless-stopped
-    command: ["mysqld", "--default-authentication-plugin=mysql_native_password", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-character-set-client-handshake
+      - --default-authentication-plugin=mysql_native_password
+      - --max_connections=200
+      - --wait_timeout=3600
+      - --interactive_timeout=3600
+      - --log-bin-trust-function-creators=1
     environment:
+      <<: *common-vars
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
-      MYSQL_DATABASE: ${DB_NAME:?missing DB_NAME}
-      MYSQL_USER: ${DB_USER:?missing DB_USER}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-academy_database}
+      MYSQL_USER_FILE: /run/secrets/mysql_user
       MYSQL_PASSWORD_FILE: /run/secrets/mysql_user_password
-    volumes:
-      - db_data:/var/lib/mysql
-      - ./docker/mysql-init:/docker-entrypoint-initdb.d:ro
-      - ./database/schemas:/dbfiles/schemas:ro
-      - ./database/initialization:/dbfiles/initialization:ro
     secrets:
       - mysql_root_password
+      - mysql_user
       - mysql_user_password
-    healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p\"$$(cat /run/secrets/mysql_root_password)\" --silent"]
-      interval: 5s
-      timeout: 5s
-      retries: 30
-    networks:
-      - internal
-
-  db-expose:
-    image: ${SOCAT_IMAGE:-alpine/socat}
-    restart: unless-stopped
-    profiles:
-      - dev
-    depends_on:
-      db:
-        condition: service_healthy
-    command: ["TCP-LISTEN:3306,fork,reuseaddr", "TCP:db:3306"]
     ports:
-      - "127.0.0.1:${DB_PORT:?missing DB_PORT}:3306"
+      - "${MYSQL_EXPOSE_PORT:-33061}:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/schemas:/dbfiles/schemas:ro
+      - ./database/initialization:/dbfiles/initialization:ro
+      - ./docker/mysql-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$(cat /run/secrets/mysql_root_password)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     networks:
       - internal
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    logging: *default-logging
 
   web:
     build:
       context: .
       dockerfile: Dockerfile
       args:
-        NODE_IMAGE: ${NODE_IMAGE:?missing NODE_IMAGE}
+        NODE_IMAGE: ${NODE_IMAGE:-node:20-alpine}
+        http_proxy: ${HTTP_PROXY:-}
+        https_proxy: ${HTTPS_PROXY:-}
+        no_proxy: ${NO_PROXY:-localhost,127.0.0.1,::1}
+    image: ${WEB_IMAGE_TAG:-academydbms-web:latest}
+    container_name: academydbms-web
+    hostname: web
+    profiles: ["dev", "prod"]
     restart: unless-stopped
+    environment:
+      <<: *common-vars
+      PORT: ${PORT:-3001}
+      NODE_ENV: ${NODE_ENV:-production}
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-academy_database}
+      MYSQL_USER_FILE: /run/secrets/mysql_user
+      MYSQL_PASSWORD_FILE: /run/secrets/mysql_user_password
+      SESSION_SECRET_FILE: /run/secrets/session_secret
+      AI_API_KEY_FILE: /run/secrets/ai_api_key
+      AI_API_URL: ${AI_API_URL:-}
+    secrets:
+      - mysql_user
+      - mysql_user_password
+      - session_secret
+      - ai_api_key
+    ports:
+      - "${WEB_PORT:-3001}:3001"
     depends_on:
       db:
         condition: service_healthy
-    environment:
-      PORT: 3001
-      DB_HOST: db
-      DB_USER: ${DB_USER:?missing DB_USER}
-      DB_NAME: ${DB_NAME:?missing DB_NAME}
-      DB_PASSWORD_FILE: /run/secrets/mysql_user_password
-      AI_API: ${AI_API:-}
-      AI_MODEL: ${AI_MODEL:-}
-      AI_API_KEY_FILE: /run/secrets/ai_api_key
-      AI_TIMEOUT_MS: ${AI_TIMEOUT_MS:-120000}
-      AI_RETRIES: ${AI_RETRIES:-2}
-      AI_INSECURE_TLS: ${AI_INSECURE_TLS:-0}
-    read_only: true
-    tmpfs:
-      - /tmp
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
-    secrets:
-      - mysql_user_password
-      - ai_api_key
+    volumes:
+      - web_node_modules:/app/server/node_modules
     networks:
       - internal
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    logging: *default-logging
 
-  proxy:
-    image: ${CADDY_IMAGE:?missing CADDY_IMAGE}
+  caddy:
+    image: caddy:2-alpine
+    container_name: academydbms-caddy
+    hostname: caddy
+    profiles: ["dev", "prod"]
     restart: unless-stopped
-    depends_on:
-      - web
     environment:
-      DOMAIN: ${DOMAIN:?missing DOMAIN}
+      <<: *common-vars
     ports:
-      - "80:80"
-      - "443:443"
+      - "${CADDY_HTTP_PORT:-80}:80"
+      - "${CADDY_HTTPS_PORT:-443}:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+    depends_on:
+      - web
     networks:
       - internal
-      - public
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+        reservations:
+          memory: 32M
+    logging: *default-logging
+
+  db-expose:
+    image: alpine/socat:latest
+    container_name: academydbms-db-expose
+    profiles: ["dev"]
+    restart: "no"
+    command: "TCP-LISTEN:33060,fork,reuseaddr TCP:db:3306"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:33062:33060"
+    networks:
+      - internal
+    logging: *default-logging
 
 volumes:
   db_data:
+    name: academydbms_db_data
+  web_node_modules:
+    name: academydbms_web_node_modules
   caddy_data:
+    name: academydbms_caddy_data
   caddy_config:
+    name: academydbms_caddy_config
 
 secrets:
   mysql_root_password:
     file: ./secrets/mysql_root_password.txt
+  mysql_user:
+    file: ./secrets/mysql_academy_database.txt
   mysql_user_password:
     file: ./secrets/mysql_user_password.txt
+  session_secret:
+    file: ./secrets/session_secret.txt
   ai_api_key:
     file: ./secrets/ai_api_key.txt
 
 networks:
   internal:
-    internal: true
-  public:
+    name: academydbms_internal
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

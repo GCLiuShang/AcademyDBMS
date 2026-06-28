@@ -15,8 +15,7 @@ const getCurrentUserFromStorage = () => {
         }
       }
     }
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
+    return null;
   } catch {
     return null;
   }
@@ -34,9 +33,10 @@ const Accountsettings = () => {
   const [initialValues, setInitialValues] = useState({});
   const [oldPassword, setOldPassword] = useState('');
   const [confirmError, setConfirmError] = useState('');
+  const [recentlyKicked, setRecentlyKicked] = useState(false);
 
   useEffect(() => {
-    if (!userInfo) navigate('/login');
+    if (!userInfo) navigate('/login', { replace: true });
   }, [navigate, userInfo]);
 
   const handleLogout = () => {
@@ -102,11 +102,12 @@ const Accountsettings = () => {
   const fetchInfo = async () => {
     if (!userInfo) return;
     try {
-      const res = await fetch('/api/account/info');
+      const res = await fetch('/api/academy/account/info');
       const json = await res.json();
       if (json.success) {
         setRole(json.role);
         setAccountData(json.data);
+        setRecentlyKicked(json.recentlyKicked || false);
         const init = {};
         (fieldDefs.length > 0 ? fieldDefs : []).forEach(() => {});
         if (json.data) {
@@ -175,7 +176,7 @@ const Accountsettings = () => {
     }
 
     try {
-      const res = await fetch('/api/account/update', {
+      const res = await fetch('/api/academy/account/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ oldPassword, updates })
@@ -206,6 +207,15 @@ const Accountsettings = () => {
       onNavigate={(item) => navigate(item.url)}
     >
       <div className="accountsettings-container">
+        {/* 被踢警告横幅 */}
+        {recentlyKicked && (
+          <div className="accountsettings-kicked-banner">
+            <span className="kicked-banner-icon">!</span>
+            <span>您的账号最近被顶号，建议立即修改密码以确保账号安全。</span>
+          </div>
+        )}
+
+        <div className="accountsettings-content">
         <div className="accountsettings-left">
           <div className="accountsettings-box accountsettings-info">
             <div className="accountsettings-info-body">
@@ -276,6 +286,7 @@ const Accountsettings = () => {
             确认修改
           </button>
         </div>
+      </div>
       </div>
     </MorePageLayout>
   );

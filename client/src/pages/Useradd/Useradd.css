@@ -8,7 +8,7 @@
 .useradd-left {
   width: 50%;
   height: 100%;
-  border: 2px solid #00489B;
+  border: 2px solid var(--ac-primary);
   border-radius: 18px;
   display: flex;
   flex-direction: column;
@@ -21,7 +21,7 @@
   padding: 12px 16px;
   font-size: 18px;
   font-weight: bold;
-  border-bottom: 1px solid #CFCFCF;
+  border-bottom: 1px solid var(--ac-border-table);
 }
 
 .useradd-form {
@@ -34,7 +34,7 @@
 .useradd-row {
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #CFCFCF;
+  border-bottom: 1px solid var(--ac-border-table);
 }
 
 .useradd-row.small {
@@ -61,11 +61,11 @@
   min-width: 0;
   font-size: 14px;
   padding: 8px 10px;
-  border: 1px solid #CFCFCF;
+  border: 1px solid var(--ac-border-table);
   border-radius: 10px;
   outline: none;
   box-sizing: border-box;
-  background: #FFFFFF;
+  background: var(--ac-white);
 }
 
 .useradd-right {
@@ -102,8 +102,8 @@
   height: 56px;
   border-radius: 18px;
   border: none;
-  background: #00489B;
-  color: #FFFFFF;
+  background: var(--ac-primary);
+  color: var(--ac-white);
   font-weight: bold;
   font-size: 16px;
   cursor: pointer;
@@ -111,7 +111,7 @@
 }
 
 .useradd-submit:disabled {
-  background: #BFBFBF;
+  background: var(--ac-text-disabled);
   cursor: not-allowed;
 }
 
@@ -119,17 +119,17 @@
   flex: 1;
   height: 36px;
   border-radius: 999px;
-  border: 1px solid #00489B;
+  border: 1px solid var(--ac-primary);
   background: transparent;
-  color: #00489B;
+  color: var(--ac-primary);
   font-weight: bold;
   font-size: 14px;
   cursor: pointer;
 }
 
 .useradd-type-btn.active {
-  background: #00489B;
-  color: #FFFFFF;
+  background: var(--ac-primary);
+  color: var(--ac-white);
 }
 
 .useradd-type-text {

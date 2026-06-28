@@ -4,6 +4,7 @@ import MorePageLayout from '../../components/Layout/MorePageLayout';
 import Table from '../../components/Table/Table';
 import Details from '../../components/Details/Details';
 import './Examapply.css';
+import { notify } from '../../utils/notify';
 
 const EXAM_ATTRI_OPTIONS = ['正考', '补缓考', '其他'];
 
@@ -19,8 +20,7 @@ const getCurrentUserFromStorage = () => {
         }
       }
     }
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
+    return null;
   } catch {
     return null;
   }
@@ -121,7 +121,7 @@ const Examapply = () => {
 
     const initView = async () => {
       try {
-        const res = await fetch('/api/examapply/view/init', {
+        const res = await fetch('/api/academy/examapply/view/init', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({}),
@@ -138,7 +138,7 @@ const Examapply = () => {
     return () => {
       const currentUser = userInfoRef.current;
       if (!currentUser?.Uno) return;
-      fetch('/api/examapply/view/cleanup', {
+      fetch('/api/academy/examapply/view/cleanup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
@@ -161,7 +161,7 @@ const Examapply = () => {
           return acc;
         }, {}),
       });
-      const res = await fetch(`/api/common/table/list?${params.toString()}`);
+      const res = await fetch(`/api/academy/common/table/list?${params.toString()}`);
       const json = await res.json();
       if (json.success) {
         setData(json.data || []);
@@ -187,7 +187,7 @@ const Examapply = () => {
         orderDir: 'ASC',
         search_Cno: query,
       });
-      const res = await fetch(`/api/common/table/list?${params.toString()}`);
+      const res = await fetch(`/api/academy/common/table/list?${params.toString()}`);
       const json = await res.json();
       if (json.success) return json.data || [];
       return [];
@@ -237,7 +237,7 @@ const Examapply = () => {
     if (!userInfo?.Uno) return;
     if (!canSend) return;
     try {
-      const res = await fetch('/api/examapply/submit', {
+      const res = await fetch('/api/academy/examapply/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -263,10 +263,10 @@ const Examapply = () => {
         setCurrentPage(1);
         fetchData();
       } else {
-        alert(json.message || '提交失败');
+        notify(json.message || '提交失败');
       }
     } catch {
-      alert('提交失败');
+      notify('提交失败');
     }
   };
 

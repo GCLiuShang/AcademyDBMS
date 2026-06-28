@@ -1,3 +1,5 @@
+const express = require('express');
+const router = express.Router();
 const { chatCompletions } = require('./clients/aiClient');
 
 function makeGlobalSystemPrompt(userRole) {
@@ -31,18 +33,9 @@ function pickAssistantContent(upstreamJson) {
   return '';
 }
 
-async function chat({
-  prompt,
-  system,
-  messages,
-  userRole,
-  model,
-  timeoutMs,
-  retries,
-} = {}) {
+async function chat({ prompt, system, messages, userRole, model, timeoutMs, retries } = {}) {
   const normalizedMessages = normalizeMessages(messages);
-  const coreMessages =
-    normalizedMessages.length > 0 ? normalizedMessages : makeMessagesFromPrompt({ prompt, system });
+  const coreMessages = normalizedMessages.length > 0 ? normalizedMessages : makeMessagesFromPrompt({ prompt, system });
   const finalMessages = [{ role: 'system', content: makeGlobalSystemPrompt(userRole) }, ...coreMessages];
 
   if (finalMessages.length === 0) {
@@ -51,22 +44,10 @@ async function chat({
     throw err;
   }
 
-  const upstream = await chatCompletions({
-    messages: finalMessages,
-    model,
-    timeoutMs,
-    retries,
-  });
+  const upstream = await chatCompletions({ messages: finalMessages, model, timeoutMs, retries });
 
   const content = pickAssistantContent(upstream.json) || '';
-  return {
-    content,
-    model: upstream.model,
-    upstream,
-  };
+  return { content, model: upstream.model, upstream };
 }
 
-module.exports = {
-  chat,
-};
-
+module.exports = { chat };

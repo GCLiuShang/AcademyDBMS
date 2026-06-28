@@ -8,7 +8,7 @@
   white-space: pre-line;
   font-size: 14px;
   line-height: 1.7;
-  color: #111;
+  color: var(--ac-text-strong);
 }
 
 .operation-btns {

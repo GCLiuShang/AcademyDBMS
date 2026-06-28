@@ -39,3 +39,12 @@ Thumbs.db
 
 # Office temporary files
 docs/~$*
+
+# AI tools
+**/.claude
+
+# Docker
+daemon.json
+docker/setup.ps1
+
+**/test

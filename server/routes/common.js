@@ -192,6 +192,15 @@ const POLICIES = [
     allowedRoles: ['学校教务处管理员'],
     columns: ['Lno', 'Ltime_begin', 'Ltime_end'],
   },
+  {
+    match: (tableName) => tableName === 'User',
+    allowedRoles: ['学校教务处管理员', '学院教学办管理员'],
+    columns: ['Uno', 'Urole', 'Utime', 'Ustatus'],
+    injectWhere: () => ({
+      parts: ['t.Uno <> ?'],
+      params: ['O000000000'],
+    }),
+  },
 ];
 
 const resolvePolicy = (tableName, ctx) => {
@@ -201,28 +210,7 @@ const resolvePolicy = (tableName, ctx) => {
   return null;
 };
 
-/**
- * 通用表格查询接口
- * 
- * @route GET /api/common/table/list
- * @param {string} tableName - 目标表名或视图名
- * @param {number} page - 当前页码 (默认 1)
- * @param {number} limit - 每页数量 (默认 20)
- * @param {string} search_{field} - 针对特定字段的模糊搜索值
- * 
- * @description
- * 该接口支持查询数据库中的白名单内的表或视图。
- * - 简单查询: 直接传入表名 (如 tableName=Student)。
- * - 复杂关联查询: 推荐在数据库中创建视图 (VIEW) 后传入视图名 (如 tableName=View_Student_Details)，
- *   从而实现多表 JOIN 结果的查询，保持前端调用的简洁性。
- * 
- * @example
- * // 查询学生表
- * GET /api/common/table/list?tableName=Student
- * 
- * // 查询预定义的视图 (包含学院名称等关联信息)
- * GET /api/common/table/list?tableName=View_Student_Details&search_Sname=张
- */
+/** 通用表格查询接口，支持白名单内的表/视图的查询与分页 */
 router.get('/common/table/list', async (req, res) => {
   const { tableName: tableNameRaw, page = 1, limit = 20, orderBy, orderDir, ...restParams } = req.query;
 

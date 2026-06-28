@@ -5,6 +5,7 @@ import Table from '../../components/Table/Table';
 import Details from '../../components/Details/Details';
 import { getCurrentUserFromStorage } from '../../utils/userSession';
 import './TrainingprogramEdit.css';
+import { notify } from '../../utils/notify';
 
 const API_BASE = '';
 
@@ -86,7 +87,7 @@ const TrainingprogramEdit = () => {
     const fetchAccountInfo = async () => {
       if (!userInfo?.Uno) return;
       try {
-        const res = await fetch(`${API_BASE}/api/account/info`);
+        const res = await fetch(`${API_BASE}/api/academy/account/info`);
         const json = await res.json();
         if (json?.success) setAccountInfo(json.data || null);
         else {
@@ -112,7 +113,7 @@ const TrainingprogramEdit = () => {
           limit: 1,
           search_Dept_no: deptNo,
         });
-        const res = await fetch(`${API_BASE}/api/common/table/list?${params.toString()}`);
+        const res = await fetch(`${API_BASE}/api/academy/common/table/list?${params.toString()}`);
         const json = await res.json();
         if (json?.success && Array.isArray(json.data) && json.data.length > 0) {
           setDeptName(String(json.data[0]?.Dept_name || ''));
@@ -156,7 +157,7 @@ const TrainingprogramEdit = () => {
           search_Dom_dept: deptNo,
           search_Dom_name: q,
         });
-        const res = await fetch(`${API_BASE}/api/common/table/list?${params.toString()}`);
+        const res = await fetch(`${API_BASE}/api/academy/common/table/list?${params.toString()}`);
         const json = await res.json();
         if (cancelled) return;
         if (json?.success && Array.isArray(json.data)) {
@@ -188,7 +189,7 @@ const TrainingprogramEdit = () => {
           orderDir: 'DESC',
           search_TPdom: domNo,
         });
-        const res = await fetch(`${API_BASE}/api/common/table/list?${params.toString()}`);
+        const res = await fetch(`${API_BASE}/api/academy/common/table/list?${params.toString()}`);
         const json = await res.json();
         if (json?.success && Array.isArray(json.data)) {
           const rows = json.data || [];
@@ -215,7 +216,7 @@ const TrainingprogramEdit = () => {
       const jobs = [];
       if (selected) {
         jobs.push(
-          fetch(`${API_BASE}/api/trainingprogram/view/cleanup`, {
+          fetch(`${API_BASE}/api/academy/trainingprogram/view/cleanup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ viewName: selected }),
@@ -224,7 +225,7 @@ const TrainingprogramEdit = () => {
       }
       if (available) {
         jobs.push(
-          fetch(`${API_BASE}/api/trainingprogram/view/cleanup`, {
+          fetch(`${API_BASE}/api/academy/trainingprogram/view/cleanup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ viewName: available }),
@@ -247,7 +248,7 @@ const TrainingprogramEdit = () => {
       await cleanupViews();
 
       try {
-        const selectedRes = await fetch(`${API_BASE}/api/trainingprogram/view/init`, {
+        const selectedRes = await fetch(`${API_BASE}/api/academy/trainingprogram/view/init`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tpno: tpNo, type: 'selected' }),
@@ -255,7 +256,7 @@ const TrainingprogramEdit = () => {
         const selectedJson = await selectedRes.json();
         const nextSelectedView = selectedJson?.success ? selectedJson.viewName : null;
 
-        const availableRes = await fetch(`${API_BASE}/api/trainingprogram/view/init`, {
+        const availableRes = await fetch(`${API_BASE}/api/academy/trainingprogram/view/init`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tpno: tpNo, type: 'available' }),
@@ -297,7 +298,7 @@ const TrainingprogramEdit = () => {
           return acc;
         }, {}),
       });
-      const res = await fetch(`${API_BASE}/api/common/table/list?${params.toString()}`);
+      const res = await fetch(`${API_BASE}/api/academy/common/table/list?${params.toString()}`);
       const json = await res.json();
       if (json?.success) {
         setSelectedData(json.data || []);
@@ -329,7 +330,7 @@ const TrainingprogramEdit = () => {
           return acc;
         }, {}),
       });
-      const res = await fetch(`${API_BASE}/api/common/table/list?${params.toString()}`);
+      const res = await fetch(`${API_BASE}/api/academy/common/table/list?${params.toString()}`);
       const json = await res.json();
       if (json?.success) {
         setAvailableData(json.data || []);
@@ -361,7 +362,7 @@ const TrainingprogramEdit = () => {
     }
     try {
       const params = new URLSearchParams({ tpno: tpNo });
-      const res = await fetch(`${API_BASE}/api/trainingprogram/status/get?${params.toString()}`);
+      const res = await fetch(`${API_BASE}/api/academy/trainingprogram/status/get?${params.toString()}`);
       const json = await res.json();
       if (!json?.success) {
         setTpStatus('');
@@ -399,7 +400,7 @@ const TrainingprogramEdit = () => {
 
     try {
       const params = new URLSearchParams({ tpno: tpNo });
-      const res = await fetch(`${API_BASE}/api/trainingprogram/credits/get?${params.toString()}`);
+      const res = await fetch(`${API_BASE}/api/academy/trainingprogram/credits/get?${params.toString()}`);
       const json = await res.json();
       if (!json?.success) return;
       const data = json?.data || {};
@@ -441,7 +442,7 @@ const TrainingprogramEdit = () => {
       const normalized = raw === '' ? '0' : raw;
       const n = Number.parseInt(normalized, 10);
       if (!Number.isFinite(n) || !Number.isInteger(n) || n < 0 || n > 255) {
-        alert('请输入 0-255 的整数');
+        notify('请输入 0-255 的整数');
         const rollback = savedCreditsRef.current[key] ?? 0;
         setCredits((prev) => ({ ...prev, [key]: String(rollback) }));
         return;
@@ -454,21 +455,21 @@ const TrainingprogramEdit = () => {
       }
 
       try {
-        const res = await fetch(`${API_BASE}/api/trainingprogram/credits/update`, {
+        const res = await fetch(`${API_BASE}/api/academy/trainingprogram/credits/update`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tpno: tpNo, [key]: n }),
         });
         const json = await res.json();
         if (!json?.success) {
-          alert(json?.message || '更新失败');
+          notify(json?.message || '更新失败');
           setCredits((prev) => ({ ...prev, [key]: String(saved) }));
           return;
         }
         savedCreditsRef.current = { ...savedCreditsRef.current, [key]: n };
         setCredits((prev) => ({ ...prev, [key]: String(n) }));
       } catch {
-        alert('更新失败');
+        notify('更新失败');
         setCredits((prev) => ({ ...prev, [key]: String(saved) }));
       }
     },
@@ -485,7 +486,7 @@ const TrainingprogramEdit = () => {
       if (!canEdit) return;
       if (!userInfo?.Uno || !tpNo || !row?.Cno) return;
       try {
-        await fetch(`${API_BASE}/api/trainingprogram/tp-curricular/add`, {
+        await fetch(`${API_BASE}/api/academy/trainingprogram/tp-curricular/add`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tpno: tpNo, cno: row.Cno }),
@@ -503,7 +504,7 @@ const TrainingprogramEdit = () => {
       if (!canEdit) return;
       if (!userInfo?.Uno || !tpNo || !row?.Cno) return;
       try {
-        await fetch(`${API_BASE}/api/trainingprogram/tp-curricular/remove`, {
+        await fetch(`${API_BASE}/api/academy/trainingprogram/tp-curricular/remove`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tpno: tpNo, cno: row.Cno }),
@@ -614,14 +615,14 @@ const TrainingprogramEdit = () => {
     if (!window.confirm(`确定将 ${latestTpNo} 的课程导入到 ${tpNo} 吗？`)) return;
 
     try {
-      const res = await fetch(`${API_BASE}/api/trainingprogram/tp-curricular/import`, {
+      const res = await fetch(`${API_BASE}/api/academy/trainingprogram/tp-curricular/import`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fromTpno: latestTpNo, toTpno: tpNo }),
       });
       const json = await res.json();
       if (!json?.success) {
-        alert(json?.message || '导入失败');
+        notify(json?.message || '导入失败');
         return;
       }
       setSelectedPage(1);
@@ -629,7 +630,7 @@ const TrainingprogramEdit = () => {
       fetchSelected();
       fetchAvailable();
     } catch {
-      alert('导入失败');
+      notify('导入失败');
     }
   }, [fetchAvailable, fetchSelected, isLocked, latestTpNo, tpNo, userInfo?.Uno]);
 
@@ -638,19 +639,19 @@ const TrainingprogramEdit = () => {
     if (tpStatus !== '调整中') return;
     if (!window.confirm('是否确认提交本方案的编写，并投入使用？(确认后无法修改)')) return;
     try {
-      const res = await fetch(`${API_BASE}/api/trainingprogram/status/submit`, {
+      const res = await fetch(`${API_BASE}/api/academy/trainingprogram/status/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tpno: tpNo }),
       });
       const json = await res.json();
       if (!json?.success) {
-        alert(json?.message || '提交失败');
+        notify(json?.message || '提交失败');
         return;
       }
       window.location.reload();
     } catch {
-      alert('提交失败');
+      notify('提交失败');
     }
   }, [tpNo, tpStatus, userInfo?.Uno]);
 

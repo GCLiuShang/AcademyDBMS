@@ -1,0 +1,272 @@
+/* DBAdmin 登录卡片 — 用于 MorePageLayout 内容区域内居中显示 */
+
+/* 居中容器：在 more-page-content-body 内垂直水平居中 */
+.dbadmin-login-form-wrapper {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.4s ease-out;
+}
+.dbadmin-login-form-wrapper.visible {
+  opacity: 1;
+}
+
+/* 表单卡片 — 风格同 /login 右侧卡片 */
+.dbadmin-login-card {
+  width: 380px;
+  padding: 40px;
+  background: #FFFFFF;
+  border-radius: 16px;
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.12),
+    0 2px 8px rgba(0,0,0,0.06);
+  transform: translateY(30px);
+  opacity: 0;
+  transition:
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.dbadmin-login-card.visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.dbadmin-login-card-header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.dbadmin-login-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+  color: #1a73e8;
+}
+
+.dbadmin-login-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 8px;
+}
+
+.dbadmin-login-desc {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* 浮动标签输入框 */
+.dbadmin-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.dbadmin-float-field {
+  position: relative;
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+    transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.dbadmin-float-field.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.dbadmin-float-field:nth-child(2) {
+  transition-delay: 0s;
+}
+.dbadmin-float-field.visible:nth-child(2) {
+  transition-delay: 0.15s;
+}
+
+.dbadmin-float-input {
+  width: 100%;
+  height: 52px;
+  padding: 22px 14px 6px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #1a1a2e;
+  background: #f9fafb;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.dbadmin-float-input:focus {
+  border-color: #1a73e8;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
+}
+
+.dbadmin-float-input.has-value {
+  border-color: rgba(26,115,232,0.2);
+}
+
+.dbadmin-float-input:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.dbadmin-float-label {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: #9ca3af;
+  pointer-events: none;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.dbadmin-float-input:focus + .dbadmin-float-label,
+.dbadmin-float-input:not(:placeholder-shown) + .dbadmin-float-label {
+  top: 8px;
+  transform: translateY(0);
+  font-size: 11px;
+  color: #1a73e8;
+}
+
+.dbadmin-input-focus-bar {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(135deg, #1a73e8, #1557b0);
+  border-radius: 1px;
+  transition: all 0.3s;
+  transform: translateX(-50%);
+}
+
+.dbadmin-float-input:focus ~ .dbadmin-input-focus-bar {
+  width: 100%;
+}
+
+/* 按钮 & 消息 */
+.dbadmin-login-btn-wrap {
+  position: relative;
+  margin-top: 4px;
+  opacity: 0;
+  transform: translateX(30px);
+  transition:
+    opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: 0.2s;
+}
+.dbadmin-login-btn-wrap.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.dbadmin-btn-primary {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #1a73e8, #1557b0);
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: opacity 0.2s, transform 0.15s;
+}
+
+.dbadmin-btn-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.dbadmin-btn-primary:active {
+  transform: translateY(0);
+}
+
+.dbadmin-btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.dbadmin-btn-primary.shake {
+  animation: db-shake 0.4s ease;
+}
+
+.dbadmin-btn-text {
+  position: relative;
+  z-index: 1;
+  letter-spacing: 8px;
+}
+
+/* 错误/成功消息覆盖按钮区 */
+.dbadmin-login-message {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: not-allowed;
+  animation: db-scale-in 0.25s ease-out;
+  box-sizing: border-box;
+}
+
+.dbadmin-login-message.shake {
+  animation: db-shake 0.4s ease;
+}
+
+.dbadmin-msg-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.dbadmin-login-message.msg-error {
+  background: #fef2f2;
+  border: 1.5px solid #fca5a5;
+  color: #dc2626;
+}
+.dbadmin-login-message.msg-error .dbadmin-msg-icon {
+  background: #dc2626;
+  color: white;
+}
+
+.dbadmin-login-message.msg-success {
+  background: #f0fdf4;
+  border: 1.5px solid #86efac;
+  color: #16a34a;
+}
+.dbadmin-login-message.msg-success .dbadmin-msg-icon {
+  background: #16a34a;
+  color: white;
+}
+
+@keyframes db-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+@keyframes db-scale-in {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}

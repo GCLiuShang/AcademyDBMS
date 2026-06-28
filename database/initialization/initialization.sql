@@ -1,14 +1,11 @@
--- 设置字符集
 SET NAMES utf8mb4;
 SET CHARACTER SET utf8mb4;
 SET character_set_connection=utf8mb4;
 
--- 插入学院数据
 INSERT IGNORE INTO Department (Dept_no, Dept_name, Dept_status) VALUES
 ('XJ', '信息与计算科学学院', '正常'),
 ('JS', '计算机与人工智能学院', '正常');
 
--- 插入专业数据
 INSERT IGNORE INTO Domain (Dom_no, Dom_dept, Dom_number, Dom_name, Dom_shortname, Dom_status) VALUES
 ('XJ00', 'XJ', 0, '信息类', '信息类', '正常'),
 ('XJ01', 'XJ', 1, '信息与计算科学', '信计', '正常'),
@@ -235,30 +232,30 @@ INSERT IGNORE INTO Lesson (Lno, Ltime_begin, Ltime_end) VALUES
 -- 插入用户数据 (10个，5种角色各2个)
 -- 学生用户
 INSERT IGNORE INTO User (Uno, Upswd, Urole, Utime, Ustatus) VALUES
-('S202300001', '$2b$12$TCwC69iFf0vozq2bbj0m/.UIAHVDRfcPz4hDRW1aXnOZalSCfwksO', '学生', NOW(), '离线'),
-('S202300002', '$2b$12$TCwC69iFf0vozq2bbj0m/.UIAHVDRfcPz4hDRW1aXnOZalSCfwksO', '学生', NOW(), '离线'),
-('S202300003', '$2b$12$TCwC69iFf0vozq2bbj0m/.UIAHVDRfcPz4hDRW1aXnOZalSCfwksO', '学生', NOW(), '离线'),
-('S202300004', '$2b$12$TCwC69iFf0vozq2bbj0m/.UIAHVDRfcPz4hDRW1aXnOZalSCfwksO', '学生', NOW(), '离线'),
-('S202300005', '$2b$12$TCwC69iFf0vozq2bbj0m/.UIAHVDRfcPz4hDRW1aXnOZalSCfwksO', '学生', NOW(), '离线');
+('S202300001', '$2b$12$mSmc9hwQoFuVRIWpVgY1NegkjOgiOuCwgfkvnCJ/eQrEMCpRiwJeS', '学生', NOW(), '离线'),
+('S202300002', '$2b$12$mSmc9hwQoFuVRIWpVgY1NegkjOgiOuCwgfkvnCJ/eQrEMCpRiwJeS', '学生', NOW(), '离线'),
+('S202300003', '$2b$12$mSmc9hwQoFuVRIWpVgY1NegkjOgiOuCwgfkvnCJ/eQrEMCpRiwJeS', '学生', NOW(), '离线'),
+('S202300004', '$2b$12$mSmc9hwQoFuVRIWpVgY1NegkjOgiOuCwgfkvnCJ/eQrEMCpRiwJeS', '学生', NOW(), '离线'),
+('S202300005', '$2b$12$mSmc9hwQoFuVRIWpVgY1NegkjOgiOuCwgfkvnCJ/eQrEMCpRiwJeS', '学生', NOW(), '离线');
 
 
 -- 教授用户
 INSERT IGNORE INTO User (Uno, Upswd, Urole, Utime, Ustatus) VALUES
-('P202100001', '$2b$12$dLpz0uI5.tmeW8U.4670Ceiw5OZBu4Mcw9Q3tfviRBdTfNgCJdUtG', '教授', NOW(), '离线'),
-('P202100002', '$2b$12$dLpz0uI5.tmeW8U.4670Ceiw5OZBu4Mcw9Q3tfviRBdTfNgCJdUtG', '教授', NOW(), '离线'),
-('P202100003', '$2b$12$dLpz0uI5.tmeW8U.4670Ceiw5OZBu4Mcw9Q3tfviRBdTfNgCJdUtG', '教授', NOW(), '离线'),
-('P202100004', '$2b$12$dLpz0uI5.tmeW8U.4670Ceiw5OZBu4Mcw9Q3tfviRBdTfNgCJdUtG', '教授', NOW(), '离线'),
-('P202100005', '$2b$12$dLpz0uI5.tmeW8U.4670Ceiw5OZBu4Mcw9Q3tfviRBdTfNgCJdUtG', '教授', NOW(), '离线');
+('P202100001', '$2b$12$ogGgR.1ElscR0NE58d03yOtE7lnrF.e4Z.Y8jVX8k6/OFu.AIv/iu', '教授', NOW(), '离线'),
+('P202100002', '$2b$12$ogGgR.1ElscR0NE58d03yOtE7lnrF.e4Z.Y8jVX8k6/OFu.AIv/iu', '教授', NOW(), '离线'),
+('P202100003', '$2b$12$ogGgR.1ElscR0NE58d03yOtE7lnrF.e4Z.Y8jVX8k6/OFu.AIv/iu', '教授', NOW(), '离线'),
+('P202100004', '$2b$12$ogGgR.1ElscR0NE58d03yOtE7lnrF.e4Z.Y8jVX8k6/OFu.AIv/iu', '教授', NOW(), '离线'),
+('P202100005', '$2b$12$ogGgR.1ElscR0NE58d03yOtE7lnrF.e4Z.Y8jVX8k6/OFu.AIv/iu', '教授', NOW(), '离线');
 
 -- 学院教学办管理员用户
 INSERT IGNORE INTO User (Uno, Upswd, Urole, Utime, Ustatus) VALUES
-('DA20190001', '$2b$12$aNXUiiBTq.Z8ZLnVhK0DIur0iojVM8ch1Bo4iDHqUJ.7qkWFrNI/W', '学院教学办管理员', NOW(), '离线'),
-('DA20190002', '$2b$12$aNXUiiBTq.Z8ZLnVhK0DIur0iojVM8ch1Bo4iDHqUJ.7qkWFrNI/W', '学院教学办管理员', NOW(), '离线');
+('DA20190001', '$2b$12$gcSiUPbbnW9kao1sIJHkPOG/lI7wa1Uc.iz5HoNu6EBndd7kRZduC', '学院教学办管理员', NOW(), '离线'),
+('DA20190002', '$2b$12$gcSiUPbbnW9kao1sIJHkPOG/lI7wa1Uc.iz5HoNu6EBndd7kRZduC', '学院教学办管理员', NOW(), '离线');
 
 -- 学校教务处管理员用户
 INSERT IGNORE INTO User (Uno, Upswd, Urole, Utime, Ustatus) VALUES
-('UA20190001', '$2b$12$mCB4GQNplorjsKq7NGymseAEjFH5EibdwL/xH37JXOv0V5Lxj6WB2', '学校教务处管理员', NOW(), '离线'),
-('UA20190002', '$2b$12$mCB4GQNplorjsKq7NGymseAEjFH5EibdwL/xH37JXOv0V5Lxj6WB2', '学校教务处管理员', NOW(), '离线');
+('UA20190001', '$2b$12$VqdZQBjHEfOtNGHZr8.wyOFCeyDN2kavvmhapdlmLGGNpSYvKruyy', '学校教务处管理员', NOW(), '离线'),
+('UA20190002', '$2b$12$VqdZQBjHEfOtNGHZr8.wyOFCeyDN2kavvmhapdlmLGGNpSYvKruyy', '学校教务处管理员', NOW(), '离线');
 
 -- 其他人员用户
 INSERT IGNORE INTO User (Uno, Upswd, Urole, Utime, Ustatus) VALUES
@@ -313,3 +310,10 @@ INSERT IGNORE INTO Curricular (Cno, Cname, Ccredit, C_classhour, C_eattri, Cdesc
 
 -- 提交事务
 COMMIT;
+
+-- DBAdmin 授权: 授予教务处管理员 MySQL 访问权限
+INSERT IGNORE INTO DBAdmin_Grant (Uno, MySQL_User, Granted_By, Granted_At, Is_Active) VALUES
+('UA20190001', 'academy', 'UA20190001', NOW(), 1),
+('UA20190001', 'root', 'UA20190001', NOW(), 1),
+('UA20190002', 'academy', 'UA20190002', NOW(), 1),
+('UA20190002', 'root', 'UA20190002', NOW(), 1);

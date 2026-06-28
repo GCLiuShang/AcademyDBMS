@@ -1,8 +1,8 @@
 const express = require('express');
 const db = require('../db');
-const { sendSystemMessage, sendWelcomeMessage } = require('../services/messageService');
-const { createSession, revokeSession, setSessionCookie, clearSessionCookie } = require('../services/sessionService');
+const { sendWelcomeMessage } = require('../services/messageService');
 const { verifyPassword } = require('../services/passwordService');
+const { createSession, revokeSession, setSessionCookie, clearSessionCookie, parseCookieHeader, getCookieName } = require('../services/sessionService');
 
 const router = express.Router();
 
@@ -10,7 +10,7 @@ router.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
-    return res.status(400).json({ success: false, message: 'Username and password are required' });
+    return res.status(400).json({ success: false, message: '用户名和密码均不得为空' });
   }
 
   if (username === 'O000000000') {
@@ -46,19 +46,6 @@ router.post('/login', async (req, res) => {
 
     const ok = await verifyPassword(password, user.Upswd);
     if (ok) {
-      if (user.Ustatus === '在线') {
-        const kickMsg = '您的账号在另一处登录，即将注销登录，若并非您操作请在重新登录后修改密码。';
-        await sendSystemMessage(username, kickMsg, '重要');
-
-        await db.execute('UPDATE User SET Ustatus = ? WHERE Uno = ?', ['离线', username]);
-
-        return res.status(403).json({
-          success: false,
-          code: 'ALREADY_LOGGED_IN',
-          message: '该账号已登录。已向对方发送下线通知，请等待对方下线后重试。',
-        });
-      }
-
       await db.execute(
         'UPDATE User SET Ustatus = ?, Ulosetimes = 0, Ulasttrytime = NOW() WHERE Uno = ?',
         ['在线', username]
@@ -126,7 +113,7 @@ router.post('/login', async (req, res) => {
         console.error('Failed to send welcome message:', err)
       );
 
-      res.json({ success: true, message: '登录成功', user: finalUser });
+      res.json({ success: true, message: '登录成功', user: finalUser, sid });
     } else {
       let newLoseTimes = user.Ulosetimes + 1;
 
@@ -162,14 +149,31 @@ router.post('/login', async (req, res) => {
 
 router.post('/logout', async (req, res) => {
   try {
+    const uno = req.user ? String(req.user.Uno) : '';
+
     if (req.sessionSid) {
       await revokeSession(req.sessionSid);
     }
-    clearSessionCookie(res, req);
 
-    const username = req.user && req.user.Uno ? req.user.Uno : '';
-    if (username) {
-      await db.execute('UPDATE User SET Ustatus = ? WHERE Uno = ?', ['离线', username]);
+    if (uno) {
+      const [rows] = await db.execute(
+        `SELECT COUNT(*) AS cnt FROM User_Session
+         WHERE Uno = ? AND Revoked = 0 AND ExpiresAt > NOW()`,
+        [uno]
+      );
+      const activeCount = (rows && rows[0] && rows[0].cnt) || 0;
+      if (activeCount === 0) {
+        await db.execute('UPDATE User SET Ustatus = ? WHERE Uno = ?', ['离线', uno]);
+      }
+    }
+
+    if (req.sessionSid) {
+      const cookieName = getCookieName();
+      const cookies = parseCookieHeader(req.headers.cookie);
+      const cookieSid = cookies[cookieName];
+      if (cookieSid && cookieSid === req.sessionSid) {
+        clearSessionCookie(res, req);
+      }
     }
 
     res.json({ success: true, message: 'Logout successful' });

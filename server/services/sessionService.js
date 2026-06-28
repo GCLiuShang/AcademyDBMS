@@ -57,13 +57,7 @@ function getCookieOptions(req) {
   const pathRaw = process.env.SESSION_COOKIE_PATH;
   const path = typeof pathRaw === 'string' && pathRaw.trim() ? pathRaw.trim() : '/';
 
-  return {
-    sameSite,
-    secure,
-    domain,
-    path,
-    httpOnly: true,
-  };
+  return { sameSite, secure, domain, path, httpOnly: true };
 }
 
 function makeSessionId() {
@@ -79,8 +73,7 @@ async function createSession({ uno, ua, ip, ttlMs } = {}) {
   const expiresAt = new Date(Date.now() + ttl);
 
   await db.execute(
-    `INSERT INTO User_Session
-      (Sid, Uno, CreatedAt, LastSeenAt, ExpiresAt, Ip, Ua, Revoked)
+    `INSERT INTO User_Session (Sid, Uno, CreatedAt, LastSeenAt, ExpiresAt, Ip, Ua, Revoked)
      VALUES (?, ?, NOW(), NOW(), ?, ?, ?, 0)`,
     [sid, normalizedUno, expiresAt, ip || null, ua || null]
   );
@@ -100,11 +93,8 @@ async function getUserBySessionId(sid) {
 
   const [rows] = await db.execute(
     `SELECT u.Uno AS Uno, u.Urole AS Urole
-     FROM User_Session s
-     JOIN User u ON u.Uno = s.Uno
-     WHERE s.Sid = ?
-       AND s.Revoked = 0
-       AND s.ExpiresAt > NOW()
+     FROM User_Session s JOIN User u ON u.Uno = s.Uno
+     WHERE s.Sid = ? AND s.Revoked = 0 AND s.ExpiresAt > NOW()
      LIMIT 1`,
     [normalizedSid]
   );
@@ -116,24 +106,35 @@ async function getUserBySessionId(sid) {
 
 async function attachSessionUser(req, res, next) {
   try {
-    const cookieName = getCookieName();
-    const cookies = parseCookieHeader(req.headers.cookie);
-    const sid = cookies[cookieName];
+    // 优先从 X-Session-Id 请求头获取会话标识，其次回退到 cookie
+    let sid = req.headers['x-session-id'];
+    if (!sid) {
+      const cookieName = getCookieName();
+      const cookies = parseCookieHeader(req.headers.cookie);
+      sid = cookies[cookieName];
+    }
     if (!sid) {
       req.user = null;
       req.sessionSid = null;
+      req.sessionStatus = 'none';
       return next();
     }
 
     const user = await getUserBySessionId(sid);
     if (!user) {
+      const [rows] = await db.execute(
+        `SELECT Revoked FROM User_Session WHERE Sid = ? LIMIT 1`,
+        [sid]
+      );
       req.user = null;
       req.sessionSid = null;
+      req.sessionStatus = (rows.length > 0 && rows[0].Revoked === 1) ? 'revoked' : 'none';
       return next();
     }
 
     req.user = user;
     req.sessionSid = sid;
+    req.sessionStatus = 'valid';
     return next();
   } catch (err) {
     return next(err);
@@ -153,9 +154,7 @@ function enforceUnoConsistency(options = {}) {
   const normalizeUnoValue = (value) => {
     if (value === null || value === undefined) return null;
     if (Array.isArray(value)) {
-      const normalized = value
-        .map((v) => (v === null || v === undefined ? '' : String(v).trim()))
-        .filter(Boolean);
+      const normalized = value.map((v) => (v === null || v === undefined ? '' : String(v).trim())).filter(Boolean);
       return normalized.length > 0 ? normalized : null;
     }
     const s = String(value).trim();
@@ -170,10 +169,7 @@ function enforceUnoConsistency(options = {}) {
     const fromBody = normalizeUnoValue(req?.body?.uno);
     const fromParams = normalizeUnoValue(req?.params?.uno);
 
-    const all = []
-      .concat(fromQuery || [])
-      .concat(fromBody || [])
-      .concat(fromParams || []);
+    const all = [].concat(fromQuery || []).concat(fromBody || []).concat(fromParams || []);
     if (all.length === 0) return next();
 
     const currentUno = req?.user?.Uno ? String(req.user.Uno).trim() : '';
@@ -196,20 +192,14 @@ function setSessionCookie(res, sid, req) {
   const opts = getCookieOptions(req);
   const ttlMs = getSessionTtlMs();
   const maxAgeSeconds = Math.floor(ttlMs / 1000);
-  const cookie = buildSetCookie(cookieName, sid, {
-    ...opts,
-    maxAgeSeconds,
-  });
+  const cookie = buildSetCookie(cookieName, sid, { ...opts, maxAgeSeconds });
   res.setHeader('Set-Cookie', cookie);
 }
 
 function clearSessionCookie(res, req) {
   const cookieName = getCookieName();
   const opts = getCookieOptions(req);
-  const cookie = buildSetCookie(cookieName, '', {
-    ...opts,
-    maxAgeSeconds: 0,
-  });
+  const cookie = buildSetCookie(cookieName, '', { ...opts, maxAgeSeconds: 0 });
   res.setHeader('Set-Cookie', cookie);
 }
 
@@ -221,4 +211,7 @@ module.exports = {
   revokeSession,
   setSessionCookie,
   clearSessionCookie,
+  getUserBySessionId,
+  parseCookieHeader,
+  getCookieName,
 };

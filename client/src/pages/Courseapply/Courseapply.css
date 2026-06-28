@@ -8,7 +8,7 @@
 .courseapply-left {
   width: 50%;
   height: 100%;
-  border: 2px solid #00489B;
+  border: 2px solid var(--ac-primary);
   border-radius: 18px;
   display: flex;
   flex-direction: column;
@@ -21,7 +21,7 @@
   padding: 12px 16px;
   font-size: 18px;
   font-weight: bold;
-  border-bottom: 1px solid #CFCFCF;
+  border-bottom: 1px solid var(--ac-border-table);
 }
 
 .courseapply-form {
@@ -34,7 +34,7 @@
 .courseapply-row {
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #CFCFCF;
+  border-bottom: 1px solid var(--ac-border-table);
 }
 
 .courseapply-row.small {
@@ -61,11 +61,11 @@
   min-width: 0;
   font-size: 14px;
   padding: 8px 10px;
-  border: 1px solid #CFCFCF;
+  border: 1px solid var(--ac-border-table);
   border-radius: 10px;
   outline: none;
   box-sizing: border-box;
-  background: #FFFFFF;
+  background: var(--ac-white);
 }
 
 .courseapply-right {
@@ -103,8 +103,8 @@
   height: 56px;
   border-radius: 18px;
   border: none;
-  background: #00489B;
-  color: #FFFFFF;
+  background: var(--ac-primary);
+  color: var(--ac-white);
   font-weight: bold;
   font-size: 16px;
   cursor: pointer;
@@ -112,7 +112,7 @@
 }
 
 .courseapply-send:disabled {
-  background: #BFBFBF;
+  background: var(--ac-text-disabled);
   cursor: not-allowed;
 }
 
@@ -126,7 +126,7 @@
   height: 44px;
   border: 1px solid rgba(0, 0, 0, 0.25);
   border-radius: 10px;
-  background: #fff;
+  background: var(--ac-white);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -183,7 +183,7 @@
   top: 52px;
   left: 0;
   right: 0;
-  background: #fff;
+  background: var(--ac-white);
   border: 1px solid rgba(0, 0, 0, 0.2);
   border-radius: 10px;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
@@ -218,7 +218,7 @@
 
 .courseapply-picker-option {
   border: 1px solid rgba(0, 0, 0, 0.12);
-  background: #f6f6f6;
+  background: var(--ac-bg-secondary);
   border-radius: 8px;
   padding: 8px 10px;
   cursor: pointer;

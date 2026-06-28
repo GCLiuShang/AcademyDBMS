@@ -136,7 +136,7 @@ const Arrange = () => {
       limit: 200,
       ...paramsObj,
     });
-    const res = await fetch(`${API_BASE}/api/common/table/list?${params.toString()}`);
+    const res = await fetch(`${API_BASE}/api/academy/common/table/list?${params.toString()}`);
     const json = await res.json();
     if (!json.success) return [];
     return json.data || [];
@@ -795,7 +795,7 @@ const Arrange = () => {
     });
     setTxnTableLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/arrange/transactions/list?${params.toString()}`);
+      const res = await fetch(`${API_BASE}/api/academy/arrange/transactions/list?${params.toString()}`);
       const json = await res.json().catch(() => null);
       if (!res.ok || !json?.success) {
         setTxnTableData([]);
@@ -910,7 +910,7 @@ const Arrange = () => {
           classroom: selectedClassroomByWeek[week] || '',
         }));
 
-        const res = await fetch(`${API_BASE}/api/arrange/course/submit`, {
+        const res = await fetch(`${API_BASE}/api/academy/arrange/course/submit`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -927,7 +927,7 @@ const Arrange = () => {
         }
         setSubmitSuccess(`提交成功：已安排 ${json.classhour} 课时`);
       } else if (selectedTxn.type === 'exam') {
-        const res = await fetch(`${API_BASE}/api/arrange/exam/submit`, {
+        const res = await fetch(`${API_BASE}/api/academy/arrange/exam/submit`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

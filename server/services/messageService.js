@@ -18,14 +18,13 @@ async function sendSystemMessage(uno, content, priority = '重要') {
     const msgNo = `MSG${dateStr}${msgNumberHex}`;
 
     await connection.execute(
-      `INSERT INTO Message (Msg_no, Msg_date, Msg_number, Msg_category, Msg_priority, Msg_content) 
+      `INSERT INTO Message (Msg_no, Msg_date, Msg_number, Msg_category, Msg_priority, Msg_content)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [msgNo, now, msgNumber, '系统', priority, content]
     );
 
     await connection.execute(
-      `INSERT INTO Msg_Send (Msg_no, Send_time, Send_display)
-       VALUES (?, ?, ?)`,
+      `INSERT INTO Msg_Send (Msg_no, Send_time, Send_display) VALUES (?, ?, ?)`,
       [msgNo, now, true]
     );
 
@@ -101,4 +100,3 @@ module.exports = {
   insertSystemMessageToMany,
   sendWelcomeMessage,
 };
-

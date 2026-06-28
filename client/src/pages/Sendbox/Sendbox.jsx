@@ -51,7 +51,7 @@ const Sendbox = () => {
 
     const initView = async () => {
       try {
-        const res = await fetch('/api/sendbox/view/init', { method: 'POST' });
+        const res = await fetch('/api/academy/sendbox/view/init', { method: 'POST' });
         const json = await res.json();
         if (json.success) {
           setViewName(json.viewName);
@@ -68,7 +68,7 @@ const Sendbox = () => {
     return () => {
       const currentUserInfo = userInfoRef.current;
       if (currentUserInfo && currentUserInfo.Uno) {
-        fetch('/api/sendbox/view/cleanup', { method: 'POST' }).catch(console.error);
+        fetch('/api/academy/sendbox/view/cleanup', { method: 'POST' }).catch(console.error);
       }
     };
   }, [userInfo]);
@@ -101,7 +101,7 @@ const Sendbox = () => {
         }, {})
       });
 
-      const res = await fetch(`/api/common/table/list?${params}`);
+      const res = await fetch(`/api/academy/common/table/list?${params}`);
       const json = await res.json();
       if (json.success) {
         setData(json.data);
@@ -130,7 +130,7 @@ const Sendbox = () => {
         limit: 1,
         search_Msg_no: row.Msg_no,
       });
-      const res = await fetch(`/api/common/table/list?${params.toString()}`);
+      const res = await fetch(`/api/academy/common/table/list?${params.toString()}`);
       const json = await res.json();
       if (json.success && Array.isArray(json.data) && json.data.length > 0) {
         setDetailsMeta(json.data[0]);
@@ -143,7 +143,7 @@ const Sendbox = () => {
   const handleDelete = async (row) => {
     if (!window.confirm('确定删除该消息吗？')) return;
     try {
-      const res = await fetch('/api/messages/delete', {
+      const res = await fetch('/api/academy/messages/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ msg_no: row.Msg_no, type: 'sent' })
@@ -174,7 +174,7 @@ const Sendbox = () => {
       missing.map(async (uno) => {
         try {
           const params = new URLSearchParams({ q: String(uno), limit: '1' });
-          const res = await fetch(`/api/users/search?${params.toString()}`);
+          const res = await fetch(`/api/academy/users/search?${params.toString()}`);
           const json = await res.json();
           const row = Array.isArray(json?.data) ? json.data[0] : null;
           if (json?.success && row?.Urole) return [uno, row.Urole];

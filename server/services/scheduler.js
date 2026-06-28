@@ -1,6 +1,7 @@
 const db = require('../db');
 const { sendSystemMessage, insertSystemMessageToMany } = require('./messageService');
 const { withTransaction } = require('./transactionService');
+const dbadminAuth = require('./dbadminAuthService');
 
 function initScheduler() {
   setInterval(async () => {
@@ -34,15 +35,10 @@ function initScheduler() {
            SELECT se1.SetupE_Eno, se1.SetupE_Etime_begin, se1.SetupE_Etime_end
            FROM Setup_Exam se1
            JOIN (
-             SELECT
-               SetupE_Eno,
-               MAX(SetupE_ID) AS MaxSetupE_ID
-             FROM Setup_Exam
-             WHERE SetupE_status = '审核通过'
+             SELECT SetupE_Eno, MAX(SetupE_ID) AS MaxSetupE_ID
+             FROM Setup_Exam WHERE SetupE_status = '审核通过'
              GROUP BY SetupE_Eno
-           ) semax
-             ON semax.SetupE_Eno = se1.SetupE_Eno
-            AND semax.MaxSetupE_ID = se1.SetupE_ID
+           ) semax ON semax.SetupE_Eno = se1.SetupE_Eno AND semax.MaxSetupE_ID = se1.SetupE_ID
          ) se ON se.SetupE_Eno = e.Eno
          SET e.Estatus = '进行中'
          WHERE e.Estatus = '未开始'
@@ -55,15 +51,10 @@ function initScheduler() {
            SELECT se1.SetupE_Eno, se1.SetupE_Etime_begin, se1.SetupE_Etime_end
            FROM Setup_Exam se1
            JOIN (
-             SELECT
-               SetupE_Eno,
-               MAX(SetupE_ID) AS MaxSetupE_ID
-             FROM Setup_Exam
-             WHERE SetupE_status = '审核通过'
+             SELECT SetupE_Eno, MAX(SetupE_ID) AS MaxSetupE_ID
+             FROM Setup_Exam WHERE SetupE_status = '审核通过'
              GROUP BY SetupE_Eno
-           ) semax
-             ON semax.SetupE_Eno = se1.SetupE_Eno
-            AND semax.MaxSetupE_ID = se1.SetupE_ID
+           ) semax ON semax.SetupE_Eno = se1.SetupE_Eno AND semax.MaxSetupE_ID = se1.SetupE_ID
          ) se ON se.SetupE_Eno = e.Eno
          SET e.Estatus = '已结束'
          WHERE e.Estatus IN ('未开始','进行中')
@@ -84,7 +75,7 @@ function initScheduler() {
         `UPDATE Invigilate iv
          JOIN View_Classroom_Occupancy v
            ON v.Occ_type = '考试'
-         AND v.ArrangeE_ID = iv.Invigilate_ArrangeEID
+          AND v.ArrangeE_ID = iv.Invigilate_ArrangeEID
          SET iv.Invigilate_Status = '已经监考'
          WHERE iv.Invigilate_Status = '等待开始'
            AND v.Occ_end <= NOW()`
@@ -99,20 +90,15 @@ function initScheduler() {
         await withTransaction(async (connection) => {
           for (const r of reminders) {
             const [courseRows] = await connection.execute(
-              `SELECT
-                 ac.ArrangeCo_Pno AS Uno,
-                 cu.Cname AS Cname,
-                 ac.ArrangeCo_Clrmname AS Clrm,
+              `SELECT ac.ArrangeCo_Pno AS Uno, cu.Cname AS Cname, ac.ArrangeCo_Clrmname AS Clrm,
                  DATE_FORMAT(TIMESTAMP(STR_TO_DATE(ac.ArrangeCo_date, '%Y-%m-%d'), l.Ltime_begin), '%m-%d %H:%i:%s') AS BeginStr,
                  DATE_FORMAT(TIMESTAMP(STR_TO_DATE(ac.ArrangeCo_date, '%Y-%m-%d'), l.Ltime_end), '%m-%d %H:%i:%s') AS EndStr
                FROM Arrange_Course ac
                JOIN Lesson l ON l.Lno = ac.ArrangeCo_Lno
                JOIN Course co ON co.Cour_no = ac.ArrangeCo_Courno
                JOIN Curricular cu ON cu.Cno = co.Cour_cno
-               WHERE ac.ArrangeCo_Pno IS NOT NULL
-                 AND ac.ArrangeCo_Clrmname IS NOT NULL
-                 AND ac.ArrangeCo_date IS NOT NULL
-                 AND ac.ArrangeCo_Lno IS NOT NULL
+               WHERE ac.ArrangeCo_Pno IS NOT NULL AND ac.ArrangeCo_Clrmname IS NOT NULL
+                 AND ac.ArrangeCo_date IS NOT NULL AND ac.ArrangeCo_Lno IS NOT NULL
                  AND ac.ArrangeCo_status = '待上课'
                  AND TIMESTAMP(STR_TO_DATE(ac.ArrangeCo_date, '%Y-%m-%d'), l.Ltime_begin)
                    BETWEEN DATE_ADD(NOW(), INTERVAL ${r.minutes} MINUTE)
@@ -125,21 +111,15 @@ function initScheduler() {
             }
 
             const [takeRows] = await connection.execute(
-              `SELECT
-                 te.TakingE_Sno AS Uno,
-                 cu.Cname AS Cname,
-                 v.Clrm_name AS Clrm,
+              `SELECT te.TakingE_Sno AS Uno, cu.Cname AS Cname, v.Clrm_name AS Clrm,
                  DATE_FORMAT(v.Occ_begin, '%m-%d %H:%i:%s') AS BeginStr,
                  DATE_FORMAT(v.Occ_end, '%m-%d %H:%i:%s') AS EndStr
                FROM Take_Exam te
-               JOIN View_Classroom_Occupancy v
-                 ON v.Occ_type = '考试'
-                AND v.ArrangeE_ID = te.TakingE_ArrangeEID
+               JOIN View_Classroom_Occupancy v ON v.Occ_type = '考试' AND v.ArrangeE_ID = te.TakingE_ArrangeEID
                JOIN Exam e ON e.Eno = v.Eno
                JOIN Curricular cu ON cu.Cno = e.E_cno
                WHERE te.TakingE_Status = '等待开考'
-                 AND v.Occ_begin
-                   BETWEEN DATE_ADD(NOW(), INTERVAL ${r.minutes} MINUTE)
+                 AND v.Occ_begin BETWEEN DATE_ADD(NOW(), INTERVAL ${r.minutes} MINUTE)
                    AND DATE_ADD(DATE_ADD(NOW(), INTERVAL ${r.minutes} MINUTE), INTERVAL 2 MINUTE)`
             );
 
@@ -149,21 +129,15 @@ function initScheduler() {
             }
 
             const [invRows] = await connection.execute(
-              `SELECT
-                 iv.Invigilate_Pno AS Uno,
-                 cu.Cname AS Cname,
-                 v.Clrm_name AS Clrm,
+              `SELECT iv.Invigilate_Pno AS Uno, cu.Cname AS Cname, v.Clrm_name AS Clrm,
                  DATE_FORMAT(v.Occ_begin, '%m-%d %H:%i:%s') AS BeginStr,
                  DATE_FORMAT(v.Occ_end, '%m-%d %H:%i:%s') AS EndStr
                FROM Invigilate iv
-               JOIN View_Classroom_Occupancy v
-                 ON v.Occ_type = '考试'
-                AND v.ArrangeE_ID = iv.Invigilate_ArrangeEID
+               JOIN View_Classroom_Occupancy v ON v.Occ_type = '考试' AND v.ArrangeE_ID = iv.Invigilate_ArrangeEID
                JOIN Exam e ON e.Eno = v.Eno
                JOIN Curricular cu ON cu.Cno = e.E_cno
                WHERE iv.Invigilate_Status = '等待开始'
-                 AND v.Occ_begin
-                   BETWEEN DATE_ADD(NOW(), INTERVAL ${r.minutes} MINUTE)
+                 AND v.Occ_begin BETWEEN DATE_ADD(NOW(), INTERVAL ${r.minutes} MINUTE)
                    AND DATE_ADD(DATE_ADD(NOW(), INTERVAL ${r.minutes} MINUTE), INTERVAL 2 MINUTE)`
             );
 
@@ -181,12 +155,13 @@ function initScheduler() {
     }
   }, 120000);
 
+  // 自动注销超时在线用户
   setInterval(async () => {
     try {
       const TEN_MINUTES_AGO = new Date(Date.now() - 10 * 60 * 1000);
 
       const [rows] = await db.execute(
-        "SELECT Uno FROM User WHERE Ustatus = '在线' AND Ulasttrytime < ?",
+        "SELECT Uno FROM User WHERE Uno <> 'O000000000' AND Ustatus = '在线' AND Ulasttrytime < ?",
         [TEN_MINUTES_AGO]
       );
 
@@ -207,10 +182,22 @@ function initScheduler() {
     }
   }, 30000);
 
+  // 定期清理 DBAdmin 不活跃会话
+  setInterval(() => {
+    try {
+      const cleaned = dbadminAuth.cleanInactiveSessions(60);
+      if (cleaned > 0) {
+        console.log(`[DBAdmin-AutoLogout] 已清理 ${cleaned} 个不活跃 DBAdmin 会话`);
+      }
+    } catch (err) {
+      console.error('[DBAdmin-AutoLogout] Error:', err);
+    }
+  }, 120000);
+
   const gracefulShutdown = async () => {
     console.log('\n[Server] Shutting down...');
     try {
-      const [result] = await db.execute("UPDATE User SET Ustatus = '离线' WHERE Ustatus = '在线'");
+      const [result] = await db.execute("UPDATE User SET Ustatus = '离线' WHERE Uno <> 'O000000000' AND Ustatus = '在线'");
       console.log(`[Server] Set ${result.affectedRows} users to offline.`);
     } catch (err) {
       console.error('[Server] Error updating user status:', err);

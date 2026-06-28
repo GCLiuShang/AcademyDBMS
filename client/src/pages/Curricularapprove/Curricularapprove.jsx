@@ -5,6 +5,7 @@ import Table from '../../components/Table/Table';
 import Details from '../../components/Details/Details';
 import { getCurrentUserFromStorage } from '../../utils/userSession';
 import './Curricularapprove.css';
+import { notify } from '../../utils/notify';
 
 const Curricularapprove = () => {
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ const Curricularapprove = () => {
 
     const initView = async () => {
       try {
-        const res = await fetch('/api/curricularapprove/view/init', {
+        const res = await fetch('/api/academy/curricularapprove/view/init', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({}),
@@ -67,7 +68,7 @@ const Curricularapprove = () => {
     return () => {
       const currentUser = userInfoRef.current;
       if (!currentUser?.Uno) return;
-      fetch('/api/curricularapprove/view/cleanup', {
+      fetch('/api/academy/curricularapprove/view/cleanup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
@@ -91,7 +92,7 @@ const Curricularapprove = () => {
         }, {}),
       });
 
-      const res = await fetch(`/api/common/table/list?${params.toString()}`);
+      const res = await fetch(`/api/academy/common/table/list?${params.toString()}`);
       const json = await res.json();
       if (json.success) {
         setData(json.data || []);
@@ -120,7 +121,7 @@ const Curricularapprove = () => {
       if (!row?.ApplyID) return;
       if (!window.confirm('确定通过该申请吗？')) return;
       try {
-        const res = await fetch('/api/curricularapprove/pass', {
+        const res = await fetch('/api/academy/curricularapprove/pass', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ applyId: row.ApplyID }),
@@ -129,10 +130,10 @@ const Curricularapprove = () => {
         if (json.success) {
           fetchData();
         } else {
-          alert(json.message || '通过失败');
+          notify(json.message || '通过失败');
         }
       } catch {
-        alert('通过失败');
+        notify('通过失败');
       }
     },
     [fetchData, userInfo?.Uno]

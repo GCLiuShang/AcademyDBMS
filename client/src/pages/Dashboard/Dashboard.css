@@ -2,113 +2,121 @@
   width: 100%;
   height: 100%;
   display: flex;
-  flex-direction: row; /* Horizontally stacked 4 main columns */
-  gap: 20px; /* Gap between columns */
+  flex-direction: row;
+  gap: var(--ac-space-2xl);
+  padding: var(--ac-space-xs) 0;
 }
 
-/* Main Columns: 4 items, each 25% width */
+/* 4 列布局 */
 .dashboard-main-col {
-  width: 25%;
+  flex: 1;
+  min-width: 0;
   height: 100%;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column; /* Vertical stack for sub-containers */
-  gap: 20px; /* Gap between sub-containers */
-}
-
-/* Empty container styling */
-.empty-main-container {
-  width: 100%;
-  height: 100%;
-  border: 2px dashed #ccc;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #888;
-}
-
-/* Sub-Containers inside Main Column */
-/* "Message" column has 2 sub-containers, height 50% each */
-.dashboard-sub-wrapper {
-  width: 100%;
-  height: 50%; /* "Strictly equal division" -> 50% height */
-}
-
-/* Sub-Container Styling (Visual Box) */
-.dashboard-sub-container {
-  width: 100%;
-  height: 100%;
-  border: 2px solid #00489B;
-  border-radius: 16px; /* Rounded rectangle */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Ensure bars stay inside radius */
-  background-color: transparent;
+  gap: var(--ac-space-2xl);
 }
 
-/* Top and Bottom Bars */
-.sub-header, .sub-footer {
+/* Sub-Container 卡片 */
+.dashboard-sub-wrapper {
   width: 100%;
-  height: 32px; /* Fixed height for bars */
-  background-color: #E0E0E0; /* Grey fill */
+  flex: 1;
+  min-height: 0;
+}
+
+.dashboard-sub-container {
+  width: 100%;
+  height: 100%;
+  background: var(--ac-white);
+  border-radius: var(--ac-radius-xl);
+  box-shadow: var(--ac-shadow-sm);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  transition: box-shadow var(--ac-duration-normal) var(--ac-ease-default),
+              transform var(--ac-duration-normal) var(--ac-ease-spring);
+}
+
+.dashboard-sub-container:hover {
+  box-shadow: var(--ac-shadow-md);
+  transform: translateY(-1px);
+}
+
+/* 左上角彩色装饰条 */
+.dashboard-sub-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--ac-gradient-primary);
+  z-index: 1;
+}
+
+/* Header */
+.sub-header {
+  width: 100%;
+  padding: var(--ac-space-lg) var(--ac-space-xl) var(--ac-space-sm);
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  padding: 0 10px;
+  justify-content: space-between;
   box-sizing: border-box;
+  position: relative;
 }
 
-.sub-header {
-  justify-content: center; /* Center title? User didn't specify, assuming center or left */
-  font-weight: bold;
-  color: #333;
+.sub-title {
+  font-size: var(--ac-font-md);
+  font-weight: 700;
+  color: var(--ac-text-strong);
+  letter-spacing: 0.3px;
 }
 
-.sub-footer {
-  justify-content: flex-end; /* Button on right */
+.sub-arrow {
+  font-size: var(--ac-font-xl);
+  color: var(--ac-text-tertiary);
+  transition: transform var(--ac-duration-fast) var(--ac-ease-spring);
 }
 
-.more-btn {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.sub-header:hover .sub-arrow {
+  transform: translateX(4px);
+  color: var(--ac-primary);
+}
 }
 
-.more-btn img {
-  width: 20px;
-  height: 20px;
+.sub-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: var(--ac-space-xl);
+  right: var(--ac-space-xl);
+  height: 1px;
+  background: var(--ac-border-lighter);
 }
 
-/* Middle Content Area */
+/* Footer */
+.sub-footer { display: none; }
+
 .sub-content {
   flex: 1;
   width: 100%;
   overflow: hidden;
   position: relative;
-  background-color: white; /* Or transparent? User said container no fill, but content might need bg */
+  background: transparent;
 }
 
-/* Message List Styling */
+/* 消息列表 */
 .message-list-container {
   width: 100%;
   height: 100%;
-  overflow-y: auto; /* Right scrollbar */
-  padding: 5px 10px;
+  overflow-y: auto;
+  padding: var(--ac-space-sm) var(--ac-space-xl);
   box-sizing: border-box;
 }
 
-/* Fixed 8 rows requirement */
-/* If we want strict 8 rows, we can use grid or fixed heights. 
-   Assuming the list is just a list for now, but user said "Divided into fixed 8 rows".
-   Let's try to enforce line height based on container height? 
-   Or just fixed height items.
-*/
 .message-list {
   display: flex;
   flex-direction: column;
@@ -118,19 +126,43 @@
 .message-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: var(--ac-space-md);
   width: 100%;
-  height: 30px; /* Adjust based on available height? */
-  border-bottom: 1px solid #f0f0f0;
-  font-size: 14px;
-  color: #333;
+  padding: var(--ac-space-sm) var(--ac-space-xs);
+  border-bottom: 1px solid var(--ac-border-lighter);
+  font-size: var(--ac-font-sm);
+  color: var(--ac-text-primary);
+  cursor: pointer;
+  border-radius: var(--ac-radius-sm);
+  transition: background var(--ac-duration-fast), transform var(--ac-duration-fast);
+  position: relative;
+}
+
+/* 未读指示圆点 */
+.message-item::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ac-primary);
+  flex-shrink: 0;
+  opacity: 0.25;
+}
+
+/* 模拟首条未读 */
+.message-item:first-child::before {
+  opacity: 1;
+}
+
+.message-item:hover {
+  background: var(--ac-bg);
 }
 
 .msg-left {
   flex: 0 0 auto;
-  margin-right: 10px;
-  font-weight: 500;
-  color: #00489B;
+  font-weight: 600;
+  color: var(--ac-primary);
+  font-size: var(--ac-font-xs);
 }
 
 .msg-center {
@@ -139,23 +171,45 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: #555;
+  color: var(--ac-text-secondary);
+  font-size: var(--ac-font-xs);
 }
 
 .msg-right {
   flex: 0 0 auto;
-  margin-left: 10px;
-  font-size: 12px;
-  color: #888;
+  font-size: var(--ac-font-xs);
+  color: var(--ac-text-tertiary);
+  white-space: nowrap;
 }
 
-.placeholder-text {
-  width: 100%;
-  height: 100%;
+/* 空消息 */
+.empty-message {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #999;
+  height: 100%;
+  color: var(--ac-text-disabled);
+  font-size: var(--ac-font-sm);
+  font-weight: 400;
+}
+
+.empty-main-container {
+  width: 100%;
+  height: 100%;
+  border: 1.5px dashed var(--ac-border);
+  border-radius: var(--ac-radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ac-text-tertiary);
+  font-size: var(--ac-font-sm);
+  background: var(--ac-white);
+  transition: border-color var(--ac-duration-fast), background var(--ac-duration-fast);
+}
+
+.empty-main-container:hover {
+  border-color: var(--ac-primary-alpha-20);
+  background: var(--ac-primary-subtle);
 }
 
 .feature-list-container {
@@ -173,11 +227,40 @@
 
 .feature-row {
   width: 100%;
-  height: 20%;
-  flex: 0 0 20%;
+  flex: 1;
   display: flex;
   box-sizing: border-box;
-  border-bottom: 1px solid #d0d0d0;
+  border-bottom: 1px solid var(--ac-border-lighter);
+  cursor: pointer;
+  transition: background var(--ac-duration-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-row:last-child {
+  border-bottom: none;
+}
+
+.feature-row:hover {
+  background: var(--ac-primary-subtle);
+}
+
+/* 底部滑入指示线 */
+.feature-row::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--ac-gradient-primary);
+  border-radius: 1px;
+  transition: all var(--ac-duration-normal) var(--ac-ease-enter);
+  transform: translateX(-50%);
+}
+
+.feature-row:hover::after {
+  width: 80%;
 }
 
 .feature-icon-area {
@@ -189,46 +272,62 @@
 }
 
 .feature-icon {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
+  transition: transform var(--ac-duration-normal) var(--ac-ease-spring);
+}
+
+.feature-row:hover .feature-icon {
+  transform: scale(1.15);
 }
 
 .feature-text-area {
   width: 50%;
   height: 100%;
   position: relative;
-  padding: 8px 8px 8px 0;
+  padding: var(--ac-space-sm) var(--ac-space-sm) var(--ac-space-sm) 0;
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
 }
 
 .feature-title {
   font-weight: 700;
-  color: #00489B;
-  font-size: 21px;
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 8px;
-  transform: translateY(-50%);
+  color: var(--ac-text-strong);
+  font-size: var(--ac-font-lg);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: color var(--ac-duration-fast);
 }
 
-.feature-more-btn {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.feature-row:hover .feature-title {
+  color: var(--ac-primary);
+}
+
+.feature-arrow {
   position: absolute;
-  bottom: 6px;
-  right: 6px;
+  right: var(--ac-space-md);
+  font-size: var(--ac-font-xl);
+  color: var(--ac-text-tertiary);
+  opacity: 0;
+  transition: opacity var(--ac-duration-fast), transform var(--ac-duration-fast);
 }
 
-.feature-more-btn img {
-  width: 20px;
-  height: 20px;
+.feature-row:hover .feature-arrow {
+  opacity: 1;
+  transform: translateX(4px);
+  color: var(--ac-primary);
+}
+
+@media (max-width: 1200px) {
+  .dashboard-content { flex-wrap: wrap; }
+  .dashboard-main-col { flex: 1 1 calc(50% - var(--ac-space-2xl)); min-height: 200px; }
+  .feature-title { font-size: var(--ac-font-md); }
+}
+
+@media (max-width: 768px) {
+  .dashboard-main-col { flex: 1 1 100%; }
+  .feature-icon { width: 32px; height: 32px; }
+  .feature-title { font-size: var(--ac-font-sm); }
 }

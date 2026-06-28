@@ -12,7 +12,4 @@ async function getNextSequenceNumber(connection, tableName, numberColumn, condit
   return maxNum === null ? 0 : Number(maxNum) + 1;
 }
 
-module.exports = {
-  getNextSequenceNumber,
-};
-
+module.exports = { getNextSequenceNumber };

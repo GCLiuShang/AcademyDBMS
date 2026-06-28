@@ -65,8 +65,18 @@ router.get('/account/info', async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
+    // 检查最近1小时内是否被踢下线
+    const [kickRows] = await db.execute(`
+      SELECT 1 FROM Msg_Receive MR
+      JOIN Message M ON MR.Msg_no = M.Msg_no
+      WHERE MR.Receive_Uno = ?
+        AND M.Msg_content LIKE '%已在另一处登录%'
+        AND MR.Receive_time > DATE_SUB(NOW(), INTERVAL 1 HOUR)
+      LIMIT 1
+    `, [uno]);
+
     const data = await getUserProfileByRole(uno, user.Urole);
-    return res.json({ success: true, role: user.Urole, data });
+    return res.json({ success: true, role: user.Urole, data, recentlyKicked: kickRows.length > 0 });
   } catch (error) {
     console.error('Error fetching account info:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
@@ -190,14 +200,11 @@ router.post('/useradd/submit', authorize(['学校教务处管理员']), async (r
     sex,
     year,
     deptNo,
-    domNo,
     className,
     title,
     office,
     password,
   } = req.body;
-
-  const uno = req.user && req.user.Uno ? String(req.user.Uno) : '';
 
   if (!userType || !name || !year || !password) {
     return res.status(400).json({ success: false, message: 'Missing parameters' });

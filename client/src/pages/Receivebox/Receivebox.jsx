@@ -51,7 +51,7 @@ const Receivebox = () => {
 
     const initView = async () => {
       try {
-        const res = await fetch('/api/receivebox/view/init', { method: 'POST' });
+        const res = await fetch('/api/academy/receivebox/view/init', { method: 'POST' });
         const json = await res.json();
         if (json.success) {
           setViewName(json.viewName);
@@ -70,7 +70,7 @@ const Receivebox = () => {
       if (currentUserInfo && currentUserInfo.Uno) {
           // Use sendBeacon for more reliable cleanup on unload, or fetch with keepalive (if supported)
           // But standard fetch is fine for component unmount
-          fetch('/api/receivebox/view/cleanup', { method: 'POST' }).catch(console.error);
+          fetch('/api/academy/receivebox/view/cleanup', { method: 'POST' }).catch(console.error);
       }
     };
   }, [userInfo]); // Only re-run if Uno changes
@@ -90,7 +90,7 @@ const Receivebox = () => {
         }, {})
       });
 
-      const res = await fetch(`/api/common/table/list?${params}`);
+      const res = await fetch(`/api/academy/common/table/list?${params}`);
       const json = await res.json();
       if (json.success) {
         setData(json.data);
@@ -133,7 +133,7 @@ const Receivebox = () => {
       missing.map(async (uno) => {
         try {
           const params = new URLSearchParams({ q: String(uno), limit: '1' });
-          const res = await fetch(`/api/users/search?${params.toString()}`);
+          const res = await fetch(`/api/academy/users/search?${params.toString()}`);
           const json = await res.json();
           const row = Array.isArray(json?.data) ? json.data[0] : null;
           if (json?.success && row?.Urole) return [uno, row.Urole];
@@ -180,7 +180,7 @@ const Receivebox = () => {
         limit: 1,
         search_Msg_no: row.Msg_no,
       });
-      const res = await fetch(`/api/common/table/list?${params.toString()}`);
+      const res = await fetch(`/api/academy/common/table/list?${params.toString()}`);
       const json = await res.json();
       if (json.success && Array.isArray(json.data) && json.data.length > 0) {
         setDetailsMeta(json.data[0]);
@@ -197,7 +197,7 @@ const Receivebox = () => {
   const handleDelete = async (row) => {
     if (!window.confirm('确定删除该消息吗？')) return;
     try {
-      const res = await fetch('/api/messages/delete', {
+      const res = await fetch('/api/academy/messages/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ msg_no: row.Msg_no, type: 'received' })
@@ -257,11 +257,13 @@ const Receivebox = () => {
            <div className="receivebox-details-title">
              <div className="receivebox-details-sender">{detailsRow?.SenderName || ''}</div>
              <div className="receivebox-details-meta">
-               <div className="receivebox-details-time">
+               <span className="receivebox-details-time">
                  {detailsRow?.Send_time ? formatDateTime(detailsRow.Send_time) : ''}
-               </div>
-               <div className="receivebox-details-category">{detailsMeta?.Msg_category || ''}</div>
-               <div className="receivebox-details-priority">{detailsMeta?.Msg_priority || ''}</div>
+               </span>
+               <span className="details-tag-category">{detailsMeta?.Msg_category || ''}</span>
+               <span className={`details-tag-priority ${detailsMeta?.Msg_priority === '重要' ? 'important' : 'normal'}`}>
+                 {detailsMeta?.Msg_priority || '普通'}
+               </span>
              </div>
            </div>
          }

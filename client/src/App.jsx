@@ -22,8 +22,10 @@ import Examarrange from './pages/Examarrange/Examarrange';
 import Enroll from './pages/Enroll/Enroll';
 import Control from './pages/Control/Control';
 import TrainingprogramEdit from './pages/TrainingprogramEdit/TrainingprogramEdit';
+import DBAdmin from './pages/DBAdmin/DBAdmin';
 import AIChat from './components/AIChat/AIChat';
 import { AIChatProvider } from './components/AIChat/AIChatContext';
+import AuthGuard from './components/Auth/AuthGuard';
 
 function AIChatGate() {
   const location = useLocation();
@@ -33,41 +35,45 @@ function AIChatGate() {
 
 function App() {
   return (
-    <BreadcrumbProvider>
-      <Router>
+      <Router unstable_useTransitions={false}>
+        <BreadcrumbProvider>
         <AIChatProvider>
           <AIChatGate />
           <Routes>
             <Route path="/login" element={<Login />} />
-            
-            <Route path="/student/dashboard" element={<StudentDashboard />} />
-            <Route path="/professor/dashboard" element={<ProfessorDashboard />} />
-            <Route path="/dept/dashboard" element={<DeptAdmDashboard />} />
-            <Route path="/admin/dashboard" element={<UnivAdmDashboard />} />
-            
-            <Route path="/receivebox" element={<Receivebox />} />
-            <Route path="/sendbox" element={<Sendbox />} />
-            <Route path="/rubbishbox" element={<Rubbishbox />} />
-            <Route path="/editmessage" element={<EditMessage />} />
-            <Route path="/accountsettings" element={<Accountsettings />} />
-            <Route path="/curricularapply" element={<Curricularapply />} />
-            <Route path="/curricularapprove" element={<Curricularapprove />} />
-            <Route path="/courseapply" element={<Courseapply />} />
-            <Route path="/gradeinput" element={<Gradeinput />} />
-            <Route path="/examapply" element={<Examapply />} />
-            <Route path="/arrange" element={<Arrange />} />
-            <Route path="/courseajust" element={<Courseajust />} />
-            <Route path="/useradd" element={<Useradd />} />
-            <Route path="/examarrange" element={<Examarrange />} />
-            <Route path="/enroll" element={<Enroll />} />
-            <Route path="/control" element={<Control />} />
-            <Route path="/trainingprogramedit" element={<TrainingprogramEdit />} />
+
+            {/* 受保护的路由 — 使用 AuthGuard 布局路由 */}
+            <Route element={<AuthGuard />}>
+              <Route path="/student/dashboard" element={<StudentDashboard />} />
+              <Route path="/professor/dashboard" element={<ProfessorDashboard />} />
+              <Route path="/dept/dashboard" element={<DeptAdmDashboard />} />
+              <Route path="/admin/dashboard" element={<UnivAdmDashboard />} />
+
+              <Route path="/receivebox" element={<Receivebox />} />
+              <Route path="/sendbox" element={<Sendbox />} />
+              <Route path="/rubbishbox" element={<Rubbishbox />} />
+              <Route path="/editmessage" element={<EditMessage />} />
+              <Route path="/accountsettings" element={<Accountsettings />} />
+              <Route path="/curricularapply" element={<Curricularapply />} />
+              <Route path="/curricularapprove" element={<Curricularapprove />} />
+              <Route path="/courseapply" element={<Courseapply />} />
+              <Route path="/gradeinput" element={<Gradeinput />} />
+              <Route path="/examapply" element={<Examapply />} />
+              <Route path="/arrange" element={<Arrange />} />
+              <Route path="/courseajust" element={<Courseajust />} />
+              <Route path="/useradd" element={<Useradd />} />
+              <Route path="/examarrange" element={<Examarrange />} />
+              <Route path="/enroll" element={<Enroll />} />
+              <Route path="/control" element={<Control />} />
+              <Route path="/trainingprogramedit" element={<TrainingprogramEdit />} />
+              <Route path="/dbadmin" element={<DBAdmin />} />
+            </Route>
 
             <Route path="/" element={<Navigate to="/login" replace />} />
           </Routes>
         </AIChatProvider>
+        </BreadcrumbProvider>
       </Router>
-    </BreadcrumbProvider>
   );
 }
 

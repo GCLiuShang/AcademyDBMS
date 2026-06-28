@@ -7,28 +7,10 @@ const router = express.Router();
 router.use(requireAuth);
 
 router.post('/ai/chat', async (req, res) => {
-  const {
-    prompt,
-    system,
-    messages,
-    userRole,
-    urole,
-    model,
-    timeoutMs,
-    retries,
-    includeRaw,
-  } = req.body || {};
+  const { prompt, system, messages, userRole, urole, model, timeoutMs, retries, includeRaw } = req.body || {};
 
   try {
-    const result = await chat({
-      prompt,
-      system,
-      messages,
-      userRole: userRole || urole,
-      model,
-      timeoutMs,
-      retries,
-    });
+    const result = await chat({ prompt, system, messages, userRole: userRole || urole, model, timeoutMs, retries });
 
     const data = { content: result.content, model: result.model };
     if (includeRaw === true) data.raw = result.upstream?.json || result.upstream?.text || null;
@@ -55,4 +37,3 @@ router.post('/ai/chat', async (req, res) => {
 });
 
 module.exports = router;
-

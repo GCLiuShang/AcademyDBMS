@@ -3,49 +3,58 @@
   height: 100%;
   display: flex;
   flex-direction: row;
-  /* Ensure strict 4:1 ratio for width */
+  gap: var(--ac-space-2xl);
 }
 
 .receivebox-left {
-  width: 80%;
+  flex: 1;
+  min-width: 0;
   height: 100%;
-  padding-right: 20px; /* Optional spacing */
-  box-sizing: border-box;
 }
 
 .receivebox-right {
-  width: 20%;
-  height: 100%;
+  width: 200px;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  /* Trash bin doesn't necessarily fill height, but is in this column */
-  /* User said "Trash bin container...". Let's assume it's the main thing in this column. */
+  gap: var(--ac-space-lg);
+  justify-content: center;
 }
 
+/* 快捷入口卡片 */
 .trash-bin {
   width: 100%;
-  /* Height is not specified strictly, but "上方...中间...下方" implies enough space. */
-  /* Let's make it 300px or proportional. */
-  height: 300px; 
-  border: 2px solid #00489B;
-  border-radius: 16px;
-  background-color: transparent;
+  height: 180px;
+  background: var(--ac-white);
+  border-radius: var(--ac-radius-xl);
+  box-shadow: var(--ac-shadow-sm);
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
-  padding: 20px;
+  padding: var(--ac-space-xl);
   box-sizing: border-box;
+  transition: box-shadow var(--ac-duration-normal), transform var(--ac-duration-normal);
+  cursor: pointer;
+}
+
+.trash-bin:hover {
+  box-shadow: var(--ac-shadow-md);
+  transform: translateY(-2px);
 }
 
 .trash-icon {
-  margin-top: 10px;
+  margin-top: var(--ac-space-sm);
 }
 
 .trash-icon img {
-  width: 64px;
-  height: 64px;
+  width: 48px;
+  height: 48px;
+  transition: transform var(--ac-duration-normal) var(--ac-ease-spring);
+}
+
+.trash-bin:hover .trash-icon img {
+  transform: scale(1.1);
 }
 
 .trash-text {
@@ -53,39 +62,40 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  font-weight: bold;
-  color: black;
+  font-size: var(--ac-font-lg);
+  font-weight: 600;
+  color: var(--ac-text-strong);
 }
 
 .trash-arrow {
   position: absolute;
-  bottom: 15px;
-  right: 15px;
+  bottom: var(--ac-space-md);
+  right: var(--ac-space-md);
   cursor: pointer;
-  /* Animation for "Forward" implies it might move or be an arrow */
+  opacity: 0.5;
+  transition: opacity var(--ac-duration-fast);
 }
 
-/* Simple hover animation for the arrow */
 .trash-arrow:hover {
+  opacity: 1;
   animation: moveRight 1s infinite;
 }
 
 @keyframes moveRight {
   0% { transform: translateX(0); }
-  50% { transform: translateX(5px); }
+  50% { transform: translateX(4px); }
   100% { transform: translateX(0); }
 }
 
 .trash-arrow img {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
 }
 
-/* Operation Buttons in Table */
+/* 表格操作按钮 */
 .operation-btns {
   display: flex;
-  gap: 8px;
+  gap: var(--ac-space-sm);
   justify-content: center;
   align-items: center;
 }
@@ -94,22 +104,26 @@
   background: none;
   border: none;
   cursor: pointer;
-  padding: 4px;
+  padding: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 0.2s;
+  border-radius: var(--ac-radius-sm);
+  color: var(--ac-text-tertiary);
+  transition: all var(--ac-duration-fast);
 }
 
 .icon-btn:hover {
-  opacity: 0.7;
+  color: var(--ac-primary);
+  background: var(--ac-primary-subtle);
 }
 
 .icon-btn img {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
+/* 详情面板 */
 .receivebox-details-title {
   display: flex;
   flex-direction: column;
@@ -118,7 +132,7 @@
 }
 
 .receivebox-details-sender {
-  font-size: 18px;
+  font-size: var(--ac-font-xl);
   font-weight: 700;
   line-height: 1.1;
   overflow: hidden;
@@ -129,29 +143,33 @@
 .receivebox-details-meta {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  font-size: 12px;
-  font-weight: 600;
+  gap: var(--ac-space-md);
+  font-size: var(--ac-font-xs);
+  font-weight: 500;
+  color: var(--ac-text-tertiary);
 }
 
 .receivebox-details-time {
   flex: 1;
   min-width: 0;
-  opacity: 0.85;
 }
 
-.receivebox-details-category {
-  flex: 0 0 auto;
-  opacity: 0.85;
-}
-
+.receivebox-details-category,
 .receivebox-details-priority {
-  flex: 0 0 auto;
-  opacity: 0.85;
+  padding: 2px 8px;
+  border-radius: var(--ac-radius-full);
+  background: var(--ac-bg);
 }
 
 .receivebox-details-content {
   white-space: pre-wrap;
-  line-height: 1.6;
+  line-height: 1.7;
+  color: var(--ac-text-primary);
+  font-size: var(--ac-font-md);
+}
+
+@media (max-width: 768px) {
+  .receivebox-container { flex-direction: column; }
+  .receivebox-right { width: 100%; flex-direction: row; }
+  .trash-bin { height: 120px; }
 }

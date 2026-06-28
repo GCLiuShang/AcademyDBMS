@@ -77,7 +77,7 @@ const Examarrange = () => {
     async (query) => {
       if (!userInfoRef.current?.Uno) return [];
       const body = { query };
-      const res = await fetch(`${API_BASE}/api/examarrange/exam/search`, {
+      const res = await fetch(`${API_BASE}/api/academy/examarrange/exam/search`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -93,7 +93,7 @@ const Examarrange = () => {
     async (query) => {
       if (!userInfoRef.current?.Uno) return [];
       const body = { query };
-      const res = await fetch(`${API_BASE}/api/examarrange/prof/search`, {
+      const res = await fetch(`${API_BASE}/api/academy/examarrange/prof/search`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -155,7 +155,7 @@ const Examarrange = () => {
     async (eno) => {
       if (!userInfoRef.current?.Uno) return;
       try {
-        const res = await fetch(`${API_BASE}/api/examarrange/exam/details`, {
+        const res = await fetch(`${API_BASE}/api/academy/examarrange/exam/details`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ eno }),
@@ -216,7 +216,7 @@ const Examarrange = () => {
       if (studentsSearchParams.Sno) {
         body.search = studentsSearchParams.Sno;
       }
-      const res = await fetch(`${API_BASE}/api/examarrange/students`, {
+      const res = await fetch(`${API_BASE}/api/academy/examarrange/students`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -246,7 +246,7 @@ const Examarrange = () => {
       if (!userInfo?.Uno) return;
       if (!selectedExam?.Eno) return;
       try {
-        const res = await fetch(`${API_BASE}/api/examarrange/invigilate/save`, {
+        const res = await fetch(`${API_BASE}/api/academy/examarrange/invigilate/save`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -288,7 +288,7 @@ const Examarrange = () => {
     if (!userInfo?.Uno) return;
     if (!arrangeId) return;
     try {
-      const res = await fetch(`${API_BASE}/api/examarrange/arrange`, {
+      const res = await fetch(`${API_BASE}/api/academy/examarrange/arrange`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ arrangeId }),

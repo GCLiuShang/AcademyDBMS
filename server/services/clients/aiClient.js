@@ -1,26 +1,12 @@
 const https = require('https');
-const fs = require('fs');
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function readSecretFile(filePath) {
-  const p = typeof filePath === 'string' ? filePath.trim() : '';
-  if (!p) return '';
-  try {
-    const content = fs.readFileSync(p, 'utf8');
-    return typeof content === 'string' ? content.trim() : '';
-  } catch {
-    return '';
-  }
-}
-
 function getEnvString(key, fallbackKeys = []) {
   const keys = [key, ...fallbackKeys];
   for (const k of keys) {
-    const fileValue = readSecretFile(process.env[`${k}_FILE`]);
-    if (fileValue) return fileValue;
     const v = process.env[k];
     if (typeof v === 'string' && v.trim()) return v.trim();
   }
@@ -66,10 +52,7 @@ function postJson(urlString, headers, jsonBody, { timeoutMs, insecureTls } = {})
       port: url.port || (url.protocol === 'https:' ? 443 : 80),
       path: `${url.pathname}${url.search}`,
       method: 'POST',
-      headers: {
-        ...headers,
-        'Content-Length': Buffer.byteLength(payload),
-      },
+      headers: { ...headers, 'Content-Length': Buffer.byteLength(payload) },
       rejectUnauthorized: !insecureTls,
     };
 
@@ -78,11 +61,7 @@ function postJson(urlString, headers, jsonBody, { timeoutMs, insecureTls } = {})
       res.on('data', (d) => chunks.push(d));
       res.on('end', () => {
         const text = Buffer.concat(chunks).toString('utf8');
-        resolve({
-          status: res.statusCode || 0,
-          headers: res.headers || {},
-          text,
-        });
+        resolve({ status: res.statusCode || 0, headers: res.headers || {}, text });
       });
     });
 
@@ -97,12 +76,7 @@ function postJson(urlString, headers, jsonBody, { timeoutMs, insecureTls } = {})
   });
 }
 
-async function chatCompletions({
-  messages,
-  model,
-  timeoutMs,
-  retries,
-} = {}) {
+async function chatCompletions({ messages, model, timeoutMs, retries } = {}) {
   const api = getEnvString('AI_API', ['API', 'MAAS_API']);
   const apiKey = getEnvString('AI_API_KEY', ['API_KEY', 'MAAS_API_KEY']);
   const resolvedModel = model || getEnvString('AI_MODEL', ['MODEL']);
@@ -117,11 +91,7 @@ async function chatCompletions({
   if (!api || !apiKey || !resolvedModel) {
     const err = new Error('Missing AI env config');
     err.code = 'AI_MISSING_ENV';
-    err.details = {
-      hasAPI: Boolean(api),
-      hasAPIKey: Boolean(apiKey),
-      hasModel: Boolean(resolvedModel),
-    };
+    err.details = { hasAPI: Boolean(api), hasAPIKey: Boolean(apiKey), hasModel: Boolean(resolvedModel) };
     throw err;
   }
   if (!Array.isArray(messages) || messages.length === 0) {
@@ -130,32 +100,17 @@ async function chatCompletions({
     throw err;
   }
 
-  const headers = {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${apiKey}`,
-  };
-
-  const payload = {
-    model: resolvedModel,
-    messages,
-  };
+  const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` };
+  const payload = { model: resolvedModel, messages };
 
   let lastErr = null;
   const maxAttempts = resolvedRetries + 1;
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
-      const res = await postJson(api, headers, payload, {
-        timeoutMs: resolvedTimeoutMs,
-        insecureTls,
-      });
+      const res = await postJson(api, headers, payload, { timeoutMs: resolvedTimeoutMs, insecureTls });
       const json = parseJsonSafe(res.text);
       if (res.status >= 200 && res.status < 300) {
-        return {
-          status: res.status,
-          json,
-          text: res.text,
-          model: resolvedModel,
-        };
+        return { status: res.status, json, text: res.text, model: resolvedModel };
       }
 
       const err = new Error(`Upstream error: HTTP ${res.status}`);
@@ -164,19 +119,13 @@ async function chatCompletions({
       err.upstream = { status: res.status, json, text: res.text };
       if (!isRetryableStatus(res.status) || attempt >= maxAttempts) throw err;
 
-      const backoffMs = Math.min(
-        3000,
-        300 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 100)
-      );
+      const backoffMs = Math.min(3000, 300 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 100));
       await sleep(backoffMs);
     } catch (err) {
       lastErr = err;
       if (!isRetryableError(err) || attempt >= maxAttempts) throw err;
 
-      const backoffMs = Math.min(
-        3000,
-        300 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 100)
-      );
+      const backoffMs = Math.min(3000, 300 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 100));
       await sleep(backoffMs);
     }
   }
@@ -184,7 +133,4 @@ async function chatCompletions({
   throw lastErr || new Error('Unknown AI error');
 }
 
-module.exports = {
-  chatCompletions,
-};
-
+module.exports = { chatCompletions };

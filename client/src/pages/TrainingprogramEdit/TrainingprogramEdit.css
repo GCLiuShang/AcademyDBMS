@@ -15,7 +15,7 @@
 
 .trainingprogramedit-info-box {
   width: 100%;
-  border: 2px solid #00489B;
+  border: 2px solid var(--ac-primary);
   border-radius: 18px;
   display: flex;
   flex-direction: column;
@@ -35,7 +35,7 @@
 .trainingprogramedit-row {
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #CFCFCF;
+  border-bottom: 1px solid var(--ac-border-table);
 }
 
 .trainingprogramedit-row.small {
@@ -65,11 +65,11 @@
   min-width: 0;
   font-size: 14px;
   padding: 8px 10px;
-  border: 1px solid #CFCFCF;
+  border: 1px solid var(--ac-border-table);
   border-radius: 10px;
   outline: none;
   box-sizing: border-box;
-  background: #FFFFFF;
+  background: var(--ac-white);
 }
 
 .trainingprogramedit-latest-wrap {
@@ -85,8 +85,8 @@
   height: 40px;
   border-radius: 12px;
   border: none;
-  background: #00489B;
-  color: #FFFFFF;
+  background: var(--ac-primary);
+  color: var(--ac-white);
   font-weight: bold;
   font-size: 14px;
   cursor: pointer;
@@ -94,7 +94,7 @@
 }
 
 .trainingprogramedit-import:disabled {
-  background: #BFBFBF;
+  background: var(--ac-text-disabled);
   cursor: not-allowed;
 }
 
@@ -114,7 +114,7 @@
   justify-content: space-between;
   cursor: pointer;
   box-sizing: border-box;
-  background: #fff;
+  background: var(--ac-white);
 }
 
 .trainingprogramedit-picker-chips {
@@ -143,7 +143,7 @@
   align-items: center;
   gap: 6px;
   padding: 4px 8px;
-  background: #f0f0f0;
+  background: var(--ac-bg-hover);
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 999px;
   font-size: 12px;
@@ -170,7 +170,7 @@
   top: 52px;
   left: 0;
   right: 0;
-  background: #fff;
+  background: var(--ac-white);
   border: 1px solid rgba(0, 0, 0, 0.2);
   border-radius: 10px;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
@@ -205,7 +205,7 @@
 
 .trainingprogramedit-picker-option {
   border: 1px solid rgba(0, 0, 0, 0.12);
-  background: #f6f6f6;
+  background: var(--ac-bg-secondary);
   border-radius: 8px;
   padding: 8px 10px;
   cursor: pointer;
@@ -248,7 +248,7 @@
 .trainingprogramedit-credit-box {
   width: 100%;
   height: calc(56px * 3);
-  border: 2px solid #00489B;
+  border: 2px solid var(--ac-primary);
   border-radius: 18px;
   display: flex;
   flex-direction: column;
@@ -262,7 +262,7 @@
   flex: 0 0 56px;
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #CFCFCF;
+  border-bottom: 1px solid var(--ac-border-table);
 }
 
 .trainingprogramedit-credit-row:last-child {
@@ -280,7 +280,7 @@
 }
 
 .trainingprogramedit-credit-col + .trainingprogramedit-credit-col {
-  border-left: 1px solid #CFCFCF;
+  border-left: 1px solid var(--ac-border-table);
 }
 
 .trainingprogramedit-right-table {
@@ -308,8 +308,8 @@
   height: 56px;
   border-radius: 18px;
   border: none;
-  background: #00489B;
-  color: #FFFFFF;
+  background: var(--ac-primary);
+  color: var(--ac-white);
   font-weight: bold;
   font-size: 16px;
   cursor: pointer;
@@ -317,7 +317,7 @@
 }
 
 .trainingprogramedit-send:disabled {
-  background: #BFBFBF;
+  background: var(--ac-text-disabled);
   cursor: not-allowed;
 }
 
@@ -357,5 +357,5 @@
   white-space: pre-line;
   font-size: 14px;
   line-height: 1.7;
-  color: #111;
+  color: var(--ac-text-strong);
 }

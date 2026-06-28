@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import MorePageLayout from '../../components/Layout/MorePageLayout';
 import './EditMessage.css';
+import { notify } from '../../utils/notify';
 
 const getCurrentUserFromStorage = () => {
   try {
@@ -15,8 +16,7 @@ const getCurrentUserFromStorage = () => {
         }
       }
     }
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
+    return null;
   } catch {
     return null;
   }
@@ -64,7 +64,7 @@ const EditMessage = () => {
 
   const fetchUsers = useCallback(async (query) => {
     const params = new URLSearchParams({ q: query, limit: 50 });
-    const res = await fetch(`/api/users/search?${params.toString()}`);
+    const res = await fetch(`/api/academy/users/search?${params.toString()}`);
     const json = await res.json();
     if (json.success) return json.data || [];
     return [];
@@ -135,16 +135,16 @@ const EditMessage = () => {
   const handleSend = async () => {
     if (!userInfo) return;
     if (selectedReceivers.length === 0) {
-      alert('请选择至少一个收信人');
+      notify('请选择至少一个收信人');
       return;
     }
     if (msgContent.trim().length === 0) {
-      alert('请输入消息内容');
+      notify('请输入消息内容');
       return;
     }
 
     try {
-      const res = await fetch('/api/messages/send', {
+      const res = await fetch('/api/academy/messages/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -164,13 +164,13 @@ const EditMessage = () => {
         setMsgPriority('一般');
         setWdMsgNo('');
         setMsgContent('');
-        alert('发送成功');
+        notify('发送成功');
       } else {
-        alert(json.message || '发送失败');
+        notify(json.message || '发送失败');
       }
     } catch (err) {
       console.error('Send message error:', err);
-      alert('发送失败');
+      notify('发送失败');
     }
   };
 

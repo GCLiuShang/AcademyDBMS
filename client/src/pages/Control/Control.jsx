@@ -32,12 +32,12 @@ const Control = () => {
     if (user) {
       setUserInfo(user);
     } else {
-      navigate('/login');
+      navigate('/login', { replace: true });
     }
   }, [navigate]);
 
   const handleLogout = () => {
-    navigate('/login');
+    navigate('/login', { replace: true });
   };
 
   const getSystemRole = () => {
@@ -50,7 +50,7 @@ const Control = () => {
       setLoading(true);
       setError('');
       try {
-        const res = await fetch(`${API_BASE}/api/business/status`);
+        const res = await fetch(`${API_BASE}/api/academy/business/status`);
         const json = await res.json();
         if (res.ok && json.success) {
           const curFlag = Boolean(json.curricularOpen);
@@ -87,7 +87,7 @@ const Control = () => {
     setError('');
     setConfirmError('');
     try {
-      const res = await fetch(`${API_BASE}/api/business/control/update`, {
+      const res = await fetch(`${API_BASE}/api/academy/business/control/update`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

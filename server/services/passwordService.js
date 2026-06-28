@@ -24,4 +24,3 @@ module.exports = {
   hashPassword,
   verifyPassword,
 };
-

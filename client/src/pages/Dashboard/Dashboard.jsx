@@ -7,19 +7,12 @@ import './Dashboard.css';
 const SubContainer = ({ title, children, showMore = true, onMoreClick }) => {
   return (
     <div className="dashboard-sub-container">
-      <div className="sub-header">
-        {/* Placeholder for header content if needed, currently just grey bar */}
+      <div className="sub-header" onClick={onMoreClick} style={{ cursor: onMoreClick ? 'pointer' : 'default' }}>
         <span className="sub-title">{title}</span>
+        {onMoreClick && <span className="sub-arrow">›</span>}
       </div>
       <div className="sub-content">
         {children}
-      </div>
-      <div className="sub-footer">
-        {showMore && (
-          <button className="more-btn" onClick={onMoreClick}>
-            <img src="/images/dashboard/more.svg" alt="More" />
-          </button>
-        )}
       </div>
     </div>
   );
@@ -30,19 +23,19 @@ const FeatureList = ({ items = [], onItemMore }) => {
     <div className="feature-list-container">
       <div className="feature-list">
         {items.map((item) => (
-          <div key={item.id} className="feature-row">
+          <div
+            key={item.id}
+            className="feature-row"
+            onClick={() => onItemMore && onItemMore(item)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter') onItemMore && onItemMore(item); }}
+          >
             <div className="feature-icon-area">
               <img className="feature-icon" src={item.icon} alt={item.label} />
             </div>
             <div className="feature-text-area">
               <div className="feature-title">{item.label}</div>
-              <button
-                type="button"
-                className="feature-more-btn"
-                onClick={() => onItemMore && onItemMore(item)}
-              >
-                <img src="/images/dashboard/more.svg" alt="More" />
-              </button>
             </div>
           </div>
         ))}
@@ -51,13 +44,6 @@ const FeatureList = ({ items = [], onItemMore }) => {
   );
 };
 
-/**
- * BaseDashboard Component
- * 
- * Reusable dashboard layout for all roles.
- * 
- * @param {string} systemRole - The role name to display in the Navbar (e.g. "学生", "教授").
- */
 const getCurrentUserFromStorage = () => {
   try {
     const currentUno = sessionStorage.getItem('currentUno');
@@ -70,8 +56,7 @@ const getCurrentUserFromStorage = () => {
         }
       }
     }
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
+    return null;
   } catch {
     return null;
   }
@@ -82,12 +67,12 @@ const BaseDashboard = ({ systemRole, queryItems = [], businessItems = [] }) => {
     const location = useLocation();
   const { setBreadcrumb } = useBreadcrumb();
 
-  // Reset breadcrumb to Home when entering dashboard
+  // 进入仪表盘时重置面包屑为首页
   useEffect(() => {
     setBreadcrumb([{ id: 'dashboard', name: '主页', url: location.pathname }]);
   }, [setBreadcrumb, location.pathname]);
   
-  // State for messages
+  // 状态——消息数组
   const [receivedMessages, setReceivedMessages] = useState([]);
   const [sentMessages, setSentMessages] = useState([]);
 
@@ -97,7 +82,7 @@ const BaseDashboard = ({ systemRole, queryItems = [], businessItems = [] }) => {
         const user = getCurrentUserFromStorage();
         if (!user || !user.Uno) return;
 
-        const response = await fetch('/api/dashboard/messages');
+        const response = await fetch('/api/academy/dashboard/messages');
         const data = await response.json();
         
         if (data.success) {
@@ -112,7 +97,7 @@ const BaseDashboard = ({ systemRole, queryItems = [], businessItems = [] }) => {
     fetchMessages();
   }, []);
 
-  // Format time helper
+  // 格式化时间
   const formatTime = (isoString) => {
     if (!isoString) return '';
     const date = new Date(isoString);
@@ -123,7 +108,6 @@ const BaseDashboard = ({ systemRole, queryItems = [], businessItems = [] }) => {
     return `${mm}-${dd} ${hh}:${min}`;
   };
 
-  // Define the path for Breadcrumb
   const handleLogout = () => {
     navigate('/login');
   };
@@ -136,13 +120,11 @@ const BaseDashboard = ({ systemRole, queryItems = [], businessItems = [] }) => {
     <StandardPageLayout
       systemRole={systemRole}
       onLogout={handleLogout}
-      // path prop removed, handled by Context
     >
       <div className="dashboard-content">
-        
-        {/* 1. Message Column (消息) */}
+        {/* 消息列 */}
         <div className="dashboard-main-col">
-          {/* Receive Box (收信) - Top 50% */}
+          {/* 收信 */}
           <div className="dashboard-sub-wrapper">
             <SubContainer title="收信" onMoreClick={() => navigate('/receivebox')}>
               <div className="message-list-container">
@@ -151,7 +133,14 @@ const BaseDashboard = ({ systemRole, queryItems = [], businessItems = [] }) => {
                     <div className="empty-message">暂无收信</div>
                   ) : (
                     receivedMessages.slice(0, 8).map((msg, index) => (
-                      <div key={msg.Msg_no || index} className="message-item">
+                      <div
+                        key={msg.Msg_no || index}
+                        className="message-item"
+                        onClick={() => navigate('/receivebox')}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter') navigate('/receivebox'); }}
+                      >
                         <div className="msg-left">
                           <span className="msg-sender">
                             {msg.SenderName} ({msg.SenderRole || '未知'})
@@ -171,7 +160,7 @@ const BaseDashboard = ({ systemRole, queryItems = [], businessItems = [] }) => {
             </SubContainer>
           </div>
           
-          {/* Send Box (发信) - Bottom 50% */}
+          {/* 发信 */}
           <div className="dashboard-sub-wrapper">
              <SubContainer title="发信" onMoreClick={() => navigate('/sendbox')}>
                <div className="message-list-container">
@@ -180,7 +169,14 @@ const BaseDashboard = ({ systemRole, queryItems = [], businessItems = [] }) => {
                     <div className="empty-message">暂无发信</div>
                   ) : (
                     sentMessages.slice(0, 8).map((msg, index) => (
-                      <div key={msg.Msg_no || index} className="message-item">
+                      <div
+                        key={msg.Msg_no || index}
+                        className="message-item"
+                        onClick={() => navigate('/sendbox')}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter') navigate('/sendbox'); }}
+                      >
                         <div className="msg-left">
                           <span className="msg-sender">
                             {msg.ReceiverName} ({msg.ReceiverRole || '未知'})
@@ -201,21 +197,21 @@ const BaseDashboard = ({ systemRole, queryItems = [], businessItems = [] }) => {
           </div>
         </div>
 
-        {/* 2. Query Column (查询) */}
+        {/* 查询列 */}
         <div className="dashboard-main-col">
           <SubContainer title="查询" showMore={false}>
             <FeatureList items={queryItems} onItemMore={handleItemMore} />
           </SubContainer>
         </div>
 
-        {/* 3. Business Column (业务) */}
+        {/* 业务列 */}
         <div className="dashboard-main-col">
           <SubContainer title="业务" showMore={false}>
             <FeatureList items={businessItems} onItemMore={handleItemMore} />
           </SubContainer>
         </div>
 
-        {/* 4. View Column (视图) */}
+        {/* 视图列 */}
         <div className="dashboard-main-col">
            <div className="empty-main-container">视图功能区</div>
         </div>

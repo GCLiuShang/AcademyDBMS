@@ -5,61 +5,63 @@ const { requireAuth } = require('../services/sessionService');
 
 const router = express.Router();
 
-router.use(requireAuth);
-
-// 3. 获取新消息 (轮询用)
+// /messages/new 置于 requireAuth 之前，以在被踢/过期场景返回 ACCOUNT_KICKED 而非 UNAUTHENTICATED
 router.get('/messages/new', async (req, res) => {
+  if (req.sessionStatus === 'revoked') {
+    return res.status(401).json({
+      success: false,
+      code: 'ACCOUNT_KICKED',
+      message: '您的账号已在另一处登录，当前会话已断开。若并非您操作，请尽快修改密码。',
+    });
+  }
+
+  if (req.sessionStatus === 'none') {
+    return res.status(401).json({
+      success: false,
+      code: 'SESSION_EXPIRED',
+      message: '会话已过期或已在别处登录',
+    });
+  }
+
+  if (!req.user || !req.user.Uno) {
+    return res.status(401).json({ success: false, code: 'UNAUTHENTICATED', message: 'Unauthenticated' });
+  }
+
   const uno = String(req.user.Uno);
 
   try {
-    // 3.1 刷新活跃时间
     await db.execute('UPDATE User SET Ulasttrytime = NOW() WHERE Uno = ?', [uno]);
 
-    // 3.2 检查会话状态 (超时或被踢)
     const [userRows] = await db.execute('SELECT Ulasttrytime, Ustatus FROM User WHERE Uno = ?', [uno]);
     if (userRows.length > 0) {
       const user = userRows[0];
       const now = new Date();
-      const TEN_MINUTES_MS = 10 * 60 * 1000;
 
+      const KICKED_MSG = '您的账号已在另一处登录，当前会话已断开。若并非您操作，请尽快修改密码。';
       const TIMEOUT_MSG = '您上次操作时意外退出，超时后系统自动注销，为了账号安全请在每次退出前及时注销。';
-      const KICKED_MSG = '您的账号在另一处登录，即将注销登录，若并非您操作请在重新登录后修改密码。';
 
-      // 辅助函数: 检查最近1分钟是否已发送过某消息
       const checkRecentMsg = async (content) => {
         const [rows] = await db.execute(`
-          SELECT MS.Send_time 
-          FROM Msg_Receive MR 
-          JOIN Msg_Send MS ON MR.Msg_no = MS.Msg_no 
-          JOIN Message M ON MR.Msg_no = M.Msg_no 
+          SELECT MS.Send_time
+          FROM Msg_Receive MR
+          JOIN Msg_Send MS ON MR.Msg_no = MS.Msg_no
+          JOIN Message M ON MR.Msg_no = M.Msg_no
           WHERE MR.Receive_Uno = ? AND M.Msg_content = ? AND MS.Send_time > DATE_SUB(NOW(), INTERVAL 1 MINUTE)
-          ORDER BY MS.Send_time DESC LIMIT 1`, 
+          ORDER BY MS.Send_time DESC LIMIT 1`,
           [uno, content]
         );
         return rows.length > 0 ? new Date(rows[0].Send_time) : null;
       };
 
-      // 场景A: 在线超时 (>10分钟) - 已由后台定时任务接管，此处不再处理超时，只处理被踢
-      /*
-      if (diffMs > TEN_MINUTES_MS && user.Ustatus === '在线') {
-        // ... (removed)
-      }
-      */
-
-      // 场景B: 被踢下线 (状态已变为离线)
       if (user.Ustatus === '离线') {
          const sentTime = await checkRecentMsg(KICKED_MSG);
-         // 检查是否是由于超时导致的注销 (非KICKED_MSG)
          const timeoutTime = await checkRecentMsg(TIMEOUT_MSG);
 
          if (timeoutTime && (now - timeoutTime) < 60000) {
-            // 如果最近收到超时消息，则返回 SESSION_EXPIRED
             return res.status(401).json({ success: false, code: 'SESSION_EXPIRED', message: TIMEOUT_MSG });
          }
 
          if (!sentTime) {
-           // 可能是后台定时任务注销，或者其他原因
-           // await sendSystemMessage(uno, KICKED_MSG); // 不需要再发消息，直接下线
            return res.status(401).json({ success: false, code: 'SESSION_EXPIRED', message: '会话已过期或已在别处登录' });
          } else if ((now - sentTime) > 5000) {
            return res.status(401).json({ success: false, code: 'ACCOUNT_KICKED', message: KICKED_MSG });
@@ -67,16 +69,9 @@ router.get('/messages/new', async (req, res) => {
       }
     }
 
-    // 3.3 查询未读消息
-    const query = `
-      SELECT 
-        M.Msg_no, 
-        M.Msg_content, 
-        M.Msg_category, 
-        M.Msg_priority, 
-        M.Msg_date,
-        MS.Send_time,
-        MS.Send_Uno,
+    const [msgRows] = await db.execute(`
+      SELECT M.Msg_no, M.Msg_content, M.Msg_category, M.Msg_priority, M.Msg_date,
+        MS.Send_time, MS.Send_Uno,
         CASE WHEN MS.Send_Uno = 'O000000000' THEN '系统' ELSE U.Urole END as SenderRole,
         COALESCE(S.Sname, P.Pname, DA.DAname, UA.UAname, O.Oname, U.Uno) as SenderName
       FROM Msg_Receive MR
@@ -88,29 +83,29 @@ router.get('/messages/new', async (req, res) => {
       LEFT JOIN Dept_Adm DA ON U.Uno = DA.DAno
       LEFT JOIN Univ_Adm UA ON U.Uno = UA.UAno
       LEFT JOIN Other O ON U.Uno = O.Ono
-      WHERE MR.Receive_Uno = ? 
-        AND MR.Receive_display = 1
-        AND MR.Receive_haveread = 0
+      WHERE MR.Receive_Uno = ? AND MR.Receive_display = 1 AND MR.Receive_haveread = 0
       ORDER BY MS.Send_time DESC
-    `;
+    `, [uno]);
 
-    const [rows] = await db.execute(query, [uno]);
-    res.json({ success: true, messages: rows });
+    res.json({ success: true, messages: msgRows });
   } catch (error) {
     console.error('Error fetching messages:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
 
-// 4. 标记消息已读
+router.use(requireAuth);
+
 router.post('/messages/read', async (req, res) => {
   const { msg_no } = req.body;
   const uno = String(req.user.Uno);
   if (!msg_no) return res.status(400).json({ success: false, message: 'Missing parameters' });
 
   try {
-    const query = `UPDATE Msg_Receive SET Receive_haveread = 1, Receive_time = NOW() WHERE Msg_no = ? AND Receive_Uno = ?`;
-    const [result] = await db.execute(query, [msg_no, uno]);
+    const [result] = await db.execute(
+      'UPDATE Msg_Receive SET Receive_haveread = 1, Receive_time = NOW() WHERE Msg_no = ? AND Receive_Uno = ?',
+      [msg_no, uno]
+    );
     res.json({ success: true, updated: result.affectedRows });
   } catch (error) {
     console.error('Error marking message read:', error);
@@ -118,17 +113,16 @@ router.post('/messages/read', async (req, res) => {
   }
 });
 
-// 5. 软删除消息
 router.post('/messages/delete', async (req, res) => {
   const { msg_no, type } = req.body;
   const uno = String(req.user.Uno);
   if (!msg_no) return res.status(400).json({ success: false, message: 'Missing parameters' });
 
   try {
-    const query = (type === 'sent') 
-      ? `UPDATE Msg_Send SET Send_display = 0 WHERE Msg_no = ? AND Send_Uno = ?`
-      : `UPDATE Msg_Receive SET Receive_display = 0 WHERE Msg_no = ? AND Receive_Uno = ?`;
-    
+    const query = (type === 'sent')
+      ? 'UPDATE Msg_Send SET Send_display = 0 WHERE Msg_no = ? AND Send_Uno = ?'
+      : 'UPDATE Msg_Receive SET Receive_display = 0 WHERE Msg_no = ? AND Receive_Uno = ?';
+
     const [result] = await db.execute(query, [msg_no, uno]);
     res.json({ success: true, updated: result.affectedRows });
   } catch (error) {
@@ -137,7 +131,6 @@ router.post('/messages/delete', async (req, res) => {
   }
 });
 
-// 5.5 恢复消息 (从回收站恢复显示)
 router.post('/messages/restore', async (req, res) => {
   const { msg_no, type } = req.body;
   const uno = String(req.user.Uno);
@@ -145,8 +138,8 @@ router.post('/messages/restore', async (req, res) => {
 
   try {
     const query = (type === 'sent')
-      ? `UPDATE Msg_Send SET Send_display = 1 WHERE Msg_no = ? AND Send_Uno = ?`
-      : `UPDATE Msg_Receive SET Receive_display = 1 WHERE Msg_no = ? AND Receive_Uno = ?`;
+      ? 'UPDATE Msg_Send SET Send_display = 1 WHERE Msg_no = ? AND Send_Uno = ?'
+      : 'UPDATE Msg_Receive SET Receive_display = 1 WHERE Msg_no = ? AND Receive_Uno = ?';
 
     const [result] = await db.execute(query, [msg_no, uno]);
     res.json({ success: true, updated: result.affectedRows });
@@ -193,21 +186,18 @@ router.post('/messages/send', async (req, res) => {
     const msgNo = `MSG${dateStr}${msgNumberHex}`;
 
     await connection.execute(
-      `INSERT INTO Message (Msg_no, Msg_date, Msg_number, Msg_category, Msg_wdMsgno, Msg_priority, Msg_content)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      'INSERT INTO Message (Msg_no, Msg_date, Msg_number, Msg_category, Msg_wdMsgno, Msg_priority, Msg_content) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [msgNo, now, msgNumber, finalCategory, wdMsgNo || null, finalPriority, content]
     );
 
     await connection.execute(
-      `INSERT INTO Msg_Send (Msg_no, Send_Uno, Send_time, Send_display)
-       VALUES (?, ?, ?, ?)`,
+      'INSERT INTO Msg_Send (Msg_no, Send_Uno, Send_time, Send_display) VALUES (?, ?, ?, ?)',
       [msgNo, authedUno, now, true]
     );
 
     for (const receiverUno of uniqueReceivers) {
       await connection.execute(
-        `INSERT INTO Msg_Receive (Msg_no, Receive_Uno, Receive_time, Receive_haveread, Receive_display)
-         VALUES (?, ?, ?, ?, ?)`,
+        'INSERT INTO Msg_Receive (Msg_no, Receive_Uno, Receive_time, Receive_haveread, Receive_display) VALUES (?, ?, ?, ?, ?)',
         [msgNo, receiverUno, '1000-01-01 00:00:00', false, true]
       );
     }
@@ -223,12 +213,11 @@ router.post('/messages/send', async (req, res) => {
   }
 });
 
-// 6. 获取回收站消息
 router.get('/messages/trash', async (req, res) => {
   const uno = String(req.user.Uno);
 
   try {
-    const receivedQuery = `
+    const [receivedRows] = await db.execute(`
       SELECT M.Msg_no, M.Msg_content, M.Msg_category, M.Msg_priority, M.Msg_date, MS.Send_time as Time, 'received' as Type,
         COALESCE(S.Sname, P.Pname, DA.DAname, UA.UAname, O.Oname, '系统') as ContactName
       FROM Msg_Receive MR
@@ -241,9 +230,9 @@ router.get('/messages/trash', async (req, res) => {
       LEFT JOIN Univ_Adm UA ON U.Uno = UA.UAno
       LEFT JOIN Other O ON U.Uno = O.Ono
       WHERE MR.Receive_Uno = ? AND MR.Receive_display = 0
-    `;
+    `, [uno]);
 
-    const sentQuery = `
+    const [sentRows] = await db.execute(`
       SELECT M.Msg_no, M.Msg_content, M.Msg_category, M.Msg_priority, M.Msg_date, MS.Send_time as Time, 'sent' as Type,
         COALESCE(S.Sname, P.Pname, DA.DAname, UA.UAname, O.Oname, '未知') as ContactName
       FROM Msg_Send MS
@@ -256,12 +245,9 @@ router.get('/messages/trash', async (req, res) => {
       LEFT JOIN Univ_Adm UA ON U.Uno = UA.UAno
       LEFT JOIN Other O ON U.Uno = O.Ono
       WHERE MS.Send_Uno = ? AND MS.Send_display = 0
-    `;
+    `, [uno]);
 
-    const [receivedRows] = await db.execute(receivedQuery, [uno]);
-    const [sentRows] = await db.execute(sentQuery, [uno]);
     const allTrash = [...receivedRows, ...sentRows].sort((a, b) => new Date(b.Time) - new Date(a.Time));
-
     res.json({ success: true, data: allTrash });
   } catch (error) {
     console.error('Error fetching trash messages:', error);
@@ -269,13 +255,13 @@ router.get('/messages/trash', async (req, res) => {
   }
 });
 
-// 7. 仪表盘消息列表
+// 仪表盘消息列表
 router.get('/dashboard/messages', async (req, res) => {
   const uno = String(req.user.Uno);
 
   try {
-    const receivedQuery = `
-      SELECT MS.Send_Uno, 
+    const [receivedRows] = await db.execute(`
+      SELECT MS.Send_Uno,
         CASE WHEN MS.Send_Uno = 'O000000000' THEN '系统' ELSE U.Urole END as SenderRole,
         COALESCE(S.Sname, P.Pname, DA.DAname, UA.UAname, O.Oname, '系统') as SenderName,
         M.Msg_content, MS.Send_time
@@ -290,11 +276,10 @@ router.get('/dashboard/messages', async (req, res) => {
       LEFT JOIN Other O ON U.Uno = O.Ono
       WHERE MR.Receive_Uno = ? AND MR.Receive_display = true
       ORDER BY MS.Send_time DESC LIMIT 50
-    `;
-    const [receivedRows] = await db.execute(receivedQuery, [uno]);
+    `, [uno]);
 
-    const sentQuery = `
-      SELECT MR.Receive_Uno, 
+    const [sentRows] = await db.execute(`
+      SELECT MR.Receive_Uno,
         CASE WHEN MR.Receive_Uno = 'O000000000' THEN '系统' ELSE U.Urole END as ReceiverRole,
         COALESCE(S.Sname, P.Pname, DA.DAname, UA.UAname, O.Oname, '未知') as ReceiverName,
         M.Msg_content, MR.Receive_time
@@ -309,8 +294,7 @@ router.get('/dashboard/messages', async (req, res) => {
       LEFT JOIN Other O ON U.Uno = O.Ono
       WHERE MS.Send_Uno = ? AND MS.Send_display = true
       ORDER BY MS.Send_time DESC LIMIT 50
-    `;
-    const [sentRows] = await db.execute(sentQuery, [uno]);
+    `, [uno]);
 
     res.json({ success: true, received: receivedRows, sent: sentRows });
   } catch (error) {
@@ -319,7 +303,7 @@ router.get('/dashboard/messages', async (req, res) => {
   }
 });
 
-// ReceiveBox 视图管理接口
+// 收件箱视图管理
 router.post('/receivebox/view/init', async (req, res) => {
   const uno = String(req.user.Uno);
   if (!/^[a-zA-Z0-9]+$/.test(uno)) {
@@ -331,15 +315,12 @@ router.post('/receivebox/view/init', async (req, res) => {
   try {
     await db.execute(`DROP VIEW IF EXISTS ${viewName}`);
 
-    const createViewSql = `
+    await db.execute(`
       CREATE VIEW ${viewName} AS
-      SELECT 
-        MR.Msg_no,
-        MS.Send_Uno,
+      SELECT MR.Msg_no, MS.Send_Uno,
         COALESCE(S.Sname, P.Pname, DA.DAname, UA.UAname, O.Oname, '系统') as SenderName,
         DATE_FORMAT(MS.Send_time, '%Y-%m-%d %H:%i') as Send_time_Formatted,
-        MS.Send_time,
-        M.Msg_content
+        MS.Send_time, M.Msg_content
       FROM Msg_Receive MR
       JOIN Message M ON MR.Msg_no = M.Msg_no
       JOIN Msg_Send MS ON MR.Msg_no = MS.Msg_no
@@ -350,9 +331,7 @@ router.post('/receivebox/view/init', async (req, res) => {
       LEFT JOIN Univ_Adm UA ON U.Uno = UA.UAno
       LEFT JOIN Other O ON U.Uno = O.Ono
       WHERE MR.Receive_Uno = '${uno}' AND MR.Receive_display = 1
-    `;
-    
-    await db.execute(createViewSql);
+    `);
 
     res.json({ success: true, viewName });
   } catch (error) {
@@ -367,18 +346,16 @@ router.post('/receivebox/view/cleanup', async (req, res) => {
     return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   }
 
-  const viewName = `View_ReceiveBox_${uno}`;
-
   try {
-    await db.execute(`DROP VIEW IF EXISTS ${viewName}`);
-    res.json({ success: true, message: 'View cleanup successful' });
+    await db.execute(`DROP VIEW IF EXISTS View_ReceiveBox_${uno}`);
+    res.json({ success: true });
   } catch (error) {
     console.error('Error dropping ReceiveBox view:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
 
-// SendBox 视图管理接口
+// 发件箱视图管理
 router.post('/sendbox/view/init', async (req, res) => {
   const uno = String(req.user.Uno);
   if (!/^[a-zA-Z0-9]+$/.test(uno)) {
@@ -390,14 +367,11 @@ router.post('/sendbox/view/init', async (req, res) => {
   try {
     await db.execute(`DROP VIEW IF EXISTS ${viewName}`);
 
-    const createViewSql = `
+    await db.execute(`
       CREATE VIEW ${viewName} AS
-      SELECT
-        MS.Msg_no,
-        MR.Receive_Uno,
+      SELECT MS.Msg_no, MR.Receive_Uno,
         COALESCE(S.Sname, P.Pname, DA.DAname, UA.UAname, O.Oname, U.Uno, '未知') as ReceiverName,
-        MR.Receive_time,
-        M.Msg_content
+        MR.Receive_time, M.Msg_content
       FROM Msg_Send MS
       JOIN Message M ON MS.Msg_no = M.Msg_no
       JOIN Msg_Receive MR ON MS.Msg_no = MR.Msg_no
@@ -408,9 +382,8 @@ router.post('/sendbox/view/init', async (req, res) => {
       LEFT JOIN Univ_Adm UA ON U.Uno = UA.UAno
       LEFT JOIN Other O ON U.Uno = O.Ono
       WHERE MS.Send_Uno = '${uno}' AND MS.Send_display = 1
-    `;
+    `);
 
-    await db.execute(createViewSql);
     res.json({ success: true, viewName });
   } catch (error) {
     console.error('Error creating SendBox view:', error);
@@ -424,18 +397,16 @@ router.post('/sendbox/view/cleanup', async (req, res) => {
     return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   }
 
-  const viewName = `View_SendBox_${uno}`;
-
   try {
-    await db.execute(`DROP VIEW IF EXISTS ${viewName}`);
-    res.json({ success: true, message: 'View cleanup successful' });
+    await db.execute(`DROP VIEW IF EXISTS View_SendBox_${uno}`);
+    res.json({ success: true });
   } catch (error) {
     console.error('Error dropping SendBox view:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
 
-// RubbishBox 视图管理接口
+// 回收站视图管理
 router.post('/rubbishbox/view/init', async (req, res) => {
   const uno = String(req.user.Uno);
   if (!/^[a-zA-Z0-9]+$/.test(uno)) {
@@ -449,14 +420,11 @@ router.post('/rubbishbox/view/init', async (req, res) => {
     await db.execute(`DROP VIEW IF EXISTS ${receivedViewName}`);
     await db.execute(`DROP VIEW IF EXISTS ${sentViewName}`);
 
-    const createReceivedViewSql = `
+    await db.execute(`
       CREATE VIEW ${receivedViewName} AS
-      SELECT
-        MR.Msg_no,
-        MS.Send_Uno,
+      SELECT MR.Msg_no, MS.Send_Uno,
         COALESCE(S.Sname, P.Pname, DA.DAname, UA.UAname, O.Oname, '系统') as SenderName,
-        MS.Send_time,
-        M.Msg_content
+        MS.Send_time, M.Msg_content
       FROM Msg_Receive MR
       JOIN Message M ON MR.Msg_no = M.Msg_no
       JOIN Msg_Send MS ON MR.Msg_no = MS.Msg_no
@@ -467,16 +435,13 @@ router.post('/rubbishbox/view/init', async (req, res) => {
       LEFT JOIN Univ_Adm UA ON U.Uno = UA.UAno
       LEFT JOIN Other O ON U.Uno = O.Ono
       WHERE MR.Receive_Uno = '${uno}' AND MR.Receive_display = 0
-    `;
+    `);
 
-    const createSentViewSql = `
+    await db.execute(`
       CREATE VIEW ${sentViewName} AS
-      SELECT
-        MS.Msg_no,
-        MR.Receive_Uno,
+      SELECT MS.Msg_no, MR.Receive_Uno,
         COALESCE(S.Sname, P.Pname, DA.DAname, UA.UAname, O.Oname, U.Uno, '未知') as ReceiverName,
-        MR.Receive_time,
-        M.Msg_content
+        MR.Receive_time, M.Msg_content
       FROM Msg_Send MS
       JOIN Message M ON MS.Msg_no = M.Msg_no
       JOIN Msg_Receive MR ON MS.Msg_no = MR.Msg_no
@@ -487,10 +452,7 @@ router.post('/rubbishbox/view/init', async (req, res) => {
       LEFT JOIN Univ_Adm UA ON U.Uno = UA.UAno
       LEFT JOIN Other O ON U.Uno = O.Ono
       WHERE MS.Send_Uno = '${uno}' AND MS.Send_display = 0
-    `;
-
-    await db.execute(createReceivedViewSql);
-    await db.execute(createSentViewSql);
+    `);
 
     res.json({ success: true, receivedViewName, sentViewName });
   } catch (error) {
@@ -505,13 +467,10 @@ router.post('/rubbishbox/view/cleanup', async (req, res) => {
     return res.status(400).json({ success: false, message: 'Invalid Uno format' });
   }
 
-  const receivedViewName = `View_RubbishBox_Received_${uno}`;
-  const sentViewName = `View_RubbishBox_Sent_${uno}`;
-
   try {
-    await db.execute(`DROP VIEW IF EXISTS ${receivedViewName}`);
-    await db.execute(`DROP VIEW IF EXISTS ${sentViewName}`);
-    res.json({ success: true, message: 'View cleanup successful' });
+    await db.execute(`DROP VIEW IF EXISTS View_RubbishBox_Received_${uno}`);
+    await db.execute(`DROP VIEW IF EXISTS View_RubbishBox_Sent_${uno}`);
+    res.json({ success: true });
   } catch (error) {
     console.error('Error dropping RubbishBox views:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
@@ -519,4 +478,3 @@ router.post('/rubbishbox/view/cleanup', async (req, res) => {
 });
 
 module.exports = router;
-

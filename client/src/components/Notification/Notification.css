@@ -1,256 +1,205 @@
-.notification-overlay {
+/* 遮罩 */
+.ntf-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 17, 21, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 9998;
+}
+
+/* 通知卡片 */
+.ntf-box {
+  position: fixed;
+  z-index: 20001;
+  right: 24px;
+  bottom: 24px;
+  width: 340px;
+  background: var(--ac-white);
+  border-radius: var(--ac-radius-xl);
+  box-shadow: var(--ac-shadow-lg);
+  padding: var(--ac-space-lg);
+  box-sizing: border-box;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ac-space-sm);
+  overflow: hidden;
+  transition: width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+              height 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 展开态 —— 使用 inset:0 + margin:auto 居中，避免 framer-motion 的 transform 冲突 */
+.ntf-box.ntf-expanded {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.7);
-  z-index: 9998;
-  opacity: 0;
-  transition: opacity 0.5s ease-in-out;
-  pointer-events: none; /* Let clicks pass through when hidden/transparent */
-}
-
-.notification-overlay.visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.notification-box {
-  position: fixed;
-  z-index: 9999;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-  box-sizing: border-box;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  
-  /* Initial State: Bottom Right */
-  bottom: 30px;
-  right: -400px; /* Hidden off-screen */
-  width: 320px;
-  height: auto;
-  max-height: 200px;
-  /* Use transform for centering logic later, keep clean here */
-  transform: translate(0, 0); 
-}
-
-.notification-box.slide-in {
-  right: 30px;
-}
-
-.notification-box.slide-out {
-  /* Slide out to RIGHT */
-  right: -400px;
-  opacity: 0;
-}
-
-.notification-box.expanded {
-  /* Centered using translate from bottom-right reference */
-  /* bottom: 50% puts the bottom edge at vertical center */
-  /* right: 50% puts the right edge at horizontal center */
-  /* translate(50%, 50%) moves it down/right by half its size, centering the center */
-  bottom: 50%;
-  right: 50%;
-  transform: translate(50%, 50%);
-  width: 600px;
-  height: 400px;
-  max-height: 80vh;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  width: 520px;
+  height: fit-content;
+  max-height: 70vh;
   cursor: default;
 }
 
-.notification-box.expanded {
-  padding-top: 21px;
-  padding-bottom: 16px;
-}
-
-.notification-content-fading .notification-header,
-.notification-content-fading .notification-body,
-.notification-content-fading .close-btn {
-  opacity: 0;
-}
-
-.notification-header,
-.notification-body,
-.close-btn {
-  transition: opacity 0.2s;
-}
-
-/* Colors based on Priority */
-.notification-box.priority-normal {
-  background-color: #f6ffed; /* Light Green */
-}
-
-.notification-box.priority-important {
-  background-color: #fff1f0; /* Light Red */
-}
-
-/* Content Container removed; children are placed directly under .notification-box */
-
-/* Close Button */
-.close-btn {
+/* 关闭按钮 */
+.ntf-close {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: var(--ac-space-sm);
+  right: var(--ac-space-sm);
   background: none;
   border: none;
-  font-size: 16px;
   cursor: pointer;
-  color: #999;
-  z-index: 10;
-}
-
-.close-btn:hover {
-  color: #333;
-}
-
-/* Header */
-.notification-header {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 8px;
-  /* Color will be inherited from parent or applied directly via JS class */
-  color: inherit;
-}
-
-.notification-header--expanded {
-  margin: 0;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  border-radius: var(--ac-radius-full);
+  color: var(--ac-text-tertiary);
+  transition: all var(--ac-duration-fast);
+  z-index: 2;
 }
 
-.expanded-title {
-  margin: 0;
-  padding: 0;
-  flex: 1;
-  min-width: 0;
+.ntf-close:hover {
+  background: var(--ac-bg-hover);
+  color: var(--ac-text-primary);
+}
+
+.ntf-close svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* 头部 */
+.ntf-header {
   display: flex;
   align-items: center;
-  position: relative;
+  gap: var(--ac-space-sm);
+  padding-right: 28px;
 }
 
-.notification-box.expanded .expanded-title {
-  flex: 0 0 auto;
-  width: 80%;
+.ntf-sender {
+  font-weight: 600;
+  font-size: var(--ac-font-sm);
+  color: var(--ac-text-strong);
+}
+
+.ntf-role {
+  font-size: var(--ac-font-xs);
+  color: var(--ac-text-tertiary);
+}
+
+.ntf-time {
   margin-left: auto;
-  margin-right: auto;
-  box-sizing: border-box;
-}
-
-.notification-role {
-  transform: translateY(-1px);
-}
-
-.expanded-sender {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: var(--ac-font-xs);
+  color: var(--ac-text-disabled);
   white-space: nowrap;
 }
 
-.notification-meta {
-  font-size: 0.8em;
-  color: #666;
-  font-weight: 400;
+/* 标签行 */
+.ntf-tags {
+  display: flex;
+  gap: var(--ac-space-xs);
+  flex-wrap: wrap;
+}
+
+.ntf-tag {
   display: inline-flex;
   align-items: center;
-  line-height: 1;
-}
-
-.notification-time {
-  margin-left: auto;
-  transform: translateY(-1px);
-}
-
-.notification-priority {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%) translateY(-1px);
-  pointer-events: none;
-}
-
-/* Body */
-.notification-body {
-  font-size: 14px;
+  padding: 1px 10px;
+  border-radius: var(--ac-radius-full);
+  font-size: var(--ac-font-xs);
+  font-weight: 600;
   line-height: 1.5;
+}
+
+.ntf-tag-priority.important {
+  background: var(--ac-error-bg);
+  color: var(--ac-error);
+}
+
+.ntf-tag-priority.normal {
+  background: var(--ac-success-bg);
+  color: var(--ac-success);
+}
+
+.ntf-tag-category {
+  background: var(--ac-primary-subtle);
+  color: var(--ac-primary);
+}
+
+/* 正文 */
+.ntf-body {
+  font-size: var(--ac-font-sm);
+  color: var(--ac-text-primary);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
   flex: 1;
-  color: inherit;
-}
-
-/* Expanded Body Scroll */
-.notification-box.expanded .notification-body {
-  overflow-y: auto;
-  padding-right: 8px;
   min-height: 0;
-  width: 80%;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 12px;
-  box-sizing: border-box;
 }
 
-.notification-box.expanded .notification-header {
-  margin-bottom: 0;
+.ntf-body-scroll {
+  overflow-y: auto;
+  max-height: 40vh;
+  padding-right: var(--ac-space-sm);
 }
 
-.notification-box.expanded .notification-header.notification-header--expanded {
-  margin-top: 10px;
-}
-
-/* Recalled Message Section */
-.recalled-section {
-  margin-top: 16px;
-  padding-top: 8px;
-  border-top: 1px dashed currentColor; /* Use current text color */
-  opacity: 0.8;
-}
-
-.recalled-label {
-  font-weight: bold;
-  margin-bottom: 4px;
-  margin-top: 8px;
-}
-
-/* Text Colors based on Category */
-.text-category-notice { color: #52c41a; } /* Green */
-.text-category-todo { color: #f5222d; }   /* Red */
-.text-category-system { color: #1890ff; } /* Blue */
-.text-category-recall { color: #000000; } /* Black */
-
-/* Countdown Line */
-.countdown-line {
+/* 进度条 */
+.ntf-progress {
   position: absolute;
   bottom: 0;
   left: 0;
-  height: 4px;
-  width: 100%;
+  height: 3px;
+  border-radius: 0 0 0 var(--ac-radius-xl);
+  animation: ntfCountdown linear forwards;
   transform-origin: left;
 }
 
-.countdown-line.priority-normal {
-  background-color: #389e0d; /* Dark Green */
+.ntf-progress-normal {
+  background: var(--ac-primary);
 }
 
-.countdown-line.priority-important {
-  background-color: #cf1322; /* Dark Red */
+.ntf-progress-important {
+  background: var(--ac-error);
 }
 
-/* Animation for countdown */
-@keyframes countdown {
+@keyframes ntfCountdown {
   from { width: 100%; }
   to { width: 0%; }
 }
 
-.countdown-active {
-  animation-name: countdown;
-  animation-timing-function: linear;
-  animation-fill-mode: forwards;
+/* 展开态进度条隐藏 */
+.ntf-box.ntf-expanded .ntf-progress {
+  display: none;
 }
 
-/* Adjust animation duration dynamically in inline style */
+/* 操作按钮区域 */
+.ntf-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ac-space-sm);
+  margin-top: var(--ac-space-xs);
+}
+
+.ntf-action-btn {
+  padding: 6px 16px;
+  border: none;
+  border-radius: var(--ac-radius-full);
+  background: var(--ac-primary);
+  color: #fff;
+  font-size: var(--ac-font-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--ac-duration-fast);
+}
+
+.ntf-action-btn:hover {
+  opacity: 0.85;
+}
+
+@media (max-width: 480px) {
+  .ntf-box { width: calc(100vw - 32px); right: 16px; }
+  .ntf-box.ntf-expanded { width: calc(100vw - 32px); }
+}

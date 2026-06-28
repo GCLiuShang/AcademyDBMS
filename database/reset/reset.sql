@@ -1,9 +1,7 @@
 -- 重置数据库：清空所有表内容，保留表结构
--- 注意：执行前请确保已备份重要数据
 
 SET FOREIGN_KEY_CHECKS = 0;
 
--- 清空关系表（按依赖关系反向顺序）
 TRUNCATE TABLE Enroll_isOpen;
 TRUNCATE TABLE Course_isOpen;
 TRUNCATE TABLE Curricular_isOpen;
@@ -26,7 +24,6 @@ TRUNCATE TABLE Setup_Curricular_P;
 TRUNCATE TABLE Setup_Curricular_G;
 TRUNCATE TABLE Cno_Pool;
 
--- 清空实体表（按依赖关系反向顺序）
 TRUNCATE TABLE Message;
 TRUNCATE TABLE Exam;
 TRUNCATE TABLE Course;
@@ -36,6 +33,7 @@ TRUNCATE TABLE Univ_Adm;
 TRUNCATE TABLE Dept_Adm;
 TRUNCATE TABLE Professor;
 TRUNCATE TABLE Student;
+TRUNCATE TABLE User_Session;
 TRUNCATE TABLE User;
 TRUNCATE TABLE Date;
 TRUNCATE TABLE Classroom;
@@ -50,6 +48,3 @@ TRUNCATE TABLE Campus;
 TRUNCATE TABLE Department;
 
 SET FOREIGN_KEY_CHECKS = 1;
-
--- 重置自增ID（如果有的话）
--- 注意：上面的TRUNCATE操作通常会自动重置自增ID

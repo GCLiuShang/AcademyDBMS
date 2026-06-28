@@ -1,0 +1,137 @@
+/* 设计 Token */
+:root {
+  /* ---- 色彩 ---- */
+  --ac-primary: #1A56DB;
+  --ac-primary-hover: #1648C0;
+  --ac-primary-light: #E8EEFE;
+  --ac-primary-bg: #F0F5FF;
+  --ac-primary-subtle: rgba(26, 86, 219, 0.06);
+
+  --ac-white: #FFFFFF;
+  --ac-bg: #F5F7FA;
+  --ac-bg-secondary: #F0F2F5;
+  --ac-bg-hover: #EBEEF2;
+  --ac-bg-active: #DFE6F2;
+  --ac-bg-breadcrumb: #E8EBF0;
+
+  --ac-border: #D0D5DD;
+  --ac-border-light: #C2C8D2;
+  --ac-border-lighter: #E2E5EB;
+  --ac-border-table: #CFCFCF;
+
+  --ac-text-primary: #1A1D24;
+  --ac-text-secondary: #5A5F6B;
+  --ac-text-tertiary: #8A8F9A;
+  --ac-text-disabled: #B0B5BF;
+  --ac-text-strong: #0F1115;
+  --ac-text-link: #1A56DB;
+
+  --ac-error: #E53E3E;
+  --ac-error-bg: #FDE8E8;
+  --ac-success: #0B8A45;
+  --ac-success-bg: #E6F7EC;
+  --ac-warning: #D69E2E;
+  --ac-warning-bg: #FEF7E0;
+  --ac-info: #1A73E8;
+  --ac-info-bg: #E8F0FE;
+
+  /* ---- 渐变 ---- */
+  --ac-gradient-primary: linear-gradient(135deg, #1A56DB, #0F3A99);
+  --ac-gradient-primary-reverse: linear-gradient(135deg, #0F3A99, #1A56DB);
+  --ac-gradient-subtle: linear-gradient(135deg, #F0F5FF, #E8EEFE);
+  --ac-gradient-accent: linear-gradient(135deg, #1A56DB, #7C3AED);
+  --ac-gradient-warm: linear-gradient(135deg, #FEF9EC, #FDF2E8);
+
+  /* ---- 毛玻璃 ---- */
+  --ac-glass-bg: rgba(255, 255, 255, 0.72);
+  --ac-glass-bg-strong: rgba(255, 255, 255, 0.92);
+  --ac-glass-border: rgba(255, 255, 255, 0.25);
+  --ac-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --ac-glass-blur: 12px;
+
+  --ac-shadow: rgba(0, 0, 0, 0.08);
+  --ac-shadow-strong: rgba(0, 0, 0, 0.12);
+  --ac-shadow-heavy: rgba(0, 0, 0, 0.18);
+
+  /* ---- 圆角 ---- */
+  --ac-radius-sm: 4px;
+  --ac-radius-md: 8px;
+  --ac-radius-lg: 12px;
+  --ac-radius-xl: 16px;
+  --ac-radius-2xl: 20px;
+  --ac-radius-full: 9999px;
+
+  /* ---- 阴影 ---- */
+  --ac-shadow-sm: 0 1px 2px var(--ac-shadow);
+  --ac-shadow-md: 0 4px 12px var(--ac-shadow-strong);
+  --ac-shadow-lg: 0 10px 24px var(--ac-shadow-heavy);
+  --ac-shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.15);
+  --ac-shadow-left: -8px 0 24px var(--ac-shadow-heavy);
+  --ac-shadow-right: 4px 0 24px var(--ac-shadow-strong);
+  --ac-shadow-nav: 0 2px 8px var(--ac-shadow-strong);
+  --ac-shadow-login: 0 8px 32px rgba(0, 0, 0, 0.18);
+  --ac-shadow-inner: inset 0 1px 3px rgba(0, 0, 0, 0.06);
+  --ac-shadow-glow: 0 0 12px rgba(26, 86, 219, 0.3);
+
+  /* ---- 过渡 ---- */
+  --ac-duration-fast: 0.15s;
+  --ac-duration-normal: 0.3s;
+  --ac-duration-slow: 0.4s;
+  --ac-ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ac-ease-enter: cubic-bezier(0, 0, 0.2, 1);
+  --ac-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --ac-ease-linear: linear;
+  --ac-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ac-ease-bounce: cubic-bezier(0.68, -0.55, 0.27, 1.55);
+
+  /* ---- 间距 ---- */
+  --ac-space-xxs: 2px;
+  --ac-space-xs: 4px;
+  --ac-space-sm: 8px;
+  --ac-space-md: 12px;
+  --ac-space-lg: 16px;
+  --ac-space-xl: 20px;
+  --ac-space-2xl: 24px;
+  --ac-space-3xl: 32px;
+  --ac-space-4xl: 40px;
+  --ac-space-5xl: 48px;
+
+  /* ---- 字体 ---- */
+  --ac-font-xs: 12px;
+  --ac-font-sm: 14px;
+  --ac-font-md: 16px;
+  --ac-font-lg: 18px;
+  --ac-font-xl: 20px;
+  --ac-font-2xl: 24px;
+  --ac-font-3xl: 28px;
+  --ac-font-4xl: 32px;
+  --ac-font-5xl: 40px;
+
+  --ac-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans SC", sans-serif;
+  --ac-font-mono: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono",
+    "Courier New", monospace;
+
+  --ac-line-height-sm: 1.2;
+  --ac-line-height-md: 1.5;
+  --ac-line-height-lg: 1.8;
+
+  /* ---- 骨架屏 ---- */
+  --ac-skeleton-base: #EBEEF2;
+  --ac-skeleton-shine: rgba(255, 255, 255, 0.6);
+
+  /* ---- 固定尺寸 ---- */
+  --ac-navbar-height: 64px;
+  --ac-breadcrumb-height: 48px;
+  --ac-header-height: 56px;
+  --ac-sidebar-width: 280px;
+  --ac-primary-alpha-10: rgba(26, 86, 219, 0.1);
+  --ac-primary-alpha-20: rgba(26, 86, 219, 0.2);
+}
+
+/* ---- 响应式断点: 窄屏覆盖 ---- */
+@media (max-width: 1200px) {
+  :root {
+    --ac-sidebar-width: min(280px, 80vw);
+  }
+}

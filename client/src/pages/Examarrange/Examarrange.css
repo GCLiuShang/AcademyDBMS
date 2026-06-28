@@ -26,7 +26,7 @@
 .examarrange-left {
   width: 50%;
   height: 100%;
-  border: 2px solid #00489B;
+  border: 2px solid var(--ac-primary);
   border-radius: 18px;
   display: flex;
   flex-direction: column;
@@ -46,7 +46,7 @@
 .examarrange-row {
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #CFCFCF;
+  border-bottom: 1px solid var(--ac-border-table);
 }
 
 .examarrange-row.small {
@@ -83,7 +83,7 @@
   justify-content: space-between;
   cursor: pointer;
   box-sizing: border-box;
-  background: #fff;
+  background: var(--ac-white);
 }
 
 .examarrange-picker-chips {
@@ -112,7 +112,7 @@
   align-items: center;
   gap: 6px;
   padding: 4px 8px;
-  background: #f0f0f0;
+  background: var(--ac-bg-hover);
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 999px;
   font-size: 12px;
@@ -139,7 +139,7 @@
   top: 52px;
   left: 0;
   right: 0;
-  background: #fff;
+  background: var(--ac-white);
   border: 1px solid rgba(0, 0, 0, 0.2);
   border-radius: 10px;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
@@ -174,7 +174,7 @@
 
 .examarrange-picker-option {
   border: 1px solid rgba(0, 0, 0, 0.12);
-  background: #f6f6f6;
+  background: var(--ac-bg-secondary);
   border-radius: 8px;
   padding: 8px 10px;
   cursor: pointer;
@@ -198,7 +198,7 @@
 
 .examarrange-classroom-value {
   font-size: 14px;
-  color: #333333;
+  color: var(--ac-text-primary);
   margin-left: 4px;
 }
 
@@ -208,7 +208,7 @@
   margin: 10px 12px 12px;
   border-radius: 12px;
   border: 1px solid rgba(0, 0, 0, 0.08);
-  background: #f9f9f9;
+  background: var(--ac-bg);
   padding: 8px 10px;
   display: flex;
   flex-direction: column;
@@ -224,7 +224,7 @@
 .examarrange-arrange-title {
   font-size: 14px;
   font-weight: 500;
-  color: #333333;
+  color: var(--ac-text-primary);
 }
 
 .examarrange-arrange-list {
@@ -247,10 +247,10 @@
   align-items: center;
   padding: 6px 8px;
   border-radius: 10px;
-  background: #ffffff;
+  background: var(--ac-white);
   border: 1px solid rgba(0, 0, 0, 0.08);
   font-size: 13px;
-  color: #333333;
+  color: var(--ac-text-primary);
 }
 
 .examarrange-arrange-cell {
@@ -278,8 +278,8 @@
   font-size: 13px;
   border-radius: 999px;
   border: none;
-  background: #00489b;
-  color: #ffffff;
+  background: var(--ac-primary);
+  color: var(--ac-white);
   cursor: pointer;
 }
 

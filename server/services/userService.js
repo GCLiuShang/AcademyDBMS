@@ -1,89 +1,23 @@
 const db = require('../db');
 
-function makeHttpError(status, message) {
-  const err = new Error(message);
-  err.status = status;
-  return err;
-}
-
-function requireValidUno(uno) {
-  if (!uno) throw makeHttpError(400, 'Uno is required');
-  const normalized = String(uno).trim();
-  if (!/^[a-zA-Z0-9]+$/.test(normalized)) throw makeHttpError(400, 'Invalid Uno format');
-  return normalized;
-}
-
 async function getUserRoleByUno(uno) {
   const [rows] = await db.execute('SELECT Uno, Urole FROM User WHERE Uno = ?', [uno]);
   return rows.length > 0 ? rows[0] : null;
 }
 
-async function requireRole(executor, uno, allowedRoles, options = {}) {
-  const { forUpdate = false } = options || {};
-  const normalizedUno = requireValidUno(uno);
-  const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
-  if (roles.length === 0) throw makeHttpError(403, 'Unauthorized role');
-
-  const sql = forUpdate
-    ? 'SELECT Urole FROM User WHERE Uno = ? FOR UPDATE'
-    : 'SELECT Urole FROM User WHERE Uno = ?';
-
-  const [rows] = await executor.execute(sql, [normalizedUno]);
-  if (rows.length === 0) throw makeHttpError(404, 'User not found');
-  const role = rows[0].Urole;
-  if (!roles.includes(role)) throw makeHttpError(403, 'Unauthorized role');
-  return role;
-}
-
-async function requireDeptForDeptAdmin(executor, uno, options = {}) {
-  const { forUpdate = false } = options || {};
-  const normalizedUno = requireValidUno(uno);
-
-  const sql = forUpdate
-    ? 'SELECT DAdept FROM Dept_Adm WHERE DAno = ? FOR UPDATE'
-    : 'SELECT DAdept FROM Dept_Adm WHERE DAno = ?';
-
-  const [rows] = await executor.execute(sql, [normalizedUno]);
-  if (rows.length === 0) throw makeHttpError(404, 'Dept admin not found');
-  const dept = rows[0].DAdept;
-  if (!dept) throw makeHttpError(400, 'Dept not found');
-  return dept;
-}
-
 async function getUserProfileByRole(uno, role) {
-  if (role === '学生') {
-    const [rows] = await db.execute(
-      'SELECT Sno, Syear, Sname, Ssex, Sclass, Sstatus FROM Student WHERE Sno = ?',
-      [uno]
-    );
-    return rows[0] || null;
-  }
+  const tables = {
+    '学生': { table: 'Student', idCol: 'Sno', cols: 'Sno, Syear, Sname, Ssex, Sclass, Sstatus' },
+    '教授': { table: 'Professor', idCol: 'Pno', cols: 'Pno, Pyear, Pname, Psex, Ptitle, Pdept, Poffice, Pstatus' },
+    '学院教学办管理员': { table: 'Dept_Adm', idCol: 'DAno', cols: 'DAno, DAyear, DAdept, DAname, DAstatus' },
+    '学校教务处管理员': { table: 'Univ_Adm', idCol: 'UAno', cols: 'UAno, UAyear, UAname, UAstatus' },
+  };
 
-  if (role === '教授') {
-    const [rows] = await db.execute(
-      'SELECT Pno, Pyear, Pname, Psex, Ptitle, Pdept, Poffice, Pstatus FROM Professor WHERE Pno = ?',
-      [uno]
-    );
-    return rows[0] || null;
-  }
+  const info = tables[role];
+  if (!info) return { Uno: uno };
 
-  if (role === '学院教学办管理员') {
-    const [rows] = await db.execute(
-      'SELECT DAno, DAyear, DAdept, DAname, DAstatus FROM Dept_Adm WHERE DAno = ?',
-      [uno]
-    );
-    return rows[0] || null;
-  }
-
-  if (role === '学校教务处管理员') {
-    const [rows] = await db.execute(
-      'SELECT UAno, UAyear, UAname, UAstatus FROM Univ_Adm WHERE UAno = ?',
-      [uno]
-    );
-    return rows[0] || null;
-  }
-
-  return { Uno: uno };
+  const [rows] = await db.execute(`SELECT ${info.cols} FROM ${info.table} WHERE ${info.idCol} = ?`, [uno]);
+  return rows[0] || null;
 }
 
 function authorize(allowedRoles, options = {}) {
@@ -213,10 +147,7 @@ function authorizeTrainingProgramDomain(options = {}) {
 }
 
 module.exports = {
-  requireValidUno,
   getUserRoleByUno,
-  requireRole,
-  requireDeptForDeptAdmin,
   getUserProfileByRole,
   authorize,
   authorizeTrainingProgramDomain,

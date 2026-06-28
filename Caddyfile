@@ -1,4 +1,41 @@
-{$DOMAIN} {
+{
+  admin off
+  persist_config off
+}
+
+{$DOMAIN:localhost} {
+  log {
+    output file /data/caddy/access.log {
+      roll_size 10mb
+      roll_keep 3
+    }
+    format json
+  }
+
   encode zstd gzip
+
+  header {
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "SAMEORIGIN"
+    X-XSS-Protection "1; mode=block"
+    Referrer-Policy "strict-origin-when-cross-origin"
+    -Server
+  }
+
+  @health {
+    path /health
+  }
+  handle @health {
+    header Content-Type "application/json"
+    respond `{"status":"ok","proxy":"caddy"}`
+  }
+
+  @api {
+    path /api/academy/* /api/dbadmin/*
+  }
+  handle @api {
+    reverse_proxy web:3001
+  }
+
   reverse_proxy web:3001
 }

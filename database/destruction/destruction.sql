@@ -1,9 +1,7 @@
 -- 销毁数据库：删除所有表
--- 注意：执行前请确保已备份重要数据
 
 SET FOREIGN_KEY_CHECKS = 0;
 
--- 删除关系表（按依赖关系反向顺序）
 DROP TABLE IF EXISTS Enroll_isOpen;
 DROP TABLE IF EXISTS Course_isOpen;
 DROP TABLE IF EXISTS Curricular_isOpen;
@@ -25,8 +23,8 @@ DROP TABLE IF EXISTS TP_Curricular;
 DROP TABLE IF EXISTS Setup_Curricular_P;
 DROP TABLE IF EXISTS Setup_Curricular_G;
 DROP TABLE IF EXISTS Cno_Pool;
+DROP TABLE IF EXISTS DBAdmin_Grant;
 
--- 删除实体表（按依赖关系反向顺序）
 DROP TABLE IF EXISTS Message;
 DROP TABLE IF EXISTS Exam;
 DROP TABLE IF EXISTS Course;
@@ -36,6 +34,7 @@ DROP TABLE IF EXISTS Univ_Adm;
 DROP TABLE IF EXISTS Dept_Adm;
 DROP TABLE IF EXISTS Professor;
 DROP TABLE IF EXISTS Student;
+DROP TABLE IF EXISTS User_Session;
 DROP TABLE IF EXISTS User;
 DROP TABLE IF EXISTS Date;
 DROP TABLE IF EXISTS Classroom;

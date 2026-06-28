@@ -6,8 +6,7 @@ function readSecretFile(filePath) {
   const p = typeof filePath === 'string' ? filePath.trim() : '';
   if (!p) return '';
   try {
-    const content = fs.readFileSync(p, 'utf8');
-    return typeof content === 'string' ? content.trim() : '';
+    return fs.readFileSync(p, 'utf8').trim();
   } catch {
     return '';
   }
@@ -22,13 +21,16 @@ function getConfigValue(name) {
 }
 
 const connection = mysql.createPool({
-  host: getConfigValue('DB_HOST'),
-  user: getConfigValue('DB_USER'),
-  password: getConfigValue('DB_PASSWORD'),
-  database: getConfigValue('DB_NAME'),
+  host: getConfigValue('MYSQL_HOST') || getConfigValue('DB_HOST') || 'localhost',
+  user: getConfigValue('MYSQL_USER') || getConfigValue('DB_USER') || 'root',
+  password: getConfigValue('MYSQL_PASSWORD') || getConfigValue('DB_PASSWORD') || '',
+  database: getConfigValue('MYSQL_DATABASE') || getConfigValue('DB_NAME') || 'academy_database',
   waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
+  connectionLimit: 20,
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 10000,
+  charset: 'utf8mb4'
 });
 
 module.exports = connection.promise();

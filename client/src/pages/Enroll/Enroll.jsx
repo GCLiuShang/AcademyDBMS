@@ -6,6 +6,7 @@ import Details from '../../components/Details/Details';
 import { useAIChatFeatures } from '../../components/AIChat/AIChatContext';
 import { getCurrentUserFromStorage } from '../../utils/userSession';
 import './Enroll.css';
+import { notify } from '../../utils/notify';
 
 const API_BASE = '';
 
@@ -44,7 +45,7 @@ const Enroll = () => {
   useEffect(() => {
     const fetchBusinessFlags = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/business/status`);
+        const res = await fetch(`${API_BASE}/api/academy/business/status`);
         const json = await res.json();
         if (json.success) {
           setBusinessFlags({
@@ -80,7 +81,7 @@ const Enroll = () => {
         limit: leftPageSize,
       };
       if (leftSearch.Cname) body.searchName = leftSearch.Cname;
-      const res = await fetch(`${API_BASE}/api/enroll/available`, {
+      const res = await fetch(`${API_BASE}/api/academy/enroll/available`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -133,7 +134,7 @@ const Enroll = () => {
         limit: rightPageSize,
       };
       if (rightSearch.Cname) body.searchName = rightSearch.Cname;
-      const res = await fetch(`${API_BASE}/api/enroll/selected`, {
+      const res = await fetch(`${API_BASE}/api/academy/enroll/selected`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -190,11 +191,11 @@ const Enroll = () => {
       if (!userInfo?.Uno) return;
       if (!row?.courNo) return;
       if (businessFlags && !businessFlags.enrollOpen) {
-        alert('当前学生选课业务未开放');
+        notify('当前学生选课业务未开放');
         return;
       }
       try {
-        const res = await fetch(`${API_BASE}/api/enroll/select`, {
+        const res = await fetch(`${API_BASE}/api/academy/enroll/select`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -203,13 +204,13 @@ const Enroll = () => {
         });
         const json = await res.json().catch(() => null);
         if (!res.ok || !json?.success) {
-          alert((json && json.message) || '选课失败');
+          notify((json && json.message) || '选课失败');
           return;
         }
         fetchLeftData();
         fetchRightData();
       } catch {
-        alert('选课失败');
+        notify('选课失败');
       }
     },
     [businessFlags, fetchLeftData, fetchRightData, userInfo?.Uno]
@@ -220,11 +221,11 @@ const Enroll = () => {
       if (!userInfo?.Uno) return;
       if (!row?.courNo) return;
       if (businessFlags && !businessFlags.enrollOpen) {
-        alert('当前学生选课业务未开放');
+        notify('当前学生选课业务未开放');
         return;
       }
       try {
-        const res = await fetch(`${API_BASE}/api/enroll/drop`, {
+        const res = await fetch(`${API_BASE}/api/academy/enroll/drop`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -233,13 +234,13 @@ const Enroll = () => {
         });
         const json = await res.json().catch(() => null);
         if (!res.ok || !json?.success) {
-          alert((json && json.message) || '退课失败');
+          notify((json && json.message) || '退课失败');
           return;
         }
         fetchLeftData();
         fetchRightData();
       } catch {
-        alert('退课失败');
+        notify('退课失败');
       }
     },
     [businessFlags, fetchLeftData, fetchRightData, userInfo?.Uno]

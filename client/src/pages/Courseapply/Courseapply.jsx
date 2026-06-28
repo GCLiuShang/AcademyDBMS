@@ -4,6 +4,7 @@ import MorePageLayout from '../../components/Layout/MorePageLayout';
 import Table from '../../components/Table/Table';
 import { getCurrentUserFromStorage } from '../../utils/userSession';
 import './Courseapply.css';
+import { notify } from '../../utils/notify';
 
 const Courseapply = () => {
   const navigate = useNavigate();
@@ -58,7 +59,7 @@ const Courseapply = () => {
   useEffect(() => {
     const fetchBusinessFlags = async () => {
       try {
-        const res = await fetch('/api/business/status');
+        const res = await fetch('/api/academy/business/status');
         const json = await res.json();
         if (json.success) {
           setBusinessFlags({
@@ -112,7 +113,7 @@ const Courseapply = () => {
     const fetchBasicOptions = async () => {
       try {
         const campusParams = new URLSearchParams({ tableName: 'Campus', page: 1, limit: 200, orderBy: 'Cam_name', orderDir: 'ASC' });
-        const campusRes = await fetch(`/api/common/table/list?${campusParams.toString()}`);
+        const campusRes = await fetch(`/api/academy/common/table/list?${campusParams.toString()}`);
         const campusJson = await campusRes.json();
         if (campusJson.success) {
           const options = (campusJson.data || [])
@@ -129,7 +130,7 @@ const Courseapply = () => {
 
       try {
         const dayParams = new URLSearchParams({ tableName: 'Dayofweek', page: 1, limit: 20, orderBy: 'Day', orderDir: 'ASC' });
-        const dayRes = await fetch(`/api/common/table/list?${dayParams.toString()}`);
+        const dayRes = await fetch(`/api/academy/common/table/list?${dayParams.toString()}`);
         const dayJson = await dayRes.json();
         if (dayJson.success) {
           const options = (dayJson.data || []).map((r) => String(r.Day)).filter((d) => /^[1-7]$/.test(d));
@@ -149,7 +150,7 @@ const Courseapply = () => {
 
     const initView = async () => {
       try {
-        const res = await fetch('/api/courseapply/view/init', {
+        const res = await fetch('/api/academy/courseapply/view/init', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({}),
@@ -173,7 +174,7 @@ const Courseapply = () => {
     return () => {
       const currentUser = userInfoRef.current;
       if (!currentUser?.Uno) return;
-      fetch('/api/courseapply/view/cleanup', {
+      fetch('/api/academy/courseapply/view/cleanup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
@@ -197,7 +198,7 @@ const Courseapply = () => {
         }, {}),
       });
 
-      const res = await fetch(`/api/common/table/list?${params.toString()}`);
+      const res = await fetch(`/api/academy/common/table/list?${params.toString()}`);
       const json = await res.json();
       if (json.success) {
         setData(json.data || []);
@@ -223,7 +224,7 @@ const Courseapply = () => {
         orderDir: 'ASC',
         search_Cno: query,
       });
-      const res = await fetch(`/api/common/table/list?${params.toString()}`);
+      const res = await fetch(`/api/academy/common/table/list?${params.toString()}`);
       const json = await res.json();
       if (json.success) return json.data || [];
       return [];
@@ -242,7 +243,7 @@ const Courseapply = () => {
         orderDir: 'ASC',
         search_Pno: query,
       });
-      const res = await fetch(`/api/common/table/list?${params.toString()}`);
+      const res = await fetch(`/api/academy/common/table/list?${params.toString()}`);
       const json = await res.json();
       if (json.success) return json.data || [];
       return [];
@@ -329,7 +330,7 @@ const Courseapply = () => {
     const finalPmax = Math.min(120, Math.floor(pmaxNumRaw));
 
     try {
-      const res = await fetch('/api/courseapply/submit', {
+      const res = await fetch('/api/academy/courseapply/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -354,10 +355,10 @@ const Courseapply = () => {
         setCurrentPage(1);
         fetchData();
       } else {
-        alert(json.message || '提交失败');
+        notify(json.message || '提交失败');
       }
     } catch {
-      alert('提交失败');
+      notify('提交失败');
     }
   };
 
@@ -595,7 +596,7 @@ const Courseapply = () => {
                     }
                     const nextNum = Number(digits);
                     if (Number.isFinite(nextNum) && nextNum >= 120) {
-                      if (maxStudents !== '120') alert('最大人数为120，如需多于120请新建一个业务');
+                      if (maxStudents !== '120') notify('最大人数为120，如需多于120请新建一个业务');
                       setMaxStudents('120');
                       return;
                     }

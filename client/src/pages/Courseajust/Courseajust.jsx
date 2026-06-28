@@ -4,6 +4,7 @@ import MorePageLayout from '../../components/Layout/MorePageLayout';
 import Table from '../../components/Table/Table';
 import { getCurrentUserFromStorage } from '../../utils/userSession';
 import './Courseajust.css';
+import { notify } from '../../utils/notify';
 
 const API_BASE = '';
 
@@ -48,7 +49,7 @@ const Courseajust = () => {
 
     const initView = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/courseajust/view/init`, {
+        const res = await fetch(`${API_BASE}/api/academy/courseajust/view/init`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({}),
@@ -69,7 +70,7 @@ const Courseajust = () => {
     return () => {
       const currentUser = userInfoRef.current;
       if (!currentUser?.Uno) return;
-      fetch(`${API_BASE}/api/courseajust/view/cleanup`, {
+      fetch(`${API_BASE}/api/academy/courseajust/view/cleanup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
@@ -93,7 +94,7 @@ const Courseajust = () => {
         }, {}),
       });
 
-      const res = await fetch(`${API_BASE}/api/common/table/list?${params.toString()}`);
+      const res = await fetch(`${API_BASE}/api/academy/common/table/list?${params.toString()}`);
       const json = await res.json();
       if (json.success) {
         setData(json.data || []);
@@ -118,7 +119,7 @@ const Courseajust = () => {
       const confirmed = window.confirm('您是否确认负责当前学时的任教？');
       if (!confirmed) return;
       try {
-        const res = await fetch(`${API_BASE}/api/courseajust/replace`, {
+        const res = await fetch(`${API_BASE}/api/academy/courseajust/replace`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -128,12 +129,12 @@ const Courseajust = () => {
         });
         const json = await res.json().catch(() => null);
         if (!res.ok || !json?.success) {
-          alert((json && json.message) || '替换失败');
+          notify((json && json.message) || '替换失败');
           return;
         }
         fetchData();
       } catch {
-        alert('替换失败');
+        notify('替换失败');
       }
     },
     [fetchData, userInfo?.Uno]

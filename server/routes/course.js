@@ -10,6 +10,7 @@ const router = express.Router();
 router.use(requireAuth);
 router.use('/courseapply', authorize(['教授'], { dept: 'professor' }));
 router.use('/courseajust', authorize(['教授']));
+router.use('/course/search', authorize([]));
 router.use('/arrange', authorize(['学校教务处管理员']));
 
 router.post('/course/search', async (req, res) => {

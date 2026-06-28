@@ -8,9 +8,7 @@ async function withTransaction(work) {
     await connection.commit();
     return result;
   } catch (error) {
-    try {
-      await connection.rollback();
-    } catch {}
+    try { await connection.rollback(); } catch {}
     throw error;
   } finally {
     connection.release();

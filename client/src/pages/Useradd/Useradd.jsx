@@ -4,6 +4,7 @@ import MorePageLayout from '../../components/Layout/MorePageLayout';
 import Table from '../../components/Table/Table';
 import { getCurrentUserFromStorage } from '../../utils/userSession';
 import './Useradd.css';
+import { notify } from '../../utils/notify';
 
 const API_BASE = '';
 
@@ -96,7 +97,7 @@ const Useradd = () => {
           orderBy: 'Dept_no',
           orderDir: 'ASC',
         });
-        const res = await fetch(`${API_BASE}/api/common/table/list?${params.toString()}`);
+        const res = await fetch(`${API_BASE}/api/academy/common/table/list?${params.toString()}`);
         const json = await res.json();
         if (json.success) {
           const rows = Array.isArray(json.data) ? json.data : [];
@@ -130,7 +131,7 @@ const Useradd = () => {
           orderDir: 'ASC',
           search_Dom_dept: dept.Dept_no,
         });
-        const res = await fetch(`${API_BASE}/api/common/table/list?${params.toString()}`);
+        const res = await fetch(`${API_BASE}/api/academy/common/table/list?${params.toString()}`);
         const json = await res.json();
         if (json.success) {
           const rows = Array.isArray(json.data) ? json.data : [];
@@ -161,7 +162,7 @@ const Useradd = () => {
           orderDir: 'ASC',
           search_Class_dom: dom.Dom_no,
         });
-        const res = await fetch(`${API_BASE}/api/common/table/list?${params.toString()}`);
+        const res = await fetch(`${API_BASE}/api/academy/common/table/list?${params.toString()}`);
         const json = await res.json();
         if (json.success) {
           const rows = Array.isArray(json.data) ? json.data : [];
@@ -191,7 +192,7 @@ const Useradd = () => {
           return acc;
         }, {}),
       });
-      const res = await fetch(`${API_BASE}/api/common/table/list?${params.toString()}`);
+      const res = await fetch(`${API_BASE}/api/academy/common/table/list?${params.toString()}`);
       const json = await res.json();
       if (json.success) {
         setData(json.data || []);
@@ -304,14 +305,14 @@ const Useradd = () => {
     };
 
     try {
-      const res = await fetch(`${API_BASE}/api/useradd/submit`, {
+      const res = await fetch(`${API_BASE}/api/academy/useradd/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
       const json = await res.json();
       if (!res.ok || !json?.success) {
-        alert(json?.message || '新增用户失败');
+        notify(json?.message || '新增用户失败');
         return;
       }
 
@@ -327,12 +328,12 @@ const Useradd = () => {
       setCurrentPage(1);
       fetchData();
       if (json.uno) {
-        alert(`新增用户成功，编号为 ${json.uno}`);
+        notify(`新增用户成功，编号为 ${json.uno}`);
       } else {
-        alert('新增用户成功');
+        notify('新增用户成功');
       }
     } catch {
-      alert('新增用户失败');
+      notify('新增用户失败');
     }
   };
 

@@ -5,15 +5,13 @@ import './Breadcrumb.css';
 const MotionDiv = motion.div;
 
 const COLORS = [
-  '#00489B', '#005BC0', '#006CE2', '#1182FF', 
-  '#3F9AFF', '#69B0FF', '#8FC4FF', '#B7D9FF'
+  '#1A56DB', '#2563EB', '#3B82F6', '#609AFA',
+  '#83B4FF', '#A8CAFF', '#C8DDFF', '#E3EEFF'
 ];
 
-let globalLastPath = []; // Module-level variable to persist across unmounts
-
-// Helper: Calculate new display items state
+// 计算新的显示项状态
 const calculateNewState = (prevPath, nextPath, currentDisplayItems) => {
-    // 1. Check if identical
+    // 检查是否相同
     if (prevPath.length === nextPath.length && prevPath.every((p, i) => p.id === nextPath[i].id)) {
         return currentDisplayItems.length > 0 ? currentDisplayItems : nextPath.map(p => ({ ...p, status: 'static' }));
     }
@@ -21,14 +19,9 @@ const calculateNewState = (prevPath, nextPath, currentDisplayItems) => {
     const currentIds = new Set(nextPath.map(p => p.id));
     let newItems = [...currentDisplayItems];
 
-    // Handle Mount/Init case where currentDisplayItems is empty but we have history
+    // 处理挂载/初始化时 currentDisplayItems 为空的情况
     if (newItems.length === 0) {
-        if (prevPath.length > 0) {
-            newItems = prevPath.map(p => ({ ...p, status: 'static' }));
-        } else {
-            // First ever load
-            return nextPath.map(p => ({ ...p, status: 'static' }));
-        }
+        return nextPath.map(p => ({ ...p, status: 'static' }));
     }
 
     // 2. Diff
@@ -36,18 +29,18 @@ const calculateNewState = (prevPath, nextPath, currentDisplayItems) => {
     const removed = prevPath.filter(p => !nextPath.some(pp => pp.id === p.id));
 
     if (added.length > 0) {
-      // --- Forward Animation ---
+      // 前向动画
       newItems = newItems.filter(i => i.status !== 'exiting');
-      
+
       added.forEach(item => {
         newItems.push({ ...item, status: 'entering' });
       });
     } else if (removed.length > 0) {
-      // --- Backward Animation ---
+      // 后向动画
       const count = removed.length;
-      const duration = 0.4 / (count || 1); 
-      
-      // Mark removed items as 'exiting' in the current list
+      const duration = 0.4 / (count || 1);
+
+      // 将移除的项标记为 'exiting'
       const exitingIndices = [];
       newItems = newItems.map((item, index) => {
         if (!currentIds.has(item.id)) {
@@ -57,25 +50,25 @@ const calculateNewState = (prevPath, nextPath, currentDisplayItems) => {
         return item;
       });
 
-      // Calculate delays for sequential fade out (Right to Left)
+      // 计算顺序淡出的延迟（从右到左）
       newItems = newItems.map((item, index) => {
         if (item.status === 'exiting') {
           const groupIndex = exitingIndices.indexOf(index);
-          const reverseIndex = exitingIndices.length - 1 - groupIndex; 
-          
+          const reverseIndex = exitingIndices.length - 1 - groupIndex;
+
           const delay = reverseIndex * duration;
           return { ...item, duration: duration, delay };
         }
         return item;
       });
     } else {
-      // No change detected by diff logic
+      // Diff 未检测到变化
        if (newItems.length === 0) {
          newItems = nextPath.map(p => ({ ...p, status: 'static' }));
-       } 
+       }
     }
 
-    // Synchronize properties
+    // 同步属性
     newItems = newItems.map(item => {
       if (item.status === 'exiting') return item;
       const latest = nextPath.find(p => p.id === item.id);
@@ -89,7 +82,7 @@ const calculateNewState = (prevPath, nextPath, currentDisplayItems) => {
     return newItems;
 };
 
-// Shared measurement context to avoid repeated object creation
+// 共享测量上下文，避免重复创建对象
 const measurementCanvas = typeof document !== 'undefined' ? document.createElement('canvas') : null;
 const measurementContext = measurementCanvas ? measurementCanvas.getContext('2d') : null;
 
@@ -106,26 +99,24 @@ const getSpaceWidth = () => {
   return measurementContext.measureText(' ').width;
 };
 
-/**
- * Breadcrumb Component
- */
 const Breadcrumb = memo(({ path, onNavigate }) => {
-  // Initialize state based on global history to handle unmount/remount
+  // 不使用模块级变量 globalLastPath（已移除），该变量曾跨挂载实例残留
+  // 导致新挂载的 Breadcrumb 初始化到旧的路径状态。
+  // 路径状态变化完全由 useLayoutEffect 中的 diff 逻辑驱动。
   const [displayItems, setDisplayItems] = useState(() => {
-    return calculateNewState(globalLastPath, path, []);
+    return calculateNewState(path, path, []);
   });
-  
-  // Track internal updates
-  const prevPathRef = useRef(path); 
+
+  // 跟踪内部更新
+  const prevPathRef = useRef(path);
   useLayoutEffect(() => {
     const prevPath = prevPathRef.current;
     if (prevPath === path) return;
     setDisplayItems(current => calculateNewState(prevPath, path, current));
     prevPathRef.current = path;
-    globalLastPath = path;
   }, [path]);
 
-  // Derive widths and positions synchronously to avoid flickering
+  // 同步计算宽度和位置，避免闪烁
   const { widths, positions, spaceWidth } = useMemo(() => {
     const sw = getSpaceWidth();
     const newWidths = {};
@@ -137,7 +128,7 @@ const Breadcrumb = memo(({ path, onNavigate }) => {
     displayItems.forEach((item, index) => {
       const w = newWidths[item.id] || 100;
       if (index === 0) {
-        newPositions[item.id] = -w / 2; // Offset for visual style
+        newPositions[item.id] = -w / 2; // 偏移
       } else {
         const prevId = displayItems[index - 1].id;
         const prevLeft = newPositions[prevId];
@@ -149,11 +140,11 @@ const Breadcrumb = memo(({ path, onNavigate }) => {
     return { widths: newWidths, positions: newPositions, spaceWidth: sw };
   }, [displayItems]);
 
-  // Effect to handle ONLY cleanup timers for exiting items
+  // 处理退出项的清理定时器
   useEffect(() => {
     const exitingItems = displayItems.filter(i => i.status === 'exiting');
     if (exitingItems.length > 0) {
-        // Calculate max wait time
+        // 计算最大等待时间
         let maxDuration = 0;
         exitingItems.forEach(item => {
             const end = (item.delay || 0) + (item.duration || 0.4);
@@ -171,8 +162,8 @@ const Breadcrumb = memo(({ path, onNavigate }) => {
   const handleClick = (index) => {
     const item = displayItems[index];
     if (item.status === 'exiting') return;
-    
-    // Check if clicking the last valid item (do nothing)
+
+    // 如果点击的是最后一个有效项，不做任何操作
     const validItems = displayItems.filter(i => i.status !== 'exiting');
     const validIndex = validItems.findIndex(i => i.id === item.id);
     if (validIndex === validItems.length - 1) return;
@@ -180,10 +171,10 @@ const Breadcrumb = memo(({ path, onNavigate }) => {
     onNavigate(item);
   };
 
-  // Framer Motion Variants
+  // Framer Motion 动画变体
   const variants = {
-    entering: { 
-      x: [-50, 0], // Slide in from left
+    entering: {
+      x: [-50, 0], // 从左滑入
       opacity: [0, 1],
       transition: { duration: 0.4, ease: "easeOut" }
     },
@@ -215,14 +206,11 @@ const Breadcrumb = memo(({ path, onNavigate }) => {
             key={item.id}
             className={`breadcrumb-item ${item.status}`}
             onClick={() => handleClick(index)}
-            
-            // Initial state logic
+
             initial={item.status === 'entering' ? { x: -50, opacity: 0 } : { x: 0, opacity: 1 }}
-            
-            // Animation state
+
             animate={item.status === 'exiting' ? 'exiting' : (item.status === 'entering' ? 'entering' : 'static')}
-            
-            // Pass custom data (delay, duration) to variants
+
             custom={{ delay: item.delay || 0, duration: item.duration }}
             variants={variants}
 
@@ -231,7 +219,6 @@ const Breadcrumb = memo(({ path, onNavigate }) => {
               left: `${left}px`,
               zIndex: zIndex,
               backgroundColor: color,
-              // Motion handles transform and opacity, standard CSS handles layout
             }}
           >
             <div className="breadcrumb-text-half" style={{ paddingLeft: `${spaceWidth * 2}px` }}>
